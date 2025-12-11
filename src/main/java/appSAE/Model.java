@@ -20,7 +20,7 @@ public class Model implements Sujet{
 
     // Méthode pour modifier une tâche par son nom
     public void modifier(String nomtache){
-        // TODO
+        
     }
 
     // Méthode pour modifier une tâche par son nom, description et statut
@@ -48,16 +48,22 @@ public class Model implements Sujet{
 
     @Override
     public void enregistrerObservateur(Observateur o) {
-
+        this.obs.add(o);
     }
 
     @Override
     public void notifierObservateur() {
-
+        for (int i = 0; i < this.obs.size(); i++) {
+            Observateur observer = this.obs.get(i);
+            observer.actualiser(this);
+        }
     }
 
     @Override
-    public void supprimerObservateur(Observateur o) {
-
+    public void supprimerObservateur(Observateur o){
+            int i = this.obs.indexOf(o);
+            if (i >= 0) {
+                this.obs.remove(i);
+            }
     }
 }
