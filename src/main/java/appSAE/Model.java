@@ -17,13 +17,30 @@ public class Model implements Sujet{
     }
 
     // Méthode pour modifier une tâche par son nom
-    public void modifier(String nomtache){
-        // TODO
+    public void modifierNom(String nomtache){
+        for (Liste liste : listes) {
+            for (CompositeTache t : liste.getTaches()) {
+                if (t.getTitre().equals(nomtache)) {
+                    t.titre = nomtache; // titre est protected dans Tache
+                    notifierObservateur();
+                    return; // On modifie la première tâche trouvée
+                }
+            }
+        }
     }
 
     // Méthode pour modifier une tâche par son nom, description et statut
-    public void modifier(String nomtache, String description, String status){
-        // TODO
+    public void modifierTout(String nomtache, String description, String date){
+        for (Liste liste : listes) {
+            for (CompositeTache t : liste.getTaches()) {
+                if (t.getTitre().equals(nomtache)) {
+                    t.description = description;
+                    t.date = date;
+                    notifierObservateur();
+                    return;
+                }
+            }
+        }
     }
 
     @Override
