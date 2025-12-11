@@ -5,84 +5,140 @@ package appSAE;
 // ON REMPLACERA LES VARIABLES INTERNES PAR L'UTILISATION DE CES METHODES ET DE CES FICHIERS LA
 public class MainTerminal {
 
-    public static void main(String[] args) {
-        // 1) Créer une liste d'exemple
-        //    Appeler une méthode privée qui retourne une Liste remplie de tâches
-        //       Liste liste = creerListeDeTest();
+        public static void main(String[] args) {
 
-        // 2) Afficher le contenu de cette liste dans le terminal
-        //    Appeler une méthode privée d'affichage (si on en a pas)
-        //       afficherListe(liste);
+            // On crée une liste remplie avec quelques tâches pour tester l'affichage
+            Liste liste = creerListeDeTest();
+
+            // On affiche cette liste dans le terminal
+            afficherListe(liste);
+        }
+
+
+        /**
+         * Cette méthode crée une Liste avec 2 tâches principales et 2 sous-tâches.
+         * Elle sert juste à avoir un exemple visuel avant JavaFX.
+         */
+        private static Liste creerListeDeTest() {
+
+            // On crée une nouvelle liste
+            Liste liste = new Liste("Ma liste de test");
+
+            // --- TÂCHE PRINCIPALE 1 ---
+            CompositeTache t1 = new CompositeTache(
+                    "Préparer la soutenance",
+                    "Faire un plan + des slides",
+                    "2025-01-10"
+            );
+
+            // Sous-tâche 1.1
+            CompositeTache t1_1 = new CompositeTache(
+                    "Faire le plan",
+                    "Trouver les parties",
+                    "2025-01-05"
+            );
+
+            // Sous-tâche 1.2
+            CompositeTache t1_2 = new CompositeTache(
+                    "Faire les slides",
+                    "Faire les diapositives",
+                    "2025-01-07"
+            );
+
+            // On ajoute les sous-tâches à la tâche principale
+            t1.ajouterTache(t1_1);
+            t1.ajouterTache(t1_2);
+
+
+            // --- TÂCHE PRINCIPALE 2 ---
+            CompositeTache t2 = new CompositeTache(
+                    "Faire l'affichage JavaFX",
+                    "Préparer les pages et le design",
+                    "2025-01-15"
+            );
+
+            // On ajoute les tâches principales à la liste
+            liste.getTaches().add(t1);
+            liste.getTaches().add(t2);
+
+            return liste;
+        }
+
+
+        /**
+         * Affiche la liste dans le terminal :
+         * - son titre
+         * - toutes les tâches principales
+         * - leurs sous-tâches avec indentation
+         */
+        private static void afficherListe(Liste liste) {
+
+            System.out.println("==============================");
+            System.out.println(" Liste : " + liste.getTitre());
+            System.out.println("==============================\n");
+
+            // Si aucune tâche n'a été ajoutée
+            if (liste.getTaches().isEmpty()) {
+                System.out.println("Aucune tâche pour le moment.");
+                return;
+            }
+
+            // On parcourt toutes les tâches principales
+            int numero = 1;
+            for (CompositeTache tachePrincipale : liste.getTaches()) {
+
+                // On affiche la tâche principale
+                System.out.println(numero + ". " + formatTache(tachePrincipale));
+
+                // On affiche ses sous-tâches
+                afficherSousTaches(tachePrincipale, "   ");
+
+                System.out.println(); // saute une ligne
+                numero++;
+            }
+        }
+
+
+        /**
+         * Affiche les sous-tâches avec indentation.
+         * Exemple :
+         *   - [ ] Faire le plan...
+         *   - [ ] Faire les slides...
+         */
+        private static void afficherSousTaches(CompositeTache tache, String indent) {
+
+            // Si aucune sous-tâche
+            if (tache.getTaches().isEmpty()) {
+                return;
+            }
+
+            // Pour chaque sous-tâche
+            for (Tache t : tache.getTaches()) {
+
+                // Comme on a que CompositeTache, on peut caster simplement
+                CompositeTache sousTache = (CompositeTache) t;
+
+                // On affiche la sous-tâche avec une indentation (ex: 3 espaces)
+                System.out.println(indent + "- " + formatTache(sousTache));
+
+                // Si la sous-tâche contient elle-même d'autres sous-tâches,
+                // on rappelle la méthode (affichage en mode "arborescence")
+                afficherSousTaches(sousTache, indent + "   ");
+            }
+        }
+
+
+        /**
+         * Transforme une tâche en texte simple à afficher.
+         * Exemple :
+         *    [ ] Faire les slides (2025-01-07) - Faire les diapositives
+         */
+        private static String formatTache(CompositeTache tache) {
+            String etat = tache.estFait() ? "[X]" : "[ ]";
+
+            return etat + " " + tache.getTitre()
+                    + " (" + tache.getDate() + ")"
+                    + " - " + tache.getDescription();
+        }
     }
-
-     // Méthode qui crée une Liste avec quelques CompositeTache pour tester
-     // Créer un objet Liste avec un titre
-     // Créer 2 ou 3 CompositeTache (tâches principales)
-            // un titre
-            // une description
-            // une date (sous forme de String)
-     // pour une de ces CompositeTache, créer des sous-tâches
-            // encore des CompositeTache
-            // les ajouter à la tâche parent
-     // Ajouter les tâches principales dans la liste :
-            // avec getTache().add(tâche);
-     // Retourner la liste
-
-    private static Liste creerListeDeTest() {
-        Liste liste = new Liste("Liste de tests");
-        return liste; // → enlever commentaire quand méthode finie
-    }
-
-    /**
-     * Affiche dans le terminal le contenu d'une Liste.
-     *  - Afficher une ligne de séparation (ex: "====")
-     *  - Afficher "Liste : " + le titre de la liste
-     *  - Si la liste ne contient aucune tâche :
-     *        - afficher un message "(Aucune tâche)" + return
-     *  - Sinon :
-     *        - parcourir la liste des CompositeTache
-     *        - pour chaque CompositeTache :
-     *              - afficher son numéro (1., 2., 3., etc.)
-     *              - afficher ses infos (titre, date, description, état) (déléguer ça a une méthode formattage)
-     *              - appeler une méthode afficherSousTaches(...) pour ses sous-tâches
-     *              - afficher une ligne vide entre chaque tâche principale
-     */
-    private static void afficherListe(Liste liste) {
-        // Le code au dessus
-    }
-
-    /**
-     * Affiche les sous-tâches d'une CompositeTache avec indentation.
-     *
-     *  - Récupérer la liste des Tache contenues dans ct : ct.getTaches()
-     *  - Si la liste est vide : ne rien faire (return)
-     *  - Sinon :
-     *        - pour chaque Tache de la liste :
-     *              - Si c'est une CompositeTache (instanceof CompositeTache) :
-     *                    - caster en CompositeTache
-     *                    - afficher une ligne avec l'indentation suivi de "- " + formatTache(sousTache)
-     *                    - rappeler récursivement afficherSousTaches(...) avec indent + "   "
-     *              - (Plus tard : si tu ajoutes une TacheSimple, tu pourras l'afficher différemment)
-     */
-    private static void afficherSousTaches(CompositeTache ct, String indentation) {
-        // code au dessus
-    }
-
-    /**
-     * Transforme une CompositeTache en texte lisible.
-     * Par exemple :
-     *   [ ] Préparer la soutenance (date : 10-12-2025) - Faire l'exposé...
-     *  - Créer une variable statut :
-     *        - "[X]" si t.estFait() vaut true
-     *        - "[ ]" sinon
-     *  - Retourner une chaîne qui concatène :
-     *        - le statut
-     *        - le titre (t.getTitre())
-     *        - la date (t.getDate())
-     *        - la description (t.getDescription())
-     */
-    private static String formatTache(CompositeTache t) {
-        // → Exemple : "[ ] Titre (date : ...) - description" ou autre
-        return null; // À remplacer par la chaîne
-    }
-}
+    
