@@ -3,7 +3,6 @@ module appSAE {
     requires javafx.fxml;
     requires java.desktop;
 
-
     opens appSAE to javafx.fxml;
     exports appSAE;
 }
