@@ -23,9 +23,9 @@ public class LireFichier {
         return contenu.toString();
     }
 
-
+/*
     public static String lireFicher(String fichier, ) throws IOException {}
-
+*/
     @Override
     public String toString() {
         return super.toString();
