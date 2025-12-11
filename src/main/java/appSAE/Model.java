@@ -5,11 +5,11 @@ import java.util.List;
 
 public class Model implements Sujet{
     private List<Observateur> obs;
-    private List<liste> listes;
+    private List<Liste> listes;
 
     public Model() {
         obs = new ArrayList<Observateur>();
-        listes = new ArrayList<liste>();
+        listes = new ArrayList<Liste>();
     }
 
 
@@ -46,4 +46,18 @@ public class Model implements Sujet{
         }
     }
 
+    @Override
+    public void enregistrerObservateur(Observateur o) {
+
+    }
+
+    @Override
+    public void notifierObservateur() {
+
+    }
+
+    @Override
+    public void supprimerObservateur(Observateur o) {
+
+    }
 }
