@@ -1,4 +1,4 @@
-package com.example.saetrello;
+package appSAE;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
