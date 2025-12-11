@@ -7,7 +7,7 @@ public class MainTerminal {
 
         public static void main(String[] args) {
 
-            // On crée une liste remplie avec quelques tâches pour tester l'affichage
+            // On crée une liste remplie avec quelques taches pour tester l'affichage
             Liste liste = creerListeDeTest();
 
             // On affiche cette liste dans le terminal
@@ -16,48 +16,48 @@ public class MainTerminal {
 
 
         /**
-         * Cette méthode crée une Liste avec 2 tâches principales et 2 sous-tâches.
+         * Cette méthode crée une Liste avec 2 taches principales et 2 sous taches.
          * Elle sert juste à avoir un exemple visuel avant JavaFX.
          */
         private static Liste creerListeDeTest() {
 
             // On crée une nouvelle liste
             Liste liste = new Liste("Ma liste de test");
-
-            // --- TÂCHE PRINCIPALE 1 ---
+            
+            //tache principale
             CompositeTache t1 = new CompositeTache(
                     "Préparer la soutenance",
                     "Faire un plan + des slides",
-                    "2025-01-10"
+                    "XX/XX/XXXX"
             );
 
-            // Sous-tâche 1.1
+            // Sous tache 1
             CompositeTache t1_1 = new CompositeTache(
                     "Faire le plan",
                     "Trouver les parties",
-                    "2025-01-05"
+                    "XX/XX/XXXX"
             );
 
-            // Sous-tâche 1.2
+            // Sous tache 2
             CompositeTache t1_2 = new CompositeTache(
                     "Faire les slides",
                     "Faire les diapositives",
-                    "2025-01-07"
+                    "XX/XX/XXXX"
             );
 
-            // On ajoute les sous-tâches à la tâche principale
+            // On ajoute les sous taches à la tache principale
             t1.ajouterTache(t1_1);
             t1.ajouterTache(t1_2);
 
 
-            // --- TÂCHE PRINCIPALE 2 ---
+            // tache principale 2
             CompositeTache t2 = new CompositeTache(
                     "Faire l'affichage JavaFX",
                     "Préparer les pages et le design",
-                    "2025-01-15"
+                    "XX/XX/XXXX"
             );
 
-            // On ajoute les tâches principales à la liste
+            // On ajoute les taches principales à la liste
             liste.getTaches().add(t1);
             liste.getTaches().add(t2);
 
@@ -68,8 +68,8 @@ public class MainTerminal {
         /**
          * Affiche la liste dans le terminal :
          * - son titre
-         * - toutes les tâches principales
-         * - leurs sous-tâches avec indentation
+         * - toutes les taches principales
+         * - leurs sous taches avec indentation
          */
         private static void afficherListe(Liste liste) {
 
@@ -77,20 +77,20 @@ public class MainTerminal {
             System.out.println(" Liste : " + liste.getTitre());
             System.out.println("==============================\n");
 
-            // Si aucune tâche n'a été ajoutée
+            // Si aucune tache n'a été ajoutée
             if (liste.getTaches().isEmpty()) {
-                System.out.println("Aucune tâche pour le moment.");
+                System.out.println("Aucune tache pour le moment.");
                 return;
             }
 
-            // On parcourt toutes les tâches principales
+            // On parcourt toutes les taches principales
             int numero = 1;
             for (CompositeTache tachePrincipale : liste.getTaches()) {
 
-                // On affiche la tâche principale
+                // On affiche la tache principale
                 System.out.println(numero + ". " + formatTache(tachePrincipale));
 
-                // On affiche ses sous-tâches
+                // On affiche ses sous taches
                 afficherSousTaches(tachePrincipale, "   ");
 
                 System.out.println(); // saute une ligne
@@ -100,28 +100,28 @@ public class MainTerminal {
 
 
         /**
-         * Affiche les sous-tâches avec indentation.
+         * Affiche les sous taches avec indentation.
          * Exemple :
          *   - [ ] Faire le plan...
          *   - [ ] Faire les slides...
          */
         private static void afficherSousTaches(CompositeTache tache, String indent) {
 
-            // Si aucune sous-tâche
+            // Si aucune sous tache
             if (tache.getTaches().isEmpty()) {
                 return;
             }
 
-            // Pour chaque sous-tâche
+            // Pour chaque sous tache
             for (Tache t : tache.getTaches()) {
 
                 // Comme on a que CompositeTache, on peut caster simplement
                 CompositeTache sousTache = (CompositeTache) t;
 
-                // On affiche la sous-tâche avec une indentation (ex: 3 espaces)
+                // On affiche la sous tache avec une indentation (ex: 3 espaces)
                 System.out.println(indent + "- " + formatTache(sousTache));
 
-                // Si la sous-tâche contient elle-même d'autres sous-tâches,
+                // Si la sous tache contient elle-même d'autres sous taches,
                 // on rappelle la méthode (affichage en mode "arborescence")
                 afficherSousTaches(sousTache, indent + "   ");
             }
@@ -129,9 +129,9 @@ public class MainTerminal {
 
 
         /**
-         * Transforme une tâche en texte simple à afficher.
+         * Transforme une tache en texte à afficher.
          * Exemple :
-         *    [ ] Faire les slides (2025-01-07) - Faire les diapositives
+         * Faire les slides - Faire les diapo
          */
         private static String formatTache(CompositeTache tache) {
             String etat = tache.estFait() ? "[X]" : "[ ]";
