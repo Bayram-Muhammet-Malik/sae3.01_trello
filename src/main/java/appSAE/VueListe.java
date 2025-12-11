@@ -1,18 +1,18 @@
-package exoMVC;
+package appSAE;
 
 import javafx.scene.control.Label;
 
 import java.util.Observer;
 
 public class VueListe extends Label implements Observateur {
-    private Modele modele;
+    private Model modele;
 
-    public VueListe(Modele modele) {
+    public VueListe(Model modele) {
         this.modele = modele;
     }
 
     public void actualiser(Sujet sujet) {
-        Modele modele = (Modele)sujet;
+        Model modele = (Model)sujet;
         System.out.println("actualiser " + modele);
     }
 }
