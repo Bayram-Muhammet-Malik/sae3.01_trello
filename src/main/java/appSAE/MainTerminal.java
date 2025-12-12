@@ -112,6 +112,15 @@ public class MainTerminal {
 
     /**************** LISTE*************/
 
+            // On crée une nouvelle liste
+            Liste liste = new Liste("Ma liste de test");
+            
+            //tache principale
+            CompositeTache t1 = new CompositeTache(
+                    "Préparer la soutenance",
+                    "Faire un plan + des slides",
+                    "XX/XX/XXXX"
+            );
 
     //afficher les listes
     private static void afficherListes(GestionnaireListes gestion) {
