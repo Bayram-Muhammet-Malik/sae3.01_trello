@@ -14,7 +14,7 @@ public class VueListe extends BorderPane implements Observateur {
 
     private final Model modele;
 
-    // Format demandé : JJ-MM-AAAA
+    // Format JJ-MM-AAAA
     private final DateTimeFormatter fmtStockage = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private final DateTimeFormatter fmtTitre = DateTimeFormatter.ofPattern("EEEE dd/MM");
 
@@ -47,7 +47,7 @@ public class VueListe extends BorderPane implements Observateur {
             return;
         }
 
-        // Tableau courant = 1ère liste (comme tu fais)
+        // Tableau courant
         Liste liste = modele.getListes().get(0);
 
         setTop(creerHeader("Tableau : " + liste.getTitre()));
@@ -111,7 +111,7 @@ public class VueListe extends BorderPane implements Observateur {
                         "-fx-border-radius: 10;"
         );
 
-        // ✅ IMPORTANT : remplir la carte avec les tâches de CE jour
+        // remplir la carte avec les tâches de ce jour
         List<CompositeTache> tachesDuJour = new ArrayList<>();
         for (CompositeTache t : liste.getTaches()) {
             if (eqDate(dateKey, t.getDate())) {
@@ -143,13 +143,13 @@ public class VueListe extends BorderPane implements Observateur {
         return blocJour;
     }
 
-    // comparaison robuste (espaces, null)
+    // comparaison
     private boolean eqDate(String a, String b) {
         if (a == null || b == null) return false;
         return a.trim().equals(b.trim());
     }
 
-    // ---------------- NOEUD TÂCHE (arborescence maquette) ----------------
+    // ---------------- NOEUD TÂCHE (maquette) ----------------
 
     private VBox creerNoeudTache(Tache tache, int niveau) {
         VBox noeud = new VBox(4);
@@ -247,7 +247,7 @@ public class VueListe extends BorderPane implements Observateur {
         rebuild();
     }
 
-    // ---------------- utilitaire toggle ----------------
+    // ---------------- utilitaire ----------------
 
     private static class ToggleGroupNode {
         private final Button arrow;
@@ -260,7 +260,7 @@ public class VueListe extends BorderPane implements Observateur {
             this.childrenBox = childrenBox;
             this.enabled = enabled;
 
-            // état initial : déplié
+            // état de base: déplié
             if (enabled) {
                 childrenBox.setVisible(true);
                 childrenBox.setManaged(true);
