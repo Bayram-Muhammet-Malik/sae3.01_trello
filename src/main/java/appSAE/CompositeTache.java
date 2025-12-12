@@ -1,9 +1,11 @@
 package appSAE;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompositeTache extends Tache {
+public class CompositeTache extends Tache implements Serializable {
+    private static final long serialVersionUID = 1L;
     private List<Tache> content = new ArrayList<>();
 
     public CompositeTache(String titre, String description, String date) {

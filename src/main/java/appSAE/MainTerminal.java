@@ -1,144 +1,311 @@
 package appSAE;
 
-// CLASSE TEMPORAIRE UTILISANT DES VARIABLES INTERNES POUR CREER ET PARCOURIR LA LISTE
-// PLUS TARD (QUAND ON AURA LES METHODES PERMETTANT DE RECUP LES INFOS DANS LES FICHIERS)
-// ON REMPLACERA LES VARIABLES INTERNES PAR L'UTILISATION DE CES METHODES ET DE CES FICHIERS LA
+import java.util.Scanner;
+
 public class MainTerminal {
 
-        public static void main(String[] args) {
+    public static void main(String[] args) {
+        GestionnaireListes gestion = FichierManager.charger("listes.data");
+        //GestionnaireListes gestion = new GestionnaireListes();
 
-            // On crée une liste remplie avec quelques taches pour tester l'affichage
-            Liste liste = creerListeDeTest();
+        Scanner sc = new Scanner(System.in);
+        boolean continuer = true;
 
-            // On affiche cette liste dans le terminal
-            afficherListe(liste);
+        while (continuer) {
+
+            System.out.println("\n===== MENU LISTES =====");
+            System.out.println("1 - Afficher les listes");
+            System.out.println("2 - Ajouter une liste");
+            System.out.println("3 - Supprimer une liste");
+            System.out.println("4 - Ouvrir une liste");
+            System.out.println("5 - Ajouter tâche");
+            System.out.println("6 - Ajouter sous-tâche");
+            System.out.println("0 - Quitter");
+            System.out.print("Choix : ");
+
+            int choix = sc.nextInt();
+            sc.nextLine();
+
+            switch (choix) {
+
+                case 1:
+                    afficherListes(gestion);
+                    break;
+
+                case 2:
+                    ajouterListe(gestion, sc);
+                    break;
+
+                case 3:
+                    supprimerListe(gestion, sc);
+                    break;
+
+                case 4:
+                    ouvrirListe(gestion, sc);
+                    break;
+
+                case 5:
+                    ajouterTacheDansUneListe(gestion, sc);
+                    break;
+
+                case 6:
+                    ajouterSousTacheDansUneListe(gestion, sc);
+                    break;
+                case 0:
+                    continuer = false;
+                    break;
+
+                default:
+                    System.out.println("Choix invalide.");
+            }
+
+            FichierManager.sauvegarder(gestion, "listes.data");
         }
 
-
-        /**
-         * Cette méthode crée une Liste avec 2 taches principales et 2 sous taches.
-         * Elle sert juste à avoir un exemple visuel avant JavaFX.
-         */
-        private static Liste creerListeDeTest() {
-
-            // On crée une nouvelle liste
-            Liste liste = new Liste("Ma liste de test");
-            
-            //tache principale
-            CompositeTache t1 = new CompositeTache(
-                    "Préparer la soutenance",
-                    "Faire un plan + des slides",
-                    "XX/XX/XXXX"
-            );
-
-            // Sous tache 1
-            CompositeTache t1_1 = new CompositeTache(
-                    "Faire le plan",
-                    "Trouver les parties",
-                    "XX/XX/XXXX"
-            );
-
-            // Sous tache 2
-            CompositeTache t1_2 = new CompositeTache(
-                    "Faire les slides",
-                    "Faire les diapositives",
-                    "XX/XX/XXXX"
-            );
-
-            // On ajoute les sous taches à la tache principale
-            t1.ajouterTache(t1_1);
-            t1.ajouterTache(t1_2);
+        sc.close();
+    }
 
 
-            // tache principale 2
-            CompositeTache t2 = new CompositeTache(
-                    "Faire l'affichage JavaFX",
-                    "Préparer les pages et le design",
-                    "XX/XX/XXXX"
-            );
 
-            // On ajoute les taches principales à la liste
-            liste.getTaches().add(t1);
-            liste.getTaches().add(t2);
 
-            return liste;
+
+
+
+
+    private static void menuTaches(Liste liste, Scanner sc) {
+        boolean continuer = true;
+
+        while (continuer) {
+            System.out.println("\n===== LISTE : " + liste.getTitre() + " =====");
+            System.out.println("1 - Afficher les tâches");
+            System.out.println("2 - Ajouter une tâche");
+            System.out.println("3 - Ajouter une sous-tâche");
+            System.out.println("4 - Supprimer une tâche");
+            System.out.println("0 - Retour");
+            System.out.print("Choix : ");
+
+            int choix = sc.nextInt();
+            sc.nextLine();
+
+            switch (choix) {
+                case 1:
+                    afficherListe(liste);
+                    break;
+                case 2:
+                    ajouterTache(liste, sc);
+                    break;
+                case 3:
+                    ajouterSousTache(liste, sc);
+                    break;
+                case 4:
+                    supprimerTache(liste, sc);
+                    break;
+                case 0:
+                    continuer = false;
+                    break;
+                default:
+                    System.out.println("Choix invalide.");
+            }
         }
+    }
 
 
-        /**
-         * Affiche la liste dans le terminal :
-         * - son titre
-         * - toutes les taches principales
-         * - leurs sous taches avec indentation
-         */
-        private static void afficherListe(Liste liste) {
+    /**************** LISTE*************/
 
+
+    //afficher les listes
+    private static void afficherListes(GestionnaireListes gestion) {
+        System.out.println("\n===== LISTES =====");
+        int i = 1;
+        for (Liste liste : gestion.getListes()) {
             System.out.println("==============================");
             System.out.println(" Liste : " + liste.getTitre());
             System.out.println("==============================\n");
 
-            // Si aucune tache n'a été ajoutée
             if (liste.getTaches().isEmpty()) {
                 System.out.println("Aucune tache pour le moment.");
                 return;
             }
 
-            // On parcourt toutes les taches principales
             int numero = 1;
             for (CompositeTache tachePrincipale : liste.getTaches()) {
-
-                // On affiche la tache principale
                 System.out.println(numero + ". " + formatTache(tachePrincipale));
-
-                // On affiche ses sous taches
                 afficherSousTaches(tachePrincipale, "   ");
-
-                System.out.println(); // saute une ligne
+                System.out.println();
                 numero++;
             }
+            i++;
+        }
+        if (gestion.getListes().isEmpty()) {
+            System.out.println("(Aucune liste)");
+        }
+        System.out.println("\n======================");
+    }
+
+    private static void ajouterListe(GestionnaireListes gestion, Scanner sc) {
+        System.out.print("Titre de la liste : ");
+        String titre = sc.nextLine();
+        gestion.ajouterListe(titre);
+        System.out.println("Liste ajoutée !!!!!!!!");
+    }
+
+    private static void supprimerListe(GestionnaireListes gestion, Scanner sc) {
+        afficherListes(gestion);
+        System.out.print("Numéro de la liste à supprimer : ");
+        int num = sc.nextInt();
+        sc.nextLine();
+        gestion.supprimerListe(num - 1);
+        System.out.println("Liste supprimée.");
+    }
+
+    private static void ouvrirListe(GestionnaireListes gestion, Scanner sc) {
+        afficherListes(gestion);
+        System.out.print("Numéro de la liste : ");
+        int num = sc.nextInt();
+        sc.nextLine();
+
+        Liste liste = gestion.getListe(num-1);
+        if (liste == null) {
+            System.out.println("Numéro invalide.");
+            return;
         }
 
+        menuTaches(liste, sc);
+    }
 
-        /**
-         * Affiche les sous taches avec indentation.
-         * Exemple :
-         *   - [ ] Faire le plan...
-         *   - [ ] Faire les slides...
-         */
-        private static void afficherSousTaches(CompositeTache tache, String indent) {
+    //afficher une liste
+    private static void afficherListe(Liste liste) {
+        System.out.println("==============================");
+        System.out.println(" Liste : " + liste.getTitre());
+        System.out.println("==============================\n");
 
-            // Si aucune sous tache
-            if (tache.getTaches().isEmpty()) {
-                return;
-            }
-
-            // Pour chaque sous tache
-            for (Tache t : tache.getTaches()) {
-
-                // Comme on a que CompositeTache, on peut caster simplement
-                CompositeTache sousTache = (CompositeTache) t;
-
-                // On affiche la sous tache avec une indentation (ex: 3 espaces)
-                System.out.println(indent + "- " + formatTache(sousTache));
-
-                // Si la sous tache contient elle-même d'autres sous taches,
-                // on rappelle la méthode (affichage en mode "arborescence")
-                afficherSousTaches(sousTache, indent + "   ");
-            }
+        if (liste.getTaches().isEmpty()) {
+            System.out.println("Aucune tache pour le moment.");
+            return;
         }
 
-
-        /**
-         * Transforme une tache en texte à afficher.
-         * Exemple :
-         * Faire les slides - Faire les diapo
-         */
-        private static String formatTache(CompositeTache tache) {
-            String etat = tache.estFait() ? "[X]" : "[ ]";
-
-            return etat + " " + tache.getTitre()
-                    + " (" + tache.getDate() + ")"
-                    + " - " + tache.getDescription();
+        int numero = 1;
+        for (CompositeTache tachePrincipale : liste.getTaches()) {
+            System.out.println(numero + ". " + formatTache(tachePrincipale));
+            afficherSousTaches(tachePrincipale, "   ");
+            System.out.println();
+            numero++;
         }
     }
-    
+
+
+
+    /****************TACHE*************/
+
+
+
+    private static String formatTache(CompositeTache tache) {
+        return " " + tache.getTitre() + " (" + tache.getDate() + ")" + " - " + tache.getDescription();
+    }
+
+    private static void ajouterTache(Liste liste, Scanner sc) {
+        System.out.print("Titre de la tâche : ");
+        String titre = sc.nextLine();
+
+        System.out.print("Description : ");
+        String desc = sc.nextLine();
+
+        System.out.print("Date (JJ/MM/AAAA) : ");
+        String date = sc.nextLine();
+
+        CompositeTache t = new CompositeTache(titre, desc, date);
+        liste.getTaches().add(t);
+
+        System.out.println("Tâche " + titre + " ajoutée !");
+    }
+
+
+    private static void supprimerTache(Liste liste, Scanner sc) {
+        afficherListe(liste);
+        System.out.print("Numéro de la tâche à supprimer : ");
+        int num = sc.nextInt();
+        sc.nextLine();
+
+        if (num < 1 || num > liste.getTaches().size()) {
+            System.out.println("Numéro invalide.");
+            return;
+        }
+
+        liste.getTaches().remove(num - 1);
+        System.out.println("Tâche supprimée.");
+    }
+
+
+    private static void ajouterTacheDansUneListe(GestionnaireListes gestion, Scanner sc) {
+        afficherListes(gestion);
+        System.out.print("Numéro de la liste où ajouter la tâche : ");
+        int num = sc.nextInt();
+        sc.nextLine();
+
+        Liste liste = gestion.getListe(num - 1);
+        if (liste == null) {
+            System.out.println("Numéro invalide.");
+            return;
+        }
+
+        ajouterTache(liste, sc);
+    }
+
+
+    /****************** SOUS TACHE*************/
+
+
+
+    private static void afficherSousTaches(CompositeTache tache, String indent) {
+        if (tache.getTaches().isEmpty()) return;
+
+        for (Tache t : tache.getTaches()) {
+            CompositeTache sousTache = (CompositeTache) t;
+            System.out.println(indent + "- " + formatTache(sousTache));
+            afficherSousTaches(sousTache, indent + "   ");
+        }
+    }
+
+    private static void ajouterSousTache(Liste liste, Scanner sc) {
+        afficherListe(liste);
+        System.out.print("Numéro de la tâche parente : ");
+        int num = sc.nextInt();
+        sc.nextLine();
+
+        if (num < 1 || num > liste.getTaches().size()) {
+            System.out.println("Numéro invalide.");
+            return;
+        }
+
+        CompositeTache parent = liste.getTaches().get(num - 1);
+
+        System.out.print("Titre de la sous-tâche : ");
+        String titre = sc.nextLine();
+
+        System.out.print("Description : ");
+        String desc = sc.nextLine();
+
+        System.out.print("Date (JJ/MM/AAAA) : ");
+        String date = sc.nextLine();
+
+        CompositeTache sousTache = new CompositeTache(titre, desc, date);
+        parent.ajouterTache(sousTache);
+
+        System.out.println("Sous-tâche ajoutée !");
+    }
+
+    private static void ajouterSousTacheDansUneListe(GestionnaireListes gestion, Scanner sc) {
+        afficherListes(gestion);
+        System.out.print("Numéro de la liste où ajouter une sous-tâche : ");
+        int num = sc.nextInt();
+        sc.nextLine();
+
+        Liste liste = gestion.getListe(num - 1);
+        if (liste == null) {
+            System.out.println("Numéro invalide.");
+            return;
+        }
+
+        ajouterSousTache(liste, sc);
+    }
+}

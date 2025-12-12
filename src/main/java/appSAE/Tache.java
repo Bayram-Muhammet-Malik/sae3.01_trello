@@ -1,6 +1,9 @@
 package appSAE;
 
-public abstract class Tache {
+import java.io.Serializable;
+
+public abstract class Tache implements Serializable {
+    private static final long serialVersionUID = 1L;
     protected String titre;
     protected String description;
     protected String date;
