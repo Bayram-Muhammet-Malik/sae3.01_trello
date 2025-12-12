@@ -14,7 +14,6 @@ public class MainTerminal {
             afficherListe(liste);
         }
 
-
         /**
          * Cette méthode crée une Liste avec 2 taches principales et 2 sous taches.
          * Elle sert juste à avoir un exemple visuel avant JavaFX.

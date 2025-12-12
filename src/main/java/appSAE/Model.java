@@ -6,6 +6,7 @@ import java.util.List;
 public class Model implements Sujet{
     private List<Observateur> obs;
     private List<Liste> listes;
+    private String filepath;
 
     public Model() {
         obs = new ArrayList<Observateur>();
@@ -86,14 +87,14 @@ public class Model implements Sujet{
             for (CompositeTache t : liste.getTaches()) {
                 if (t.getTitre().equals(nomtache)) {
                     Tache tacheASupprimer = null;
-                    for (Tache sousTache : t.getSousTaches()) {
+                    /*for (Tache sousTache : t.getSousTaches()) {
                         if (sousTache.getTitre().equals(nomtache) &&
                             sousTache.getDescription().equals(description) &&
                             sousTache.getDate().equals(date)) {
                             tacheASupprimer = sousTache;
                             break;
                         }
-                    }
+                    }*/
                     if (tacheASupprimer != null) {
                         t.supprimerTache(tacheASupprimer);
                         notifierObservateur();
@@ -107,6 +108,14 @@ public class Model implements Sujet{
     public void ajouterCarte(String nomtache, String description, String date){
         //TODO
         // à faire quand on auras les tags
+    }
+
+    public List<Liste> getListes() {
+        return listes;
+    }
+
+    public String getFilepath() {
+        return filepath;
     }
 
     @Override

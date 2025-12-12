@@ -1,5 +1,5 @@
-import appSAE.CompositeTache;
-import appSAE.Liste;
+package appSAE;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
