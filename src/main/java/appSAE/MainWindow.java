@@ -22,11 +22,13 @@ public class MainWindow extends Application {
         BorderPane root = new BorderPane();
 
         Model model = new Model();
-        /*
-        VueMenu menu = new VueMenu
+        VueMenu menu = new VueMenu(model);
         model.enregistrerObservateur(menu);
+
+        menu.setVisible(false);
+        menu.setManaged(false);
+
         root.setTop(menu);
-        */
 
         // Centre root
         StackPane centreRoot = new StackPane();
@@ -51,6 +53,8 @@ public class MainWindow extends Application {
             setTextFill(javafx.scene.paint.Color.WHITE);
         }});
         Button createBtn = new Button();
+        createBtn.setId("createBtn");
+        createBtn.setOnAction(new ControlerHomeBtn(model));
         createBtn.setGraphic(createBtnBox);
         createBtn.setPrefSize(200, 130);
         createBtn.setStyle("-fx-background-color: #2563eb; -fx-background-radius: 8;");
@@ -64,6 +68,8 @@ public class MainWindow extends Application {
         }});
         openBtnBox.getChildren().add(new Label("Ouvrir"));
         Button openBtn = new Button();
+        openBtn.setId("openBtn");
+        openBtn.setOnAction(new ControlerHomeBtn(model));
         openBtn.setGraphic(openBtnBox);
         openBtn.setPrefSize(200, 130);
         openBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #cccccc; -fx-border-radius: 8;");

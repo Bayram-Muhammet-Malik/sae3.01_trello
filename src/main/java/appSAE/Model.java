@@ -6,6 +6,7 @@ import java.util.List;
 public class Model implements Sujet{
     private List<Observateur> obs;
     private List<Liste> listes;
+    private String filepath;
 
     public Model() {
         obs = new ArrayList<Observateur>();
@@ -16,26 +17,63 @@ public class Model implements Sujet{
         this.listes.add(liste);
     }
 
-    // Méthode pour modifier une tâche par son nom
+    // Méthode pour modifier le titre d'une tâche
     public void modifierNom(String nomtache){
         for (Liste liste : listes) {
             for (CompositeTache t : liste.getTaches()) {
                 if (t.getTitre().equals(nomtache)) {
-                    t.titre = nomtache; // titre est protected dans Tache
+                    t.titre = nomtache;
                     notifierObservateur();
-                    return; // On modifie la première tâche trouvée
                 }
             }
         }
     }
 
-    // Méthode pour modifier une tâche par son nom, description et statut
+    // Méthode pour modifier la date d'une tâche
+    public void modifierDate(String titre, String date){
+        for (Liste liste : listes) {
+            for (CompositeTache t : liste.getTaches()) {
+                if (t.getTitre().equals(titre)) {
+                    t.date = date;
+                    notifierObservateur();
+                }
+            }
+        }
+    }
+
+    // Méthode pour modifier la description d'une tâche
+    public void modifierDescription(String titre, String description){
+        for (Liste liste : listes) {
+            for (CompositeTache t : liste.getTaches()) {
+                if (t.getTitre().equals(titre)) {
+                    t.description = description;
+                    notifierObservateur();
+                }
+            }
+        }
+    }
+
+    // Méthode pour modifier tous les elements d'une tache
     public void modifierTout(String nomtache, String description, String date){
         for (Liste liste : listes) {
             for (CompositeTache t : liste.getTaches()) {
                 if (t.getTitre().equals(nomtache)) {
+                    t.titre = nomtache;
                     t.description = description;
                     t.date = date;
+                    notifierObservateur();
+                }
+            }
+        }
+    }
+
+    // Méthode pour ajouter une tâche
+    public void ajouterTache(String nomtache, String description, String date){
+        for (Liste liste : listes) {
+            for (CompositeTache t : liste.getTaches()) {
+                if (t.getTitre().equals(nomtache)) {
+                    Tache nouvelleTache = new CompositeTache(nomtache, description, date);
+                    t.ajouterTache(nouvelleTache);
                     notifierObservateur();
                     return;
                 }
@@ -44,6 +82,43 @@ public class Model implements Sujet{
     }
     public List<Liste> getListes() {
         return this.listes;
+    }
+
+    // Méthode pour supprimer une tâche
+    public void supprimerTache(String nomtache, String description, String date){
+        for (Liste liste : listes) {
+            for (CompositeTache t : liste.getTaches()) {
+                if (t.getTitre().equals(nomtache)) {
+                    Tache tacheASupprimer = null;
+                    /*for (Tache sousTache : t.getSousTaches()) {
+                        if (sousTache.getTitre().equals(nomtache) &&
+                            sousTache.getDescription().equals(description) &&
+                            sousTache.getDate().equals(date)) {
+                            tacheASupprimer = sousTache;
+                            break;
+                        }
+                    }*/
+                    if (tacheASupprimer != null) {
+                        t.supprimerTache(tacheASupprimer);
+                        notifierObservateur();
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
+    public void ajouterCarte(String nomtache, String description, String date){
+        //TODO
+        // à faire quand on auras les tags
+    }
+
+    public List<Liste> getListes() {
+        return listes;
+    }
+
+    public String getFilepath() {
+        return filepath;
     }
 
     @Override

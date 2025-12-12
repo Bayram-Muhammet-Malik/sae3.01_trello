@@ -55,7 +55,6 @@ public class MainTerminal {
                 }
 
 
-
         /**
          * Crée une Liste avec 2 taches principales et 2 sous taches.
          * Elle sert juste à avoir un exemple visuel avant JavaFX.
