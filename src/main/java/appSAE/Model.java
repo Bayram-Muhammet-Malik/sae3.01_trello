@@ -42,6 +42,9 @@ public class Model implements Sujet{
             }
         }
     }
+    public List<Liste> getListes() {
+        return this.listes;
+    }
 
     @Override
     public void enregistrerObservateur(Observateur o) {

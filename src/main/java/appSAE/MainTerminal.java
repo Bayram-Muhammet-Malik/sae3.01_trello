@@ -12,11 +12,52 @@ public class MainTerminal {
 
             // On affiche cette liste dans le terminal
             afficherListe(liste);
-        }
+
+                    Model model = new Model();
+
+                    // Créer une liste
+                    Liste liste2 = new Liste("Ma première liste");
+
+                    // Créer des tâches avec dates JJ-MM-AAAA
+                    CompositeTache t1 = new CompositeTache(
+                            "Projet SAE",
+                            "Avancer le rendu",
+                            "12-12-2025"
+                    );
+
+                    CompositeTache t2 = new CompositeTache(
+                            "Réviser Java",
+                            "POO + JavaFX",
+                            "13-12-2025"
+                    );
+
+                    CompositeTache t3 = new CompositeTache(
+                            "Faire les tests",
+                            "JUnit",
+                            "12-12-2025"
+                    );
+
+                    // Ajouter les tâches à la liste
+                    liste2.getTaches().add(t1);
+                    liste2.getTaches().add(t2);
+                    liste2.getTaches().add(t3);
+
+                    // Ajouter la liste au model
+                    model.ajouterListe(liste2);
+
+                    // Vérification simple
+                    for (Liste l : model.getListes()) {
+                        System.out.println("Liste : " + l.getTitre());
+                        for (CompositeTache t : l.getTaches()) {
+                            System.out.println("- " + t.getTitre() + " | " + t.getDate());
+                        }
+                    }
+                }
+
 
 
         /**
-         * Cette méthode crée une Liste avec 2 taches principales et 2 sous taches.
+         * Crée une Liste avec 2 taches principales et 2 sous taches.
          * Elle sert juste à avoir un exemple visuel avant JavaFX.
          */
         private static Liste creerListeDeTest() {
