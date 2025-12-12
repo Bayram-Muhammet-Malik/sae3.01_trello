@@ -3,7 +3,7 @@
 Du Mardi 09/12 14h à Vendredi 12/12 10h
 
 ### A faire
-- Base projet JFX + MVC (Johan + Malik)
+- Base projet JFX + MVC (Johan + Muhammet)
 - Patron Composite (Léo)
 
 **Fonctionnalités :**
