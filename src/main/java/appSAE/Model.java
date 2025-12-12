@@ -80,9 +80,6 @@ public class Model implements Sujet{
             }
         }
     }
-    public List<Liste> getListes() {
-        return this.listes;
-    }
 
     // Méthode pour supprimer une tâche
     public void supprimerTache(String nomtache, String description, String date){

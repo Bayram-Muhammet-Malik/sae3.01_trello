@@ -12,9 +12,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
 
 public class MainWindow extends Application {
     @Override
@@ -32,7 +29,6 @@ public class MainWindow extends Application {
 
         // Centre root
         StackPane centreRoot = new StackPane();
-
 
         BorderPane homePage = new BorderPane();
         Text welcomeText = new Text("Bienvenue dans HiTask");
@@ -85,7 +81,11 @@ public class MainWindow extends Application {
         root.setCenter(centreRoot);
 
         /*
-        VueBureau bureau = new VueBureau
+        menu.setVisible(true);
+        menu.setManaged(true);
+        homePage.setVisible(false);
+        homePage.setManaged(false);
+        VueBureau bureau = new VueBureau(model);
         model.enregistrerObservateur(bureau);
         */
 
