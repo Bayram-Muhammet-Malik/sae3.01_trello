@@ -1,6 +1,7 @@
 package appSAE;
 
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -20,6 +21,7 @@ public class MainWindow extends Application {
     // vues
     private VueBureau vb;
     private VueListe vl;
+    private VueMenu menu;
 
     @Override
     public void start(Stage stage) {
@@ -29,7 +31,7 @@ public class MainWindow extends Application {
         Model model = new Model();
 
         // menu (peut appeler switchView)
-        VueMenu menu = new VueMenu(model, this);
+        menu = new VueMenu(model, this);   // <-- IMPORTANT : pas "VueMenu menu"
         model.enregistrerObservateur(menu);
         root.setTop(menu);
 
@@ -98,6 +100,7 @@ public class MainWindow extends Application {
         centreRoot.getChildren().addAll(homePage, vb, vl);
 
         root.setCenter(centreRoot);
+        BorderPane.setMargin(centreRoot, new Insets(10));
 
         Scene scene = new Scene(root);
 
@@ -110,7 +113,6 @@ public class MainWindow extends Application {
     }
 
     public void switchView(String type) {
-        // on cache tout
         homePage.setVisible(false);
         homePage.setManaged(false);
 
@@ -120,7 +122,6 @@ public class MainWindow extends Application {
         vl.setVisible(false);
         vl.setManaged(false);
 
-        // on affiche la bonne vue
         switch (type) {
             case "HOME" -> { homePage.setVisible(true); homePage.setManaged(true); }
             case "BUREAU" -> { vb.setVisible(true); vb.setManaged(true); }

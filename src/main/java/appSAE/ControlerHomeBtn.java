@@ -31,7 +31,7 @@ public class ControlerHomeBtn implements EventHandler<ActionEvent> {
         switch (b.getId()) {
             case "createBtn":
                 FileChooser saveChooser = new FileChooser();
-                saveChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Texte", "*.txt"));
+                saveChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Fichier HiTask", "*.htsk"));
                 File fileToSave = saveChooser.showSaveDialog(stage);
                 if (fileToSave != null) {
                     try {
@@ -47,7 +47,7 @@ public class ControlerHomeBtn implements EventHandler<ActionEvent> {
 
             case "openBtn":
                 FileChooser openChooser = new FileChooser();
-                openChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Texte", "*.txt"));
+                openChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Fichier HiTask", "*.htsk"));
                 File fileToOpen = openChooser.showOpenDialog(stage);
                 if (fileToOpen != null) {
                     FichierManager.charger(fileToOpen.getAbsolutePath());

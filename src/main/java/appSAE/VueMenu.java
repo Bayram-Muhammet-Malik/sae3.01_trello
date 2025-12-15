@@ -32,12 +32,15 @@ public class VueMenu extends BorderPane implements Observateur {
         HBox hbox = new HBox();
 
         // si un fichier est ouvert, on affiche les 3 boutons (bureau / liste / gantt)
+        ControlerMenu controller = new ControlerMenu(model, mainWindow);
+
         if (model.getFilepath() != null) {
 
             Label fileText = new Label("Title not found");
             fileText.setTextFill(javafx.scene.paint.Color.WHITE);
             fileText.setStyle("-fx-font-size: 22");
 
+            fileText.setStyle("-fx-font-size: 22; -fx-font-weight: bold;");
             try {
                 fileText.setText(new File(model.getFilepath()).getName());
             } catch (Exception ignored) {}
@@ -45,16 +48,23 @@ public class VueMenu extends BorderPane implements Observateur {
             this.setLeft(fileText);
 
             Button trelloBtn = new Button();
+            trelloBtn.setId("BUREAU");
             trelloBtn.setGraphic(createIcon("file:icons/trello-brands-solid-full.png"));
             trelloBtn.setStyle("-fx-background-color: transparent;");
+            trelloBtn.setOnAction(controller);
 
             Button listBtn = new Button();
+            listBtn.setId("LISTE");
+            listBtn.setGraphic(createIcon("file:icons/list-check-solid-full.png"));
             listBtn.setGraphic(createIcon("file:icons/list-check-solid-full.png")); // <-- ton icône liste
             listBtn.setStyle("-fx-background-color: transparent;");
+            listBtn.setOnAction(controller);
 
             Button ganttBtn = new Button();
+            ganttBtn.setId("GANTT");
             ganttBtn.setGraphic(createIcon("file:icons/chart-gantt-solid-full.png"));
             ganttBtn.setStyle("-fx-background-color: transparent;");
+            ganttBtn.setOnAction(controller);
 
             // on garde pour changer le style "actif"
             navButtons.add(trelloBtn);
@@ -74,7 +84,7 @@ public class VueMenu extends BorderPane implements Observateur {
 
             ganttBtn.setOnAction(e -> {
                 setActiveButton(ganttBtn);
-                mainWindow.switchView("GANTT"); // si tu n'as pas encore VueGantt, commente cette ligne
+                mainWindow.switchView("GANTT");
             });
 
             hbox.getChildren().addAll(trelloBtn, listBtn, ganttBtn);
@@ -82,8 +92,10 @@ public class VueMenu extends BorderPane implements Observateur {
 
         // bouton home toujours présent
         Button homeBtn = new Button();
+        homeBtn.setId("HOME");
         homeBtn.setGraphic(createIcon("file:icons/house-regular-full.png"));
         homeBtn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
+        homeBtn.setOnAction(controller);
 
         navButtons.add(homeBtn);
 
@@ -107,9 +119,9 @@ public class VueMenu extends BorderPane implements Observateur {
         return icon;
     }
 
-    private void setActiveButton(Button activeBtn) {
+    public void setActiveButton(Button boutonActif) {
         for (Button btn : navButtons) {
-            if (btn == activeBtn) {
+            if (btn == boutonActif) {
                 btn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
             } else {
                 btn.setStyle("-fx-background-color: transparent;");
