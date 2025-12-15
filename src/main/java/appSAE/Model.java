@@ -19,13 +19,11 @@ public class Model implements Sujet{
 
     public void supprimerListe(Liste liste){ this.listes.remove(liste); }
 
-
-
     // Méthode pour modifier le chemin fichier actuel
     public void modifierPath(String path){
-        if (filepath != path) {
-            filepath = path;
-            this.notifierObservateur();
+        if (this.filepath != path){
+            this.filepath = path;
+            notifierObservateur();
         }
     }
 
@@ -79,10 +77,6 @@ public class Model implements Sujet{
         }
     }
 
-
-
-
-
     public List<Liste> getListes() {
         return listes;
     }
@@ -91,8 +85,9 @@ public class Model implements Sujet{
         return filepath;
     }
 
-
-
+    public List<CompositeTache> getTachesFromListe(Liste liste){
+        return liste.getTaches();
+    }
 
     public void ajouterCarte(Liste liste, Tache nouvelleTache) {
         liste.ajouterCarte(nouvelleTache);
@@ -103,11 +98,6 @@ public class Model implements Sujet{
         liste.supprimerTache(Tache);
         notifierObservateur();
     }
-
-
-
-
-
 
     @Override
     public void enregistrerObservateur(Observateur o) {

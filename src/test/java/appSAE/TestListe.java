@@ -44,6 +44,7 @@ public class TestListe {
     void getTachesPermetDAjouterUneCompositeTache() {
         Liste liste = new Liste("Liste de tâches");
         CompositeTache t1 = new CompositeTache("Tâche 1", "Desc 1", "2025-01-01", Tache.Priorite.NORMAL);
+        CompositeTache t1 = new CompositeTache("Tâche 1", "Desc 1", "2025-01-01", null);
 
         // On ajoute via la liste retournée par getTaches()
         List<CompositeTache> taches = liste.getTaches();
@@ -58,8 +59,8 @@ public class TestListe {
     @Test
     void getTachesPermetDeSupprimerUneCompositeTache() {
         Liste liste = new Liste("Liste");
-        CompositeTache t1 = new CompositeTache("Tâche 1", "Desc 1", "2025-01-01", Tache.Priorite.NORMAL);
-        CompositeTache t2 = new CompositeTache("Tâche 2", "Desc 2", "2025-01-02", Tache.Priorite.URGENT);
+        CompositeTache t1 = new CompositeTache("Tâche 1", "Desc 1", "2025-01-01");
+        CompositeTache t2 = new CompositeTache("Tâche 2", "Desc 2", "2025-01-02");
 
         liste.getTaches().add(t1);
         liste.getTaches().add(t2);
@@ -82,8 +83,8 @@ public class TestListe {
         Liste liste1 = new Liste("Liste 1");
         Liste liste2 = new Liste("Liste 2");
 
-        CompositeTache t1 = new CompositeTache("Tâche L1", "Desc", "2025-01-01", Tache.Priorite.NORMAL);
-        CompositeTache t2 = new CompositeTache("Tâche L2", "Desc", "2025-01-02", Tache.Priorite.URGENT);
+        CompositeTache t1 = new CompositeTache("Tâche L1", "Desc", "2025-01-01");
+        CompositeTache t2 = new CompositeTache("Tâche L2", "Desc", "2025-01-02");
 
         liste1.getTaches().add(t1);
         liste2.getTaches().add(t2);
