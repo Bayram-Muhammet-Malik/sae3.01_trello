@@ -21,6 +21,14 @@ public class Model implements Sujet{
 
 
 
+    // Méthode pour modifier le chemin fichier actuel
+    public void modifierPath(String path){
+        if (filepath != path) {
+            filepath = path;
+            this.notifierObservateur();
+        }
+    }
+
     // Méthode pour modifier le titre d'une tâche
     public void modifierNom(String nomtache){
         for (Liste liste : listes) {

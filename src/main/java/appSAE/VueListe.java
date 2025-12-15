@@ -12,280 +12,195 @@ import java.util.List;
 
 public class VueListe extends BorderPane implements Observateur {
 
+    // modele principal
     private final Model modele;
 
-    // Format JJ-MM-AAAA
-    private final DateTimeFormatter fmtStockage = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private final DateTimeFormatter fmtTitre = DateTimeFormatter.ofPattern("EEEE dd/MM");
+    // format de date utilise dans les taches : jj-mm-aaaa
+    private final DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-    private final VBox agendaContainer = new VBox(12);
-    private final ScrollPane scroll = new ScrollPane(agendaContainer);
+    // conteneur principal
+    private final VBox conteneurAgenda = new VBox(10);
+    private final ScrollPane scroll = new ScrollPane(conteneurAgenda);
 
-    private final List<ToggleGroupNode> toggles = new ArrayList<>();
+    // liste des elements repliables
+    private final List<ElementRepliable> elements = new ArrayList<>();
 
+    // nombre de jours affiches
     private final int NB_JOURS = 7;
 
     public VueListe(Model modele) {
         this.modele = modele;
 
-        agendaContainer.setPadding(new Insets(14));
+        conteneurAgenda.setPadding(new Insets(12));
         scroll.setFitToWidth(true);
 
         setCenter(scroll);
 
-        rebuild();
+        rafraichir();
     }
 
-    private void rebuild() {
-        toggles.clear();
-        agendaContainer.getChildren().clear();
+    // reconstruit toute la vue
+    private void rafraichir() {
+        conteneurAgenda.getChildren().clear();
+        elements.clear();
 
         if (modele.getListes().isEmpty()) {
-            setTop(creerHeader("Tableau : (aucun)"));
-            agendaContainer.getChildren().add(new Label("Aucune liste pour le moment."));
-            setBottom(creerFooter());
+            conteneurAgenda.getChildren().add(new Label("aucune liste"));
             return;
         }
 
-        // Tableau courant
         Liste liste = modele.getListes().get(0);
 
-        setTop(creerHeader("Tableau : " + liste.getTitre()));
-        setBottom(creerFooter());
-
-        LocalDate today = LocalDate.now();
+        LocalDate aujourdHui = LocalDate.now();
         for (int i = 0; i < NB_JOURS; i++) {
-            LocalDate jour = today.plusDays(i);
-            agendaContainer.getChildren().add(creerBlocJour(jour, liste));
+            LocalDate jour = aujourdHui.plusDays(i);
+            conteneurAgenda.getChildren().add(creerJour(jour, liste));
         }
     }
 
-    // ---------------- HEADER (barre bleue) ----------------
+    // cree un bloc pour un jour
+    private VBox creerJour(LocalDate jour, Liste liste) {
+        VBox blocJour = new VBox(6);
 
-    private HBox creerHeader(String titre) {
-        Label label = new Label(titre);
-        label.setStyle("-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: white;");
+        String dateJour = formatDate.format(jour);
 
-        HBox header = new HBox(label);
-        header.setPadding(new Insets(16));
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setStyle("-fx-background-color: #4667d6;");
-
-        return header;
-    }
-
-    // ---------------- AGENDA (par jour) ----------------
-
-    private VBox creerBlocJour(LocalDate jour, Liste liste) {
-        VBox blocJour = new VBox(8);
-
-        String dateKey = fmtStockage.format(jour);
-        String titre;
-
-        if (jour.equals(LocalDate.now())) titre = "Aujourd'hui (" + dateKey + ")";
-        else if (jour.equals(LocalDate.now().plusDays(1))) titre = "Demain (" + dateKey + ")";
-        else titre = fmtTitre.format(jour) + " (" + dateKey + ")";
-
-        // Ligne jour avec flèche à gauche
-        HBox ligneJour = new HBox(8);
+        // ligne du jour
+        HBox ligneJour = new HBox(6);
         ligneJour.setAlignment(Pos.CENTER_LEFT);
 
-        Button arrowJour = new Button("▾");
-        arrowJour.setMinSize(18, 18);
-        arrowJour.setPrefSize(18, 18);
-        arrowJour.setMaxSize(18, 18);
-        arrowJour.setStyle("-fx-background-color: transparent; -fx-padding: 0; -fx-font-size: 12;");
+        Button flecheJour = creerFleche("▾");
+        Label labelJour = new Label(dateJour);
 
-        Label titreJour = new Label(titre);
-        titreJour.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #111827;");
+        ligneJour.getChildren().addAll(flecheJour, labelJour);
 
-        ligneJour.getChildren().addAll(arrowJour, titreJour);
-
-        // Carte blanche (contenu du jour)
-        VBox carte = new VBox(6);
-        carte.setPadding(new Insets(10));
-        carte.setStyle(
+        // conteneur des taches du jour
+        VBox boiteTaches = new VBox(4);
+        boiteTaches.setPadding(new Insets(8));
+        boiteTaches.setStyle(
                 "-fx-background-color: white;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-border-color: #e5e7eb;" +
-                        "-fx-border-radius: 10;"
+                        "-fx-border-color: #dddddd;" +
+                        "-fx-border-radius: 6;"
         );
 
-        // remplir la carte avec les tâches de ce jour
-        List<CompositeTache> tachesDuJour = new ArrayList<>();
+        boolean trouve = false;
         for (CompositeTache t : liste.getTaches()) {
-            if (eqDate(dateKey, t.getDate())) {
-                tachesDuJour.add(t);
+            if (dateJour.equals(t.getDate())) {
+                boiteTaches.getChildren().add(creerTache(t, 0));
+                trouve = true;
             }
         }
 
-        if (tachesDuJour.isEmpty()) {
-            Label rien = new Label("Aucune tâche");
-            rien.setStyle("-fx-text-fill: #6b7280;");
-            carte.getChildren().add(rien);
-        } else {
-            for (CompositeTache t : tachesDuJour) {
-                carte.getChildren().add(creerNoeudTache(t, 0));
-            }
+        if (!trouve) {
+            boiteTaches.getChildren().add(new Label("aucune tache"));
         }
 
-        // Toggle du jour (replier/déplier la carte)
-        carte.setVisible(true);
-        carte.setManaged(true);
-        arrowJour.setOnAction(e -> {
-            boolean visible = carte.isVisible();
-            carte.setVisible(!visible);
-            carte.setManaged(!visible);
-            arrowJour.setText(visible ? "▸" : "▾");
+        // replier / deplier le jour
+        flecheJour.setOnAction(e -> {
+            boolean visible = boiteTaches.isVisible();
+            boiteTaches.setVisible(!visible);
+            boiteTaches.setManaged(!visible);
+            flecheJour.setText(visible ? "▸" : "▾");
         });
 
-        blocJour.getChildren().addAll(ligneJour, carte);
+        blocJour.getChildren().addAll(ligneJour, boiteTaches);
         return blocJour;
     }
 
-    // comparaison
-    private boolean eqDate(String a, String b) {
-        if (a == null || b == null) return false;
-        return a.trim().equals(b.trim());
-    }
+    // cree une tache (avec sous-taches)
+    private VBox creerTache(Tache tache, int niveau) {
+        VBox bloc = new VBox(2);
 
-    // ---------------- NOEUD TÂCHE (maquette) ----------------
+        boolean aDesSousTaches =
+                (tache instanceof CompositeTache ct) && !ct.getTaches().isEmpty();
 
-    private VBox creerNoeudTache(Tache tache, int niveau) {
-        VBox noeud = new VBox(4);
-
-        boolean aDesEnfants = (tache instanceof CompositeTache ct) && !ct.getTaches().isEmpty();
-
-        // Ligne principale : [indent] [flèche] [checkbox] [texte]
-        HBox ligne = new HBox(8);
+        HBox ligne = new HBox(6);
         ligne.setAlignment(Pos.CENTER_LEFT);
-        ligne.setPadding(new Insets(4, 4, 4, 6));
 
         Region indent = new Region();
-        indent.setMinWidth(niveau * 18);
-        indent.setPrefWidth(niveau * 18);
+        indent.setMinWidth(niveau * 16);
 
-        Button arrow = new Button(aDesEnfants ? "▾" : "");
-        arrow.setMinSize(18, 18);
-        arrow.setPrefSize(18, 18);
-        arrow.setMaxSize(18, 18);
-        arrow.setDisable(!aDesEnfants);
-        arrow.setOpacity(aDesEnfants ? 1.0 : 0.0);
-        arrow.setStyle("-fx-background-color: transparent; -fx-padding: 0; -fx-font-size: 12;");
+        Button fleche = creerFleche(aDesSousTaches ? "▾" : "");
+        fleche.setDisable(!aDesSousTaches);
+        fleche.setOpacity(aDesSousTaches ? 1 : 0);
 
-        CheckBox cb = new CheckBox();
-        cb.setSelected(tache.estFait());
-        cb.setMinWidth(18);
+        CheckBox check = new CheckBox();
+        check.setSelected(tache.estFait());
 
         Label titre = new Label(tache.getTitre());
-        titre.setStyle("-fx-font-size: 14; -fx-text-fill: #111827;");
 
-        ligne.getChildren().addAll(indent, arrow, cb, titre);
+        ligne.getChildren().addAll(indent, fleche, check, titre);
 
-        VBox enfantsBox = new VBox(4);
+        VBox boiteEnfants = new VBox(2);
 
-        ToggleGroupNode node = new ToggleGroupNode(arrow, enfantsBox, aDesEnfants);
-        toggles.add(node);
+        ElementRepliable element =
+                new ElementRepliable(fleche, boiteEnfants, aDesSousTaches);
+        elements.add(element);
 
-        noeud.getChildren().add(ligne);
+        bloc.getChildren().add(ligne);
 
-        if (aDesEnfants) {
+        if (aDesSousTaches) {
             CompositeTache ct = (CompositeTache) tache;
 
             for (Tache enfant : ct.getTaches()) {
-                enfantsBox.getChildren().add(creerNoeudTache(enfant, niveau + 1));
+                boiteEnfants.getChildren().add(creerTache(enfant, niveau + 1));
             }
 
-            noeud.getChildren().add(enfantsBox);
-
-            arrow.setOnAction(e -> node.toggle());
+            bloc.getChildren().add(boiteEnfants);
+            fleche.setOnAction(e -> element.changerEtatAffichage());
         }
 
-        return noeud;
+        return bloc;
     }
 
-    // ---------------- FOOTER (boutons bas) ----------------
-
-    private HBox creerFooter() {
-        Button addTask = new Button("Ajouter une tâche");
-        addTask.setStyle(styleBtnBleu());
-
-        Button addSub = new Button("Ajouter une sous-tâche");
-        addSub.setStyle(styleBtnBleu());
-
-        Button expandAll = new Button("Déplier tout");
-        expandAll.setStyle(styleBtnGris());
-
-        Button collapseAll = new Button("Replier tout");
-        collapseAll.setStyle(styleBtnGris());
-
-        addTask.setOnAction(e -> System.out.println("TODO: ajouter une tâche"));
-        addSub.setOnAction(e -> System.out.println("TODO: ajouter une sous-tâche"));
-
-        expandAll.setOnAction(e -> toggles.forEach(ToggleGroupNode::expand));
-        collapseAll.setOnAction(e -> toggles.forEach(ToggleGroupNode::collapse));
-
-        HBox footer = new HBox(12, addTask, addSub, expandAll, collapseAll);
-        footer.setPadding(new Insets(12, 14, 14, 14));
-        footer.setAlignment(Pos.CENTER_LEFT);
-
-        return footer;
+    // cree un bouton fleche simple
+    private Button creerFleche(String texte) {
+        Button b = new Button(texte);
+        b.setMinSize(16, 16);
+        b.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+        return b;
     }
 
-    private String styleBtnBleu() {
-        return "-fx-background-color: #5474e7; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 16;";
-    }
-
-    private String styleBtnGris() {
-        return "-fx-background-color: #e5e7eb; -fx-text-fill: #111827; -fx-background-radius: 8; -fx-padding: 10 16;";
-    }
-
-    // ---------------- Observateur ----------------
-
+    // mise a jour depuis le modele
     @Override
     public void actualiser(Sujet sujet) {
-        rebuild();
+        rafraichir();
     }
 
-    // ---------------- utilitaire ----------------
+    /*
+     classe simple pour gerer le repli / depli
+     */
+    private static class ElementRepliable {
 
-    private static class ToggleGroupNode {
-        private final Button arrow;
-        private final VBox childrenBox;
-        private final boolean enabled;
-        private boolean expanded = true;
+        private final Button fleche;
+        private final VBox enfants;
+        private final boolean actif;
+        private boolean affiche = true;
 
-        ToggleGroupNode(Button arrow, VBox childrenBox, boolean enabled) {
-            this.arrow = arrow;
-            this.childrenBox = childrenBox;
-            this.enabled = enabled;
-
-            // état de base: déplié
-            if (enabled) {
-                childrenBox.setVisible(true);
-                childrenBox.setManaged(true);
-            }
+        ElementRepliable(Button fleche, VBox enfants, boolean actif) {
+            this.fleche = fleche;
+            this.enfants = enfants;
+            this.actif = actif;
         }
 
-        void toggle() {
-            if (!enabled) return;
-            if (expanded) collapse(); else expand();
+        void changerEtatAffichage() {
+            if (!actif) return;
+
+            if (affiche) cacherEnfants();
+            else afficherEnfants();
         }
 
-        void expand() {
-            if (!enabled) return;
-            expanded = true;
-            childrenBox.setVisible(true);
-            childrenBox.setManaged(true);
-            arrow.setText("▾");
+        void afficherEnfants() {
+            affiche = true;
+            enfants.setVisible(true);
+            enfants.setManaged(true);
+            fleche.setText("▾");
         }
 
-        void collapse() {
-            if (!enabled) return;
-            expanded = false;
-            childrenBox.setVisible(false);
-            childrenBox.setManaged(false);
-            arrow.setText("▸");
+        void cacherEnfants() {
+            affiche = false;
+            enfants.setVisible(false);
+            enfants.setManaged(false);
+            fleche.setText("▸");
         }
     }
 }

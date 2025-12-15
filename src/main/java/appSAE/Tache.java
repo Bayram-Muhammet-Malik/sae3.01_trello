@@ -9,6 +9,16 @@ public abstract class Tache implements Serializable {
     protected String date;
     protected boolean estFait;
 
+    public enum Priorite {
+        URGENT,
+        NORMAL,
+        SECONDAIRE
+    }
+
+    protected Priorite priorite = Priorite.NORMAL;
+
+
+
     public String getTitre() {
         return titre;
     }
@@ -23,5 +33,13 @@ public abstract class Tache implements Serializable {
 
     public boolean estFait() {
         return estFait;
+    }
+
+    public Priorite getPriorite() {
+        return priorite;
+    }
+
+    public void setPriorite(Priorite priorite) {
+        this.priorite = priorite;
     }
 }

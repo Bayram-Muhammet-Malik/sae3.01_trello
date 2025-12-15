@@ -14,6 +14,9 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class MainWindow extends Application {
+    private BorderPane homePage = new BorderPane();
+    private VueBureau vb;
+
     @Override
     public void start(Stage stage) {
         BorderPane root = new BorderPane();
@@ -22,15 +25,11 @@ public class MainWindow extends Application {
         VueMenu menu = new VueMenu(model);
         model.enregistrerObservateur(menu);
 
-        menu.setVisible(false);
-        menu.setManaged(false);
-
         root.setTop(menu);
 
         // Centre root
         StackPane centreRoot = new StackPane();
 
-        BorderPane homePage = new BorderPane();
         Text welcomeText = new Text("Bienvenue dans HiTask");
         welcomeText.setStyle("-fx-font-size: 25");
         StackPane topPane = new StackPane(welcomeText);
@@ -50,7 +49,7 @@ public class MainWindow extends Application {
         }});
         Button createBtn = new Button();
         createBtn.setId("createBtn");
-        createBtn.setOnAction(new ControlerHomeBtn(model));
+        createBtn.setOnAction(new ControlerHomeBtn(model, this));
         createBtn.setGraphic(createBtnBox);
         createBtn.setPrefSize(200, 130);
         createBtn.setStyle("-fx-background-color: #2563eb; -fx-background-radius: 8;");
@@ -65,7 +64,7 @@ public class MainWindow extends Application {
         openBtnBox.getChildren().add(new Label("Ouvrir"));
         Button openBtn = new Button();
         openBtn.setId("openBtn");
-        openBtn.setOnAction(new ControlerHomeBtn(model));
+        openBtn.setOnAction(new ControlerHomeBtn(model, this));
         openBtn.setGraphic(openBtnBox);
         openBtn.setPrefSize(200, 130);
         openBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #cccccc; -fx-border-radius: 8;");
@@ -78,16 +77,15 @@ public class MainWindow extends Application {
         homePage.setCenter(btnHP);
 
         centreRoot.getChildren().add(homePage);
-        root.setCenter(centreRoot);
 
-        /*
-        menu.setVisible(true);
-        menu.setManaged(true);
-        homePage.setVisible(false);
-        homePage.setManaged(false);
-        VueBureau bureau = new VueBureau(model);
-        model.enregistrerObservateur(bureau);
-        */
+        vb = new VueBureau(model);
+        model.enregistrerObservateur(vb);
+        vb.setVisible(false);
+        vb.setManaged(false);
+
+        centreRoot.getChildren().add(vb);
+
+        root.setCenter(centreRoot);
 
         Scene scene = new Scene(root);
 
@@ -97,6 +95,18 @@ public class MainWindow extends Application {
         stage.setMaximized(true);
         stage.setScene(scene);
         stage.show();
+    }
+
+    public void switchView(String type) {
+        homePage.setVisible(false);
+        homePage.setManaged(false);
+        vb.setVisible(false);
+        vb.setManaged(false);
+
+        switch (type) {
+            case "HOME" -> { homePage.setVisible(true); homePage.setManaged(true); }
+            case "BUREAU" -> { vb.setVisible(true); vb.setManaged(true); }
+        }
     }
 
     public static void main(String[] args) {

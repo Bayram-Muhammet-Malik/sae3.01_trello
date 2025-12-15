@@ -13,13 +13,15 @@ public class ControlerHomeBtn implements EventHandler<ActionEvent> {
      * Le modele est attribut du controleur
      */
     private Model model;
+    private MainWindow mainWindow;
 
     /**
      * Constructeur
      * @param m l'objet Model
      */
-    public ControlerHomeBtn(Model m) {
+    public ControlerHomeBtn(Model m, MainWindow window) {
         this.model=m;
+        this.mainWindow=window;
     }
 
     public void handle(ActionEvent e) {
@@ -33,10 +35,10 @@ public class ControlerHomeBtn implements EventHandler<ActionEvent> {
                 File fileToSave = saveChooser.showSaveDialog(stage);
                 if (fileToSave != null) {
                     try {
-                        //non utile if (fileToSave.createNewFile());
-                        // model.modifier()
-                        // FichierManager charger fichier
-                        System.out.println("Fichier créé : " + fileToSave.getAbsolutePath());
+                        fileToSave.createNewFile();
+                        FichierManager.charger(fileToSave.getAbsolutePath());
+                        model.modifierPath(fileToSave.getAbsolutePath());
+                        mainWindow.switchView("BUREAU");
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -48,9 +50,9 @@ public class ControlerHomeBtn implements EventHandler<ActionEvent> {
                 openChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Texte", "*.txt"));
                 File fileToOpen = openChooser.showOpenDialog(stage);
                 if (fileToOpen != null) {
-                    // FichierManager charger fichier
-                    System.out.println("Fichier ouvert : " + fileToOpen.getAbsolutePath());
-                    // model.charger(fileToOpen);
+                    FichierManager.charger(fileToOpen.getAbsolutePath());
+                    model.modifierPath(fileToOpen.getAbsolutePath());
+                    mainWindow.switchView("BUREAU");
                 }
                 break;
         }
