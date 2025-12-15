@@ -29,6 +29,9 @@ public class ControlerProjet implements EventHandler<ActionEvent> {
             case "+ Créer une liste":
                 //model.ajouterTache();
                 break;
+            case "+ Créer une tâche":
+                //model.ajouterTache();
+                break;
         }
     }
 }

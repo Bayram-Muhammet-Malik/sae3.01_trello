@@ -10,16 +10,13 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class VueMenu extends BorderPane implements Observateur {
-
-    private final Model model;
-    private final MainWindow mainWindow; // <-- pour changer de vue
+    private Model model;
+    private MainWindow mainWindow;
     private final ArrayList<Button> navButtons = new ArrayList<>();
 
-    // <-- constructeur modifié : on passe MainWindow
     public VueMenu(Model model, MainWindow mainWindow) {
         this.model = model;
         this.mainWindow = mainWindow;
-
         this.setStyle("-fx-background-color: #2563eb; -fx-padding: 4px;");
         actualiser(model);
     }
@@ -28,24 +25,20 @@ public class VueMenu extends BorderPane implements Observateur {
     public void actualiser(Sujet s) {
         this.getChildren().clear();
         navButtons.clear();
-
         HBox hbox = new HBox();
 
-        // si un fichier est ouvert, on affiche les 3 boutons (bureau / liste / gantt)
         ControlerMenu controller = new ControlerMenu(model, mainWindow);
 
         if (model.getFilepath() != null) {
-
             Label fileText = new Label("Title not found");
             fileText.setTextFill(javafx.scene.paint.Color.WHITE);
-            fileText.setStyle("-fx-font-size: 22");
-
             fileText.setStyle("-fx-font-size: 22; -fx-font-weight: bold;");
             try {
                 fileText.setText(new File(model.getFilepath()).getName());
-            } catch (Exception ignored) {}
-
-            this.setLeft(fileText);
+                this.setLeft(fileText);
+            } catch (Exception ex) {
+                this.setLeft(fileText);
+            }
 
             Button trelloBtn = new Button();
             trelloBtn.setId("BUREAU");
@@ -56,7 +49,6 @@ public class VueMenu extends BorderPane implements Observateur {
             Button listBtn = new Button();
             listBtn.setId("LISTE");
             listBtn.setGraphic(createIcon("file:icons/list-check-solid-full.png"));
-            listBtn.setGraphic(createIcon("file:icons/list-check-solid-full.png")); // <-- ton icône liste
             listBtn.setStyle("-fx-background-color: transparent;");
             listBtn.setOnAction(controller);
 
@@ -66,31 +58,12 @@ public class VueMenu extends BorderPane implements Observateur {
             ganttBtn.setStyle("-fx-background-color: transparent;");
             ganttBtn.setOnAction(controller);
 
-            // on garde pour changer le style "actif"
             navButtons.add(trelloBtn);
             navButtons.add(listBtn);
             navButtons.add(ganttBtn);
-
-            // <-- actions : style + changement de vue
-            trelloBtn.setOnAction(e -> {
-                setActiveButton(trelloBtn);
-                mainWindow.switchView("BUREAU");
-            });
-
-            listBtn.setOnAction(e -> {
-                setActiveButton(listBtn);
-                mainWindow.switchView("LISTE");
-            });
-
-            ganttBtn.setOnAction(e -> {
-                setActiveButton(ganttBtn);
-                mainWindow.switchView("GANTT");
-            });
-
             hbox.getChildren().addAll(trelloBtn, listBtn, ganttBtn);
         }
 
-        // bouton home toujours présent
         Button homeBtn = new Button();
         homeBtn.setId("HOME");
         homeBtn.setGraphic(createIcon("file:icons/house-regular-full.png"));
@@ -98,15 +71,9 @@ public class VueMenu extends BorderPane implements Observateur {
         homeBtn.setOnAction(controller);
 
         navButtons.add(homeBtn);
-
-        homeBtn.setOnAction(e -> {
-            setActiveButton(homeBtn);
-            mainWindow.switchView("HOME");
-        });
-
         hbox.getChildren().add(homeBtn);
 
-        // placement à droite
+        // Placement à droite
         this.setRight(hbox);
     }
 
@@ -119,9 +86,10 @@ public class VueMenu extends BorderPane implements Observateur {
         return icon;
     }
 
-    public void setActiveButton(Button boutonActif) {
+    public void setActiveButton(String type) {
         for (Button btn : navButtons) {
-            if (btn == boutonActif) {
+            String id = btn.getId();
+            if (id != null && id.equals(type)) {
                 btn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
             } else {
                 btn.setStyle("-fx-background-color: transparent;");

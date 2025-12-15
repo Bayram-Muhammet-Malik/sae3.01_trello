@@ -15,30 +15,24 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class MainWindow extends Application {
-
-    private final BorderPane homePage = new BorderPane();
-
-    // vues
+    private BorderPane homePage = new BorderPane();
+    private VueMenu menu;
     private VueBureau vb;
     private VueListe vl;
-    private VueMenu menu;
 
     @Override
     public void start(Stage stage) {
         BorderPane root = new BorderPane();
 
-        // modele
         Model model = new Model();
-
-        // menu (peut appeler switchView)
-        menu = new VueMenu(model, this);   // <-- IMPORTANT : pas "VueMenu menu"
+        menu = new VueMenu(model, this);
         model.enregistrerObservateur(menu);
+
         root.setTop(menu);
 
-        // centre
+        // Centre root
         StackPane centreRoot = new StackPane();
 
-        // ----- home page -----
         Text welcomeText = new Text("Bienvenue dans HiTask");
         welcomeText.setStyle("-fx-font-size: 25");
         StackPane topPane = new StackPane(welcomeText);
@@ -85,7 +79,6 @@ public class MainWindow extends Application {
         btnHP.setStyle("-fx-padding: 40;");
         homePage.setCenter(btnHP);
 
-        // ----- vues bureau + liste -----
         vb = new VueBureau(model);
         model.enregistrerObservateur(vb);
         vb.setVisible(false);
@@ -96,7 +89,6 @@ public class MainWindow extends Application {
         vl.setVisible(false);
         vl.setManaged(false);
 
-        // on empile tout (home + bureau + liste)
         centreRoot.getChildren().addAll(homePage, vb, vl);
 
         root.setCenter(centreRoot);
@@ -115,10 +107,8 @@ public class MainWindow extends Application {
     public void switchView(String type) {
         homePage.setVisible(false);
         homePage.setManaged(false);
-
         vb.setVisible(false);
         vb.setManaged(false);
-
         vl.setVisible(false);
         vl.setManaged(false);
 
@@ -127,6 +117,8 @@ public class MainWindow extends Application {
             case "BUREAU" -> { vb.setVisible(true); vb.setManaged(true); }
             case "LISTE" -> { vl.setVisible(true); vl.setManaged(true); }
         }
+
+        if (menu != null) { menu.setActiveButton(type); }
     }
 
     public static void main(String[] args) {
