@@ -24,4 +24,8 @@ public class Liste implements Serializable {
     public List<CompositeTache> getTaches(){
         return this.taches;
     }
+    public void ajouterTache(CompositeTache tache) {
+        taches.add(tache);
+    }
+
 }
