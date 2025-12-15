@@ -11,18 +11,15 @@ public class VueBureau extends HBox implements Observateur {
         this.setSpacing(5);
     }
 
+    @Override
     public void actualiser(Sujet sujet) {
         this.getChildren().clear();
 
-        for(Liste ls : model.getListes()){
+        for (Liste ls : model.getListes()) {
             this.getChildren().add(creerColonne(ls));
         }
-
-        Button creerListeBtn = new Button("+ Créer une liste");
-        creerListeBtn.setOnAction(new ControlerProjet(model));
-        creerListeBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
-        this.getChildren().add(creerListeBtn);
     }
+
 
     private VBox creerColonne(Liste ls) {
         VBox colonne = new VBox();

@@ -29,17 +29,15 @@ public class VueMenu extends BorderPane implements Observateur {
         this.getChildren().clear();
         navButtons.clear();
 
-        HBox hbox = new HBox();
+        HBox hbox = new HBox(10);
 
-        // si un fichier est ouvert, on affiche les 3 boutons (bureau / liste / gantt)
         ControlerMenu controller = new ControlerMenu(model, mainWindow);
 
+        // si un fichier est ouvert
         if (model.getFilepath() != null) {
 
-            Label fileText = new Label("Title not found");
+            Label fileText = new Label();
             fileText.setTextFill(javafx.scene.paint.Color.WHITE);
-            fileText.setStyle("-fx-font-size: 22");
-
             fileText.setStyle("-fx-font-size: 22; -fx-font-weight: bold;");
             try {
                 fileText.setText(new File(model.getFilepath()).getName());
@@ -51,43 +49,46 @@ public class VueMenu extends BorderPane implements Observateur {
             trelloBtn.setId("BUREAU");
             trelloBtn.setGraphic(createIcon("file:icons/trello-brands-solid-full.png"));
             trelloBtn.setStyle("-fx-background-color: transparent;");
-            trelloBtn.setOnAction(controller);
-
-            Button listBtn = new Button();
-            listBtn.setId("LISTE");
-            listBtn.setGraphic(createIcon("file:icons/list-check-solid-full.png"));
-            listBtn.setGraphic(createIcon("file:icons/list-check-solid-full.png")); // <-- ton icône liste
-            listBtn.setStyle("-fx-background-color: transparent;");
-            listBtn.setOnAction(controller);
-
-            Button ganttBtn = new Button();
-            ganttBtn.setId("GANTT");
-            ganttBtn.setGraphic(createIcon("file:icons/chart-gantt-solid-full.png"));
-            ganttBtn.setStyle("-fx-background-color: transparent;");
-            ganttBtn.setOnAction(controller);
-
-            // on garde pour changer le style "actif"
-            navButtons.add(trelloBtn);
-            navButtons.add(listBtn);
-            navButtons.add(ganttBtn);
-
-            // <-- actions : style + changement de vue
             trelloBtn.setOnAction(e -> {
                 setActiveButton(trelloBtn);
                 mainWindow.switchView("BUREAU");
             });
 
+            Button listBtn = new Button();
+            listBtn.setId("LISTE");
+            listBtn.setGraphic(createIcon("file:icons/list-check-solid-full.png"));
+            listBtn.setStyle("-fx-background-color: transparent;");
             listBtn.setOnAction(e -> {
                 setActiveButton(listBtn);
                 mainWindow.switchView("LISTE");
             });
 
+            Button ganttBtn = new Button();
+            ganttBtn.setId("GANTT");
+            ganttBtn.setGraphic(createIcon("file:icons/chart-gantt-solid-full.png"));
+            ganttBtn.setStyle("-fx-background-color: transparent;");
             ganttBtn.setOnAction(e -> {
                 setActiveButton(ganttBtn);
                 mainWindow.switchView("GANTT");
             });
 
+            navButtons.add(trelloBtn);
+            navButtons.add(listBtn);
+            navButtons.add(ganttBtn);
+
             hbox.getChildren().addAll(trelloBtn, listBtn, ganttBtn);
+
+            // ===== bouton "+ créer une liste" (repris tel quel) =====
+            Button creerListeBtn = new Button("+ Créer une liste");
+            creerListeBtn.setStyle(
+                    "-fx-font-size: 16px;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-background-color: #e5e7eb;" +
+                            "-fx-background-radius: 8px;"
+            );
+            creerListeBtn.setOnAction(e -> mainWindow.ouvrirPopupCreationTache());
+
+            hbox.getChildren().add(creerListeBtn);
         }
 
         // bouton home toujours présent
@@ -95,20 +96,17 @@ public class VueMenu extends BorderPane implements Observateur {
         homeBtn.setId("HOME");
         homeBtn.setGraphic(createIcon("file:icons/house-regular-full.png"));
         homeBtn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
-        homeBtn.setOnAction(controller);
-
-        navButtons.add(homeBtn);
-
         homeBtn.setOnAction(e -> {
             setActiveButton(homeBtn);
             mainWindow.switchView("HOME");
         });
 
+        navButtons.add(homeBtn);
         hbox.getChildren().add(homeBtn);
 
-        // placement à droite
         this.setRight(hbox);
     }
+
 
     private ImageView createIcon(String path) {
         ImageView icon = new ImageView(path);
