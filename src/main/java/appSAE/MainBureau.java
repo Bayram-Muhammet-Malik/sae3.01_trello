@@ -8,99 +8,113 @@ public class MainBureau extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        // ----- Modèle -----
+
+        // ----- modele -----
         Model model = new Model();
 
-        // ===== Colonne 1 : À faire =====
-        Liste aFaire = new Liste("À faire");
+        // ===== colonne 1 : a faire =====
+        Liste aFaire = new Liste("a faire");
+
         CompositeTache t1 = new CompositeTache(
-                "Titre de la tâche 1",
-                "Description courte de la tâche 1.",
+                "titre de la tache 1",
+                "description courte de la tache 1.",
                 "15-12-2025",
-                false,
-                EtatTache.A_FAIRE
+                EtatTache.A_FAIRE,
+                Tache.Priorite.NORMAL
         );
 
         CompositeTache t2 = new CompositeTache(
-                "Titre de la tâche A",
-                "Description courte de la tâche A.",
+                "titre de la tache a",
+                "description courte de la tache a.",
                 "16-12-2025",
-                false,
-                EtatTache.EN_COURS
+                EtatTache.EN_COURS,
+                Tache.Priorite.URGENT
         );
 
         CompositeTache t3 = new CompositeTache(
-                "Titre de la tâche X",
-                "Description courte de la tâche X.",
+                "titre de la tache x",
+                "description courte de la tache x.",
                 "17-12-2025",
-                false,
-                EtatTache.EN_REVUE
+                EtatTache.EN_REVUE,
+                Tache.Priorite.SECONDAIRE
         );
 
         CompositeTache t4 = new CompositeTache(
-                "Titre de la tâche Z",
-                "Description courte de la tâche Z.",
+                "titre de la tache z",
+                "description courte de la tache z.",
                 "18-12-2025",
-                false,
-                EtatTache.TERMINE
+                EtatTache.TERMINE,
+                Tache.Priorite.NORMAL
         );
-
 
         aFaire.ajouterTache(t1);
         aFaire.ajouterTache(t2);
         aFaire.ajouterTache(t3);
         aFaire.ajouterTache(t4);
 
-        // ===== Colonne 2 : En cours =====
-        Liste enCours = new Liste("En cours");
+        // ===== colonne 2 : en cours =====
+        Liste enCours = new Liste("en cours");
+
         CompositeTache tA = new CompositeTache(
-                "Titre de la tâche A",
-                "Description courte de la tâche A.",
-                "16-12-2025"
-        );
+                "titre de la tache a",
+                "description courte de la tache a.",
+                "16-12-2025",
+                EtatTache.EN_COURS
+        ); // priorite normal par defaut
+
         CompositeTache tB = new CompositeTache(
-                "Titre de la tâche B",
-                "Description courte de la tâche B.",
-                "16-12-2025"
+                "titre de la tache b",
+                "description courte de la tache b.",
+                "16-12-2025",
+                EtatTache.EN_COURS,
+                Tache.Priorite.SECONDAIRE
         );
+
         enCours.ajouterTache(tA);
         enCours.ajouterTache(tB);
 
-        // ===== Colonne 3 : En revue =====
-        Liste enRevue = new Liste("En revue");
+        // ===== colonne 3 : en revue =====
+        Liste enRevue = new Liste("en revue");
+
         CompositeTache tX = new CompositeTache(
-                "Titre de la tâche X",
-                "Description courte de la tâche X.",
-                "17-12-2025"
+                "titre de la tache x",
+                "description courte de la tache x.",
+                "17-12-2025",
+                EtatTache.EN_REVUE
         );
+
         enRevue.ajouterTache(tX);
 
-        // ===== Colonne 4 : Terminé =====
-        Liste termine = new Liste("Terminé");
+        // ===== colonne 4 : termine =====
+        Liste termine = new Liste("termine");
+
         CompositeTache tZ = new CompositeTache(
-                "Titre de la tâche Z",
-                "Description courte de la tâche Z.",
-                "18-12-2025"
+                "titre de la tache z",
+                "description courte de la tache z.",
+                "18-12-2025",
+                EtatTache.TERMINE,
+                Tache.Priorite.URGENT
         );
+
         termine.ajouterTache(tZ);
 
-        // Ajout des listes au modèle (ordre = colonnes de gauche à droite)
+        // ajout des listes au modele (ordre = colonnes)
         model.ajouterListe(aFaire);
         model.ajouterListe(enCours);
         model.ajouterListe(enRevue);
         model.ajouterListe(termine);
 
-        // ----- Vue Bureau (maquette Kanban) -----
+        // ----- vue bureau -----
         VueBureau vueBureau = new VueBureau(model);
         model.enregistrerObservateur(vueBureau);
 
         Scene scene = new Scene(vueBureau, 1200, 650);
-        primaryStage.setTitle("Affichage bureau - Tableau : Projet SAE");
+        primaryStage.setTitle("affichage bureau - tableau : projet sae");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
     public static void main(String[] args) {
-        launch(args);   // lance l'affichage bureau
+        launch(args);
     }
 }

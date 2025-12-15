@@ -8,13 +8,16 @@ public abstract class Tache implements Serializable {
     protected String description;
     protected String date;
     protected boolean estFait;
-    protected Priorite priorite = Priorite.NORMAL;
 
     public enum Priorite {
         URGENT,
         NORMAL,
         SECONDAIRE
     }
+
+    protected Priorite priorite = Priorite.NORMAL;
+
+
 
     public String getTitre() {
         return titre;

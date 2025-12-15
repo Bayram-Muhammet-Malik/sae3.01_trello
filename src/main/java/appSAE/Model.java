@@ -80,7 +80,7 @@ public class Model implements Sujet{
         for (Liste liste : listes) {
             for (CompositeTache t : liste.getTaches()) {
                 if (t.getTitre().equals(nomtache)) {
-                    Tache nouvelleTache = new CompositeTache(nomtache, description, date);
+                    Tache nouvelleTache = new CompositeTache(nomtache, description, date, t.getPriorite());
                     t.ajouterTache(nouvelleTache);
                     notifierObservateur();
                     return;
