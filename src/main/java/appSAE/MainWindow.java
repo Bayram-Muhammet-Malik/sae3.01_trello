@@ -33,6 +33,7 @@ public class MainWindow extends Application {
         // ----- menu -----
         menu = new VueMenu(model, this);
         model.enregistrerObservateur(menu);
+
         root.setTop(menu);
 
         // ----- centre -----
@@ -144,6 +145,7 @@ public class MainWindow extends Application {
                 vl.setManaged(true);
             }
         }
+        
     }
 
     // ===== POPUP CREATION DE TACHE =====

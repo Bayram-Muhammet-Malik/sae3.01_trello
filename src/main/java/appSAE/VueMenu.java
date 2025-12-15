@@ -31,19 +31,23 @@ public class VueMenu extends BorderPane implements Observateur {
 
         HBox hbox = new HBox(10);
 
+        // si un fichier est ouvert, on affiche les 3 boutons (bureau / liste / gantt)
         ControlerMenu controller = new ControlerMenu(model, mainWindow);
 
         // si un fichier est ouvert
         if (model.getFilepath() != null) {
 
-            Label fileText = new Label();
+            Label fileText = new Label("Title not found");
             fileText.setTextFill(javafx.scene.paint.Color.WHITE);
+            fileText.setStyle("-fx-font-size: 22");
+
             fileText.setStyle("-fx-font-size: 22; -fx-font-weight: bold;");
             try {
                 fileText.setText(new File(model.getFilepath()).getName());
-            } catch (Exception ignored) {}
-
-            this.setLeft(fileText);
+                this.setLeft(fileText);
+            } catch (Exception ex) {
+                this.setLeft(fileText);
+            }
 
             Button trelloBtn = new Button();
             trelloBtn.setId("BUREAU");
@@ -104,6 +108,7 @@ public class VueMenu extends BorderPane implements Observateur {
         navButtons.add(homeBtn);
         hbox.getChildren().add(homeBtn);
 
+        // Placement à droite
         this.setRight(hbox);
     }
 
