@@ -21,7 +21,7 @@ public class FichierManager {
     }
 
     //Charger liste du fichier
-    public static GestionnaireListes  charger(String fichier) {
+    public static GestionnaireListes charger(String fichier) {
         try {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fichier));
             //désérialisation

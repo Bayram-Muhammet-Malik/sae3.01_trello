@@ -17,6 +17,10 @@ public class Model implements Sujet{
         this.listes.add(liste);
     }
 
+    public void supprimerListe(Liste liste){ this.listes.remove(liste); }
+
+
+
     // Méthode pour modifier le titre d'une tâche
     public void modifierNom(String nomtache){
         for (Liste liste : listes) {
@@ -67,48 +71,9 @@ public class Model implements Sujet{
         }
     }
 
-    // Méthode pour ajouter une tâche
-    public void ajouterTache(String nomtache, String description, String date){
-        for (Liste liste : listes) {
-            for (CompositeTache t : liste.getTaches()) {
-                if (t.getTitre().equals(nomtache)) {
-                    Tache nouvelleTache = new CompositeTache(nomtache, description, date);
-                    t.ajouterTache(nouvelleTache);
-                    notifierObservateur();
-                    return;
-                }
-            }
-        }
-    }
 
-    // Méthode pour supprimer une tâche
-    public void supprimerTache(String nomtache, String description, String date){
-        for (Liste liste : listes) {
-            for (CompositeTache t : liste.getTaches()) {
-                if (t.getTitre().equals(nomtache)) {
-                    Tache tacheASupprimer = null;
-                    /*for (Tache sousTache : t.getSousTaches()) {
-                        if (sousTache.getTitre().equals(nomtache) &&
-                            sousTache.getDescription().equals(description) &&
-                            sousTache.getDate().equals(date)) {
-                            tacheASupprimer = sousTache;
-                            break;
-                        }
-                    }*/
-                    if (tacheASupprimer != null) {
-                        t.supprimerTache(tacheASupprimer);
-                        notifierObservateur();
-                    }
-                    return;
-                }
-            }
-        }
-    }
 
-    public void ajouterCarte(String nomtache, String description, String date){
-        //TODO
-        // à faire quand on auras les tags
-    }
+
 
     public List<Liste> getListes() {
         return listes;
@@ -117,6 +82,24 @@ public class Model implements Sujet{
     public String getFilepath() {
         return filepath;
     }
+
+
+
+
+    public void ajouterCarte(Liste liste, Tache nouvelleTache) {
+        liste.ajouterCarte(nouvelleTache);
+        notifierObservateur();
+    }
+
+    public void supprimerTache(Liste liste, Tache Tache) {
+        liste.supprimerTache(Tache);
+        notifierObservateur();
+    }
+
+
+
+
+
 
     @Override
     public void enregistrerObservateur(Observateur o) {

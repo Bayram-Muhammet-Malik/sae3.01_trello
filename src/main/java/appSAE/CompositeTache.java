@@ -15,6 +15,7 @@ public class CompositeTache extends Tache implements Serializable {
         this.estFait = false;
     }
 
+
     public void ajouterTache(Tache tache) {
         content.add(tache);
     }
