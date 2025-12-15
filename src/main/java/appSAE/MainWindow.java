@@ -14,22 +14,29 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class MainWindow extends Application {
-    private BorderPane homePage = new BorderPane();
+
+    private final BorderPane homePage = new BorderPane();
+
+    // vues
     private VueBureau vb;
+    private VueListe vl;
 
     @Override
     public void start(Stage stage) {
         BorderPane root = new BorderPane();
 
+        // modele
         Model model = new Model();
-        VueMenu menu = new VueMenu(model);
-        model.enregistrerObservateur(menu);
 
+        // menu (peut appeler switchView)
+        VueMenu menu = new VueMenu(model, this);
+        model.enregistrerObservateur(menu);
         root.setTop(menu);
 
-        // Centre root
+        // centre
         StackPane centreRoot = new StackPane();
 
+        // ----- home page -----
         Text welcomeText = new Text("Bienvenue dans HiTask");
         welcomeText.setStyle("-fx-font-size: 25");
         StackPane topPane = new StackPane(welcomeText);
@@ -76,14 +83,19 @@ public class MainWindow extends Application {
         btnHP.setStyle("-fx-padding: 40;");
         homePage.setCenter(btnHP);
 
-        centreRoot.getChildren().add(homePage);
-
+        // ----- vues bureau + liste -----
         vb = new VueBureau(model);
         model.enregistrerObservateur(vb);
         vb.setVisible(false);
         vb.setManaged(false);
 
-        centreRoot.getChildren().add(vb);
+        vl = new VueListe(model);
+        model.enregistrerObservateur(vl);
+        vl.setVisible(false);
+        vl.setManaged(false);
+
+        // on empile tout (home + bureau + liste)
+        centreRoot.getChildren().addAll(homePage, vb, vl);
 
         root.setCenter(centreRoot);
 
@@ -98,14 +110,21 @@ public class MainWindow extends Application {
     }
 
     public void switchView(String type) {
+        // on cache tout
         homePage.setVisible(false);
         homePage.setManaged(false);
+
         vb.setVisible(false);
         vb.setManaged(false);
 
+        vl.setVisible(false);
+        vl.setManaged(false);
+
+        // on affiche la bonne vue
         switch (type) {
             case "HOME" -> { homePage.setVisible(true); homePage.setManaged(true); }
             case "BUREAU" -> { vb.setVisible(true); vb.setManaged(true); }
+            case "LISTE" -> { vl.setVisible(true); vl.setManaged(true); }
         }
     }
 
