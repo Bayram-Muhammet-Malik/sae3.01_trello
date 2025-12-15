@@ -119,7 +119,8 @@ public class MainTerminal {
             CompositeTache t1 = new CompositeTache(
                     "Préparer la soutenance",
                     "Faire un plan + des slides",
-                    "XX/XX/XXXX"
+                    "XX/XX/XXXX",
+                    null
             );
 
     //afficher les listes
@@ -222,7 +223,7 @@ public class MainTerminal {
         System.out.print("Date (JJ/MM/AAAA) : ");
         String date = sc.nextLine();
 
-        CompositeTache t = new CompositeTache(titre, desc, date);
+        CompositeTache t = new CompositeTache(titre, desc, date, null);
         liste.getTaches().add(t);
 
         System.out.println("Tâche " + titre + " ajoutée !");
@@ -297,7 +298,7 @@ public class MainTerminal {
         System.out.print("Date (JJ/MM/AAAA) : ");
         String date = sc.nextLine();
 
-        CompositeTache sousTache = new CompositeTache(titre, desc, date);
+        CompositeTache sousTache = new CompositeTache(titre, desc, date, null);
         parent.ajouterTache(sousTache);
 
         System.out.println("Sous-tâche ajoutée !");

@@ -11,10 +11,12 @@ import java.util.ArrayList;
 
 public class VueMenu extends BorderPane implements Observateur {
     private Model model;
+    private MainWindow mainWindow;
     private final ArrayList<Button> navButtons = new ArrayList<>();
 
-    public VueMenu(Model model) {
+    public VueMenu(Model model, MainWindow mainWindow) {
         this.model = model;
+        this.mainWindow = mainWindow;
         this.setStyle("-fx-background-color: #2563eb; -fx-padding: 4px;");
         actualiser(model);
     }
@@ -25,10 +27,12 @@ public class VueMenu extends BorderPane implements Observateur {
         navButtons.clear();
         HBox hbox = new HBox();
 
+        ControlerMenu controller = new ControlerMenu(model, mainWindow);
+
         if (model.getFilepath() != null) {
             Label fileText = new Label("Title not found");
             fileText.setTextFill(javafx.scene.paint.Color.WHITE);
-            fileText.setStyle("-fx-font-size: 22");
+            fileText.setStyle("-fx-font-size: 22; -fx-font-weight: bold;");
             try {
                 fileText.setText(new File(model.getFilepath()).getName());
                 this.setLeft(fileText);
@@ -37,34 +41,36 @@ public class VueMenu extends BorderPane implements Observateur {
             }
 
             Button trelloBtn = new Button();
+            trelloBtn.setId("BUREAU");
             trelloBtn.setGraphic(createIcon("file:icons/trello-brands-solid-full.png"));
             trelloBtn.setStyle("-fx-background-color: transparent;");
+            trelloBtn.setOnAction(controller);
 
             Button listBtn = new Button();
+            listBtn.setId("LISTE");
             listBtn.setGraphic(createIcon("file:icons/list-check-solid-full.png"));
             listBtn.setStyle("-fx-background-color: transparent;");
+            listBtn.setOnAction(controller);
 
             Button ganttBtn = new Button();
+            ganttBtn.setId("GANTT");
             ganttBtn.setGraphic(createIcon("file:icons/chart-gantt-solid-full.png"));
             ganttBtn.setStyle("-fx-background-color: transparent;");
+            ganttBtn.setOnAction(controller);
 
             navButtons.add(trelloBtn);
             navButtons.add(listBtn);
             navButtons.add(ganttBtn);
-            trelloBtn.setOnAction(e -> setActiveButton(trelloBtn));
-            listBtn.setOnAction(e -> setActiveButton(listBtn));
-            ganttBtn.setOnAction(e -> setActiveButton(ganttBtn));
-
             hbox.getChildren().addAll(trelloBtn, listBtn, ganttBtn);
         }
 
         Button homeBtn = new Button();
+        homeBtn.setId("HOME");
         homeBtn.setGraphic(createIcon("file:icons/house-regular-full.png"));
         homeBtn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
+        homeBtn.setOnAction(controller);
 
         navButtons.add(homeBtn);
-        homeBtn.setOnAction(e -> setActiveButton(homeBtn));
-
         hbox.getChildren().add(homeBtn);
 
         // Placement à droite
@@ -80,9 +86,10 @@ public class VueMenu extends BorderPane implements Observateur {
         return icon;
     }
 
-    private void setActiveButton(Button activeBtn) {
+    public void setActiveButton(String type) {
         for (Button btn : navButtons) {
-            if (btn == activeBtn) {
+            String id = btn.getId();
+            if (id != null && id.equals(type)) {
                 btn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
             } else {
                 btn.setStyle("-fx-background-color: transparent;");

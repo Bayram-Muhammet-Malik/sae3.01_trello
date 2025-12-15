@@ -17,11 +17,10 @@ public class Model implements Sujet{
         this.listes.add(liste);
     }
 
-    // Méthode pour modifier le chemin fichier actuel
     public void modifierPath(String path){
-        if (filepath != path) {
-            filepath = path;
-            this.notifierObservateur();
+        if (this.filepath != path){
+            this.filepath = path;
+            notifierObservateur();
         }
     }
 
@@ -75,6 +74,7 @@ public class Model implements Sujet{
         }
     }
 
+    /*
     // Méthode pour ajouter une tâche
     public void ajouterTache(String nomtache, String description, String date){
         for (Liste liste : listes) {
@@ -87,7 +87,7 @@ public class Model implements Sujet{
                 }
             }
         }
-    }
+    }*/
 
     // Méthode pour supprimer une tâche
     public void supprimerTache(String nomtache, String description, String date){
