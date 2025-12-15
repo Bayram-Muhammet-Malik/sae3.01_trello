@@ -24,8 +24,19 @@ public class Liste implements Serializable {
     public List<CompositeTache> getTaches(){
         return this.taches;
     }
-    public void ajouterTache(CompositeTache tache) {
-        taches.add(tache);
+
+
+
+
+    // Méthode pour supprimer une tâche
+    public void supprimerTache(Tache tache){
+        for (CompositeTache c : taches){
+            if (taches.contains(tache))
+                this.taches.remove(tache);
+        }
     }
 
+    public void ajouterCarte(Tache tache) {
+        this.taches.add((CompositeTache) tache);
+    }
 }

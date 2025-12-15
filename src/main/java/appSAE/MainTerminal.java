@@ -269,7 +269,7 @@ public class MainTerminal {
 
         System.out.print("date (jj-mm-aaaa) : ");
         String date = sc.nextLine();
-        
+
         // par defaut : etat a faire, priorite normal
         CompositeTache sousTache = new CompositeTache(
                 titre,
