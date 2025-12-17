@@ -4,12 +4,12 @@ import java.io.*;
 
 public class FichierManager {
     //Sauvegarde liste dans un fichier
-    public static void sauvegarder(GestionnaireListes listes, String fichier) {
+    public static void sauvegarder(Model modele, String fichier) {
         try {
             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fichier));
 
             //sérialisation
-            oos.writeObject(listes);
+            oos.writeObject(modele);
             oos.close();
 
             System.out.println("Liste sauvegardée dans " + fichier);
@@ -21,15 +21,15 @@ public class FichierManager {
     }
 
     //Charger liste du fichier
-    public static GestionnaireListes charger(String fichier) {
+    public static Model charger(String fichier) {
         try {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fichier));
             //désérialisation
-            GestionnaireListes  listes = (GestionnaireListes) ois.readObject();
+            Model  modele = (Model) ois.readObject();
             ois.close();
 
             System.out.println("Liste chargée depuis " + fichier);
-            return listes;
+            return modele;
 
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Aucune sauvegarde trouvée.");

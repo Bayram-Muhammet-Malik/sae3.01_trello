@@ -1,16 +1,27 @@
 package appSAE;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Model implements Sujet{
-    private List<Observateur> obs;
+public class Model implements Sujet, Serializable {
+    private static final long serialVersionUID = 1L;
+    private transient List<Observateur> obs;
     private List<Liste> listes;
     private String filepath;
 
     public Model() {
         obs = new ArrayList<Observateur>();
         listes = new ArrayList<Liste>();
+    }
+
+    private void readObject(ObjectInputStream ois)
+            throws IOException, ClassNotFoundException {
+
+        ois.defaultReadObject();
+        obs = new ArrayList<>();
     }
 
     public void ajouterListe(Liste liste){

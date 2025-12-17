@@ -45,7 +45,7 @@ public class CompositeTache extends Tache implements Serializable {
 
 
 
-    
+
     public EtatTache getEtat() {
         return etat;
     }
