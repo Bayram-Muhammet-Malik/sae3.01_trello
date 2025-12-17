@@ -1,7 +1,5 @@
 package appSAE;
 
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -162,6 +160,7 @@ public class VueBureau extends HBox implements Observateur {
             model.notifierObservateur();
         });
     }
+
 
 
 
