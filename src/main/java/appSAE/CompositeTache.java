@@ -1,10 +1,9 @@
 package appSAE;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompositeTache extends Tache implements Serializable {
+public class CompositeTache extends Tache{
     private final List<Tache> content = new ArrayList<>();
     private EtatTache etat;
 
@@ -34,7 +33,11 @@ public class CompositeTache extends Tache implements Serializable {
     public CompositeTache(String titre, String description, String date) {
         this(titre, description, date, EtatTache.A_FAIRE, null);
     }
-    
+
+
+
+
+
     public EtatTache getEtat() {
         return etat;
     }

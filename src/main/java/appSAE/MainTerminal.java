@@ -3,10 +3,10 @@ package appSAE;
 import java.util.Scanner;
 
 public class MainTerminal {
-
+/*
     public static void main(String[] args) {
 
-        GestionnaireListes gestion = FichierManager.charger("listes.data");
+        GestionnaireListes gestion = FichierManager.charger("listes.data", new Model());
         if (gestion == null) {
             gestion = new GestionnaireListes();
         }
@@ -78,7 +78,7 @@ public class MainTerminal {
 
             // On crée une nouvelle liste
             Liste liste = new Liste("Ma liste de test");
-            
+
             //tache principale
             CompositeTache t1 = new CompositeTache(
                     "Préparer la soutenance",
@@ -296,5 +296,5 @@ public class MainTerminal {
         }
 
         ajouterSousTache(liste, sc);
-    }
+    }*/
 }

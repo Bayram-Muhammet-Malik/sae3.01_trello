@@ -165,31 +165,66 @@ public class VueBureau extends HBox implements Observateur {
 
 
     private VBox creerTache(Tache tsk) {
-        VBox tache = new VBox(6);
-        tache.setStyle("-fx-background-color: #ffffff; -fx-padding: 12px; -fx-background-radius: 8px;");
+
+        VBox carte = new VBox(6);
+        carte.setStyle(
+                "-fx-background-color: #ffffff;" +
+                        "-fx-padding: 12px;" +
+                        "-fx-background-radius: 10px;" +
+                        "-fx-border-color: #e5e7eb;" +
+                        "-fx-border-radius: 10px;"
+        );
+
+        // ligne du haut : titre (gras) + badge priorité à droite
+        HBox ligneHaut = new HBox(8);
+        ligneHaut.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         Label titre = new Label(tsk.getTitre());
-        Label description = new Label(tsk.getDescription());
+        titre.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #111827;");
 
-        Label etiquette;
+        Region espace = new Region();
+        HBox.setHgrow(espace, Priority.ALWAYS);
 
-        switch (tsk.getPriorite()) {
+        Label badge = creerBadgePriorite(tsk.getPriorite());
+
+        ligneHaut.getChildren().addAll(titre, espace, badge);
+
+        // description (indent + couleur plus douce)
+        Label description = new Label(tsk.getDescription() == null ? "" : tsk.getDescription());
+        description.setWrapText(true);
+        description.setStyle("-fx-text-fill: #4b5563; -fx-font-size: 12px; -fx-padding: 0 0 0 6px;");
+
+        carte.getChildren().addAll(ligneHaut, description);
+
+        return carte;
+    }
+
+    private Label creerBadgePriorite(Tache.Priorite prio) {
+        Label badge = new Label();
+
+        String styleBase =
+                "-fx-text-fill: white;" +
+                        "-fx-padding: 2 8;" +
+                        "-fx-background-radius: 999;" +
+                        "-fx-font-size: 11px;" +
+                        "-fx-font-weight: bold;";
+
+        if (prio == null) prio = Tache.Priorite.NORMAL;
+
+        switch (prio) {
             case NORMAL -> {
-                etiquette = new Label("standard");
-                etiquette.setStyle("-fx-background-color: #93c47d; -fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 999;");
+                badge.setText("standard");
+                badge.setStyle("-fx-background-color: #226ec5;" + styleBase);
             }
             case SECONDAIRE -> {
-                etiquette = new Label("important");
-                etiquette.setStyle("-fx-background-color: #ff9900; -fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 999;");
+                badge.setText("Secondaire");
+                badge.setStyle("-fx-background-color: #81ff00;" + styleBase);
             }
             case URGENT -> {
-                etiquette = new Label("urgent");
-                etiquette.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 999;");
+                badge.setText("urgent");
+                badge.setStyle("-fx-background-color: #ef4444;" + styleBase);
             }
-            default -> etiquette = new Label("");
         }
-
-        tache.getChildren().addAll(titre, etiquette, description);
-        return tache;
+        return badge;
     }
 }

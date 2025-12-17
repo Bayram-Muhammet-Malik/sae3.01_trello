@@ -1,16 +1,23 @@
 package appSAE;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Model implements Sujet{
-    private List<Observateur> obs;
+public class Model implements Sujet, Serializable {
+    private transient List<Observateur> obs;
     private List<Liste> listes;
-    private String filepath;
+    private transient String filepath;
+    private String lastVue = "HOME";
 
     public Model() {
         obs = new ArrayList<Observateur>();
         listes = new ArrayList<Liste>();
+    }
+
+    public void setModel(Model model) {
+        this.listes = model.getListes();
+        this.lastVue = model.getLastVue();
     }
 
     public void ajouterListe(Liste liste){
@@ -31,15 +38,10 @@ public class Model implements Sujet{
         }
     }
 
-    // Méthode pour modifier le titre d'une tâche
-    public void modifierNom(String nomtache){
-        for (Liste liste : listes) {
-            for (CompositeTache t : liste.getTaches()) {
-                if (t.getTitre().equals(nomtache)) {
-                    t.titre = nomtache;
-                    notifierObservateur();
-                }
-            }
+    public void modifierLastVue(String vue){
+        if (this.lastVue != vue){
+            this.lastVue = vue;
+            notifierObservateur();
         }
     }
 
@@ -84,10 +86,10 @@ public class Model implements Sujet{
     public List<Liste> getListes() {
         return listes;
     }
-
     public String getFilepath() {
         return filepath;
     }
+    public String getLastVue(){ return lastVue; }
 
     public List<CompositeTache> getTachesFromListe(Liste liste){
         return liste.getTaches();
