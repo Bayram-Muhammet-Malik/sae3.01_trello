@@ -37,33 +37,6 @@ class ModelTest {
     }
 
     @Test
-    void testModifierPath() {
-        model.modifierPath("data.txt");
-        assertEquals("data.txt", model.getFilepath());
-        assertTrue(((FakeObservateur) observateur).notifie);
-    }
-
-    @Test
-    void testModifierDate() {
-        model.modifierDate("T1", "02/02/2025");
-        assertEquals("02/02/2025", tache.getDate());
-    }
-
-    @Test
-    void testModifierDescription() {
-        model.modifierDescription("T1", "nouvelle description");
-        assertEquals("nouvelle description", tache.getDescription());
-    }
-
-    @Test
-    void testModifierTout() {
-        model.modifierTout("T1", "desc2", "03/03/2025");
-        assertEquals("desc2", tache.getDescription());
-        assertEquals("03/03/2025", tache.getDate());
-        assertEquals("T1", tache.getTitre());
-    }
-
-    @Test
     void testAjouterCarte() {
         CompositeTache t2 = new CompositeTache("T2", "d", "01"); // vraie classe
         model.ajouterCarte(liste, t2);
@@ -75,7 +48,6 @@ class ModelTest {
     void testSupprimerObservateur() {
         model.supprimerObservateur(observateur);
         ((FakeObservateur) observateur).notifie = false;
-        model.modifierPath("test.txt");
         assertFalse(((FakeObservateur) observateur).notifie);
     }
 

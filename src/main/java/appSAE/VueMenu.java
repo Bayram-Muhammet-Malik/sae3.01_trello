@@ -10,12 +10,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.util.ArrayList;
 
 public class VueMenu extends BorderPane implements Observateur {
     private Model model;
     private MainWindow mainWindow;
-    private final ArrayList<Button> navButtons = new ArrayList<>();
 
     public VueMenu(Model model, MainWindow mainWindow) {
         this.model = model;
@@ -27,7 +25,6 @@ public class VueMenu extends BorderPane implements Observateur {
     @Override
     public void actualiser(Sujet s) {
         this.getChildren().clear();
-        navButtons.clear();
         HBox hbox = new HBox(5);
 
         ControlerMenu controller = new ControlerMenu(model, mainWindow);
@@ -48,54 +45,31 @@ public class VueMenu extends BorderPane implements Observateur {
             creerListeBtn.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
             creerListeBtn.setOnAction(e -> this.ouvrirPopupCreaListe());
 
-            Button trelloBtn = new Button();
-            trelloBtn.setId("BUREAU");
-            trelloBtn.setGraphic(createIcon("file:icons/trello-brands-solid-full.png"));
-            trelloBtn.setStyle("-fx-background-color: transparent;");
-            if (lastVue == "BUREAU") trelloBtn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
-            trelloBtn.setOnAction(controller);
-
-            Button listBtn = new Button();
-            listBtn.setId("LISTE");
-            listBtn.setGraphic(createIcon("file:icons/list-check-solid-full.png"));
-            listBtn.setStyle("-fx-background-color: transparent;");
-            if (lastVue == "LISTE") listBtn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
-            listBtn.setOnAction(controller);
-
-            Button ganttBtn = new Button();
-            ganttBtn.setId("GANTT");
-            ganttBtn.setGraphic(createIcon("file:icons/chart-gantt-solid-full.png"));
-            ganttBtn.setStyle("-fx-background-color: transparent;");
-            if (lastVue == "GANTT") ganttBtn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
-            ganttBtn.setOnAction(controller);
-
-            navButtons.add(trelloBtn);
-            navButtons.add(listBtn);
-            navButtons.add(ganttBtn);
+            Button trelloBtn = createNavButton("BUREAU", "file:icons/trello-brands-solid-full.png", lastVue, controller);
+            Button listBtn = createNavButton("LISTE", "file:icons/list-check-solid-full.png", lastVue, controller);
+            Button ganttBtn = createNavButton("GANTT", "file:icons/chart-gantt-solid-full.png", lastVue, controller);
             hbox.getChildren().addAll(creerListeBtn, trelloBtn, listBtn, ganttBtn);
         }
 
-        Button homeBtn = new Button();
-        homeBtn.setId("HOME");
-        homeBtn.setGraphic(createIcon("file:icons/house-regular-full.png"));
-        homeBtn.setStyle("-fx-background-color: transparent;");
-        if (lastVue == "HOME") homeBtn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
-        homeBtn.setOnAction(controller);
-
-        navButtons.add(homeBtn);
+        Button homeBtn = createNavButton("HOME", "file:icons/house-regular-full.png", lastVue, controller);
         hbox.getChildren().add(homeBtn);
 
         // Placement à droite
         this.setRight(hbox);
     }
 
-    private ImageView createIcon(String path) {
-        ImageView icon = new ImageView(path);
+    private Button createNavButton(String id, String iconPath, String lastVue, ControlerMenu controller) {
+        ImageView icon = new ImageView(iconPath);
         icon.setFitWidth(30);
         icon.setFitHeight(30);
         icon.setPreserveRatio(true);
         icon.setSmooth(true);
-        return icon;
+
+        Button btn = new Button(null, icon);
+        btn.setId(id);
+        btn.setStyle(id.equals(lastVue) ? "-fx-background-color: #1d4ed8; -fx-background-radius: 8px;" : "-fx-background-color: transparent;");
+        btn.setOnAction(controller);
+        return btn;
     }
 
     private void ouvrirPopupCreaListe() {
@@ -103,7 +77,7 @@ public class VueMenu extends BorderPane implements Observateur {
         popup.setTitle("Créer une liste");
 
         VBox root = new VBox(10);
-        root.setPadding(new Insets(15));
+        root.setPadding(new Insets(10));
 
         TextField titreField = new TextField();
         titreField.setPromptText("Titre de la liste");

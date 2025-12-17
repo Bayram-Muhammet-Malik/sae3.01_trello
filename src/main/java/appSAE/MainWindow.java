@@ -22,7 +22,6 @@ public class MainWindow extends Application {
 
     @Override
     public void start(Stage stage) {
-
         BorderPane root = new BorderPane();
 
         Model model = new Model();

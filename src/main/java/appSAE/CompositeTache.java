@@ -34,10 +34,6 @@ public class CompositeTache extends Tache{
         this(titre, description, date, EtatTache.A_FAIRE, null);
     }
 
-
-
-
-
     public EtatTache getEtat() {
         return etat;
     }
