@@ -37,9 +37,8 @@ public class ControlerHomeBtn implements EventHandler<ActionEvent> {
                     try {
                         fileToSave.createNewFile();
                         FichierManager.charger(model, fileToSave.getAbsolutePath());
-                        model.modifierPath(fileToSave.getAbsolutePath());
-                        mainWindow.switchView("BUREAU");
-                        model.modifierLastVue("BUREAU");
+                        mainWindow.switchView(model.getLastVue());
+                        model.modifierLastVue(model.getLastVue());
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -52,9 +51,8 @@ public class ControlerHomeBtn implements EventHandler<ActionEvent> {
                 File fileToOpen = openChooser.showOpenDialog(stage);
                 if (fileToOpen != null) {
                     FichierManager.charger(model, fileToOpen.getAbsolutePath());
-                    model.modifierPath(fileToOpen.getAbsolutePath());
-                    mainWindow.switchView("BUREAU");
-                    model.modifierLastVue("BUREAU");
+                    mainWindow.switchView(model.getLastVue());
+                    model.modifierLastVue(model.getLastVue());
                 }
                 break;
         }
