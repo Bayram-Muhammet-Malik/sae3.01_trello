@@ -26,17 +26,19 @@ public class Model implements Sujet, Serializable {
 
     public void ajouterListe(Liste liste){
         this.listes.add(liste);
+        notifierObservateur();
     }
 
-    public void supprimerListe(Liste liste){ this.listes.remove(liste); }
-
-
+    public void supprimerListe(Liste liste){
+        this.listes.remove(liste);
+        notifierObservateur();
+    }
 
     // Méthode pour modifier le chemin fichier actuel
     public void modifierPath(String path){
-        if (filepath != path) {
-            filepath = path;
-            this.notifierObservateur();
+        if (this.filepath != path){
+            this.filepath = path;
+            notifierObservateur();
         }
     }
 
@@ -90,10 +92,6 @@ public class Model implements Sujet, Serializable {
         }
     }
 
-
-
-
-
     public List<Liste> getListes() {
         return listes;
     }
@@ -102,8 +100,9 @@ public class Model implements Sujet, Serializable {
         return filepath;
     }
 
-
-
+    public List<CompositeTache> getTachesFromListe(Liste liste){
+        return liste.getTaches();
+    }
 
     public void ajouterCarte(Liste liste, Tache nouvelleTache) {
         liste.ajouterCarte(nouvelleTache);
@@ -114,11 +113,6 @@ public class Model implements Sujet, Serializable {
         liste.supprimerTache(Tache);
         notifierObservateur();
     }
-
-
-
-
-
 
     @Override
     public void enregistrerObservateur(Observateur o) {

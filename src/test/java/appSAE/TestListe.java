@@ -43,7 +43,7 @@ public class TestListe {
     @Test
     void getTachesPermetDAjouterUneCompositeTache() {
         Liste liste = new Liste("Liste de tâches");
-        CompositeTache t1 = new CompositeTache("Tâche 1", "Desc 1", "2025-01-01");
+        CompositeTache t1 = new CompositeTache("Tâche 1", "Desc 1", "2025-01-01", Tache.Priorite.NORMAL);
 
         // On ajoute via la liste retournée par getTaches()
         List<CompositeTache> taches = liste.getTaches();

@@ -5,9 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CompositeTache extends Tache implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
     private final List<Tache> content = new ArrayList<>();
     private EtatTache etat;
 
@@ -23,25 +20,21 @@ public class CompositeTache extends Tache implements Serializable {
         this.priorite = (prio == null) ? Priorite.NORMAL : prio;
     }
 
-
     // raccourci : priorite donnee, etat par defaut = a faire
     public CompositeTache(String titre, String description, String date, Priorite prio) {
         this(titre, description, date, EtatTache.A_FAIRE, prio);
     }
-
-
 
     // raccourci : etat donne, priorite par defaut = normal
     public CompositeTache(String titre, String description, String date, EtatTache etat) {
         this(titre, description, date, etat, Priorite.NORMAL);
     }
 
-
-
     //raccourci : BYPASS la prio
     public CompositeTache(String titre, String description, String date) {
         this(titre, description, date, EtatTache.A_FAIRE, null);
     }
+
 
 
 
@@ -54,7 +47,6 @@ public class CompositeTache extends Tache implements Serializable {
         if (etat == null) return;
         this.etat = etat;
     }
-
 
     public void ajouterTache(Tache tache) {
         content.add(tache);

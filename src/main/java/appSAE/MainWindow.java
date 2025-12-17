@@ -1,6 +1,7 @@
 package appSAE;
 
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -15,14 +16,17 @@ import javafx.stage.Stage;
 
 public class MainWindow extends Application {
     private BorderPane homePage = new BorderPane();
+    private VueMenu menu;
     private VueBureau vb;
+    private VueListe vl;
 
     @Override
     public void start(Stage stage) {
+
         BorderPane root = new BorderPane();
 
         Model model = new Model();
-        VueMenu menu = new VueMenu(model);
+        menu = new VueMenu(model, this);
         model.enregistrerObservateur(menu);
 
         root.setTop(menu);
@@ -76,16 +80,20 @@ public class MainWindow extends Application {
         btnHP.setStyle("-fx-padding: 40;");
         homePage.setCenter(btnHP);
 
-        centreRoot.getChildren().add(homePage);
-
         vb = new VueBureau(model);
         model.enregistrerObservateur(vb);
         vb.setVisible(false);
         vb.setManaged(false);
 
-        centreRoot.getChildren().add(vb);
+        vl = new VueListe(model);
+        model.enregistrerObservateur(vl);
+        vl.setVisible(false);
+        vl.setManaged(false);
+
+        centreRoot.getChildren().addAll(homePage, vb, vl);
 
         root.setCenter(centreRoot);
+        BorderPane.setMargin(centreRoot, new Insets(10));
 
         Scene scene = new Scene(root);
 
@@ -102,11 +110,16 @@ public class MainWindow extends Application {
         homePage.setManaged(false);
         vb.setVisible(false);
         vb.setManaged(false);
+        vl.setVisible(false);
+        vl.setManaged(false);
 
         switch (type) {
             case "HOME" -> { homePage.setVisible(true); homePage.setManaged(true); }
             case "BUREAU" -> { vb.setVisible(true); vb.setManaged(true); }
+            case "LISTE" -> { vl.setVisible(true); vl.setManaged(true); }
         }
+
+        if (menu != null) { menu.setActiveButton(type); }
     }
 
     public static void main(String[] args) {
