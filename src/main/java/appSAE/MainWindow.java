@@ -145,7 +145,7 @@ public class MainWindow extends Application {
                 vl.setManaged(true);
             }
         }
-        
+
     }
 
     // ===== POPUP CREATION DE TACHE =====
