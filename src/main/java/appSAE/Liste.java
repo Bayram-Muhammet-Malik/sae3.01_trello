@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Liste implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String titre;
     private List<CompositeTache> taches;
 
@@ -23,9 +24,6 @@ public class Liste implements Serializable {
     public List<CompositeTache> getTaches(){
         return this.taches;
     }
-
-
-
 
     // Méthode pour supprimer une tâche
     public void supprimerTache(Tache tache){

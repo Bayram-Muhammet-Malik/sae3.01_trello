@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Model implements Sujet, Serializable {
+    private static final long serialVersionUID = 1L;
     private transient List<Observateur> obs;
     private List<Liste> listes;
     private transient String filepath;
@@ -15,9 +16,11 @@ public class Model implements Sujet, Serializable {
         listes = new ArrayList<Liste>();
     }
 
-    public void setModel(Model model) {
-        this.listes = model.getListes();
-        this.lastVue = model.getLastVue();
+    public void setModel(Model model, String path) {
+        this.listes = (model != null ? model.getListes() : new ArrayList<Liste>());
+        this.lastVue = (model != null ? model.getLastVue() : "BUREAU");
+        this.filepath = path;
+        notifierObservateur();
     }
 
     public void ajouterListe(Liste liste){
@@ -28,14 +31,6 @@ public class Model implements Sujet, Serializable {
     public void supprimerListe(Liste liste){
         this.listes.remove(liste);
         notifierObservateur();
-    }
-
-    // Méthode pour modifier le chemin fichier actuel
-    public void modifierPath(String path){
-        if (this.filepath != path){
-            this.filepath = path;
-            notifierObservateur();
-        }
     }
 
     public void modifierLastVue(String vue){
