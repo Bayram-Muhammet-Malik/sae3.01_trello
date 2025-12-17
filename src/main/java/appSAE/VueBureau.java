@@ -20,7 +20,6 @@ public class VueBureau extends HBox implements Observateur {
         }
     }
 
-
     private VBox creerColonne(Liste ls) {
         VBox colonne = new VBox();
         colonne.setSpacing(10);
