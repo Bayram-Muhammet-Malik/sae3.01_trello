@@ -15,9 +15,13 @@ public class Model implements Sujet{
 
     public void ajouterListe(Liste liste){
         this.listes.add(liste);
+        notifierObservateur();
     }
 
-    public void supprimerListe(Liste liste){ this.listes.remove(liste); }
+    public void supprimerListe(Liste liste){
+        this.listes.remove(liste);
+        notifierObservateur();
+    }
 
     // Méthode pour modifier le chemin fichier actuel
     public void modifierPath(String path){

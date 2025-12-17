@@ -45,7 +45,7 @@ public class VueMenu extends BorderPane implements Observateur {
 
             Button creerListeBtn = new Button("+ Créer une liste");
             creerListeBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
-            creerListeBtn.setOnAction(e -> this.ouvrirPopupCreationTache());
+            creerListeBtn.setOnAction(e -> this.ouvrirPopupCreaListe());
 
             Button trelloBtn = new Button();
             trelloBtn.setId("BUREAU");
@@ -104,69 +104,24 @@ public class VueMenu extends BorderPane implements Observateur {
         }
     }
 
-    private void ouvrirPopupCreationTache() {
+    private void ouvrirPopupCreaListe() {
         Stage popup = new Stage();
-        popup.setTitle("Créer une tâche");
+        popup.setTitle("Créer une liste");
 
         VBox root = new VBox(10);
         root.setPadding(new Insets(15));
 
         TextField titreField = new TextField();
-        titreField.setPromptText("Titre de la tâche");
+        titreField.setPromptText("Titre de la liste");
 
-        TextArea descField = new TextArea();
-        descField.setPromptText("Description");
-        descField.setPrefRowCount(3);
+        Button valider = new Button("Ajouter");
+        valider.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 8px;");
 
-        TextField dateField = new TextField();
-        dateField.setPromptText("Date (jj-mm-aaaa)");
+        valider.setOnAction(new ControlerPopListe(model, titreField, popup));
 
-        ComboBox<Tache.Priorite> prioBox = new ComboBox<>();
-        prioBox.getItems().addAll(Tache.Priorite.values());
-        prioBox.setValue(Tache.Priorite.NORMAL);
+        root.getChildren().addAll(new Label("Titre"), titreField, valider);
 
-        Button valider = new Button("Créer");
-        valider.setStyle(
-                "-fx-font-size: 14px;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-background-color: #2563eb;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-background-radius: 8px;"
-        );
-
-        valider.setOnAction(e -> {
-            // A déplacer dans ControllerMenu
-            /*
-            String titre = titreField.getText();
-            String desc = descField.getText();
-            String date = dateField.getText();
-            Tache.Priorite prio = prioBox.getValue();
-
-            if (titre.isEmpty() || date.isEmpty()) return;
-
-            if (!model.getListes().isEmpty()) {
-                CompositeTache t = new CompositeTache(titre, desc, date, prio);
-                model.getListes().get(0).ajouterCarte(t);
-                model.notifierObservateur();
-            }
-             */
-
-            popup.close();
-        });
-
-        root.getChildren().addAll(
-                new Label("Titre"),
-                titreField,
-                new Label("Description"),
-                descField,
-                new Label("Date"),
-                dateField,
-                new Label("Priorité"),
-                prioBox,
-                valider
-        );
-
-        popup.setScene(new Scene(root, 320, 420));
+        popup.setScene(new Scene(root));
         popup.show();
     }
 }
