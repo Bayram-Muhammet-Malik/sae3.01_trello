@@ -59,7 +59,7 @@ public class VueBureau extends HBox implements Observateur {
         ButtonType btnAnnuler = new ButtonType("annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().addAll(btnCreer, btnAnnuler);
 
-        // champs
+        // champs de texte
         TextField champTitre = new TextField();
         champTitre.setPromptText("nom de la tâche");
 
@@ -101,7 +101,7 @@ public class VueBureau extends HBox implements Observateur {
         c1.setHgrow(Priority.ALWAYS);
         grid.getColumnConstraints().addAll(c0, c1);
 
-        // “carte” blanche avec bord + arrondis
+        // carte blanche avec bord + arrondis
         VBox carte = new VBox(12, titre, grid);
         carte.setPadding(new Insets(14));
         carte.setStyle(
@@ -118,13 +118,13 @@ public class VueBureau extends HBox implements Observateur {
         DialogPane pane = dialog.getDialogPane();
         pane.setContent(root);
 
-        // style global du dialog
+        // style global
         pane.setStyle(
                 "-fx-background-color: #f3f4f6;" +
                         "-fx-font-size: 13;"
         );
 
-        // style des champs (propre)
+        // style des endroits ou ecrire
         champTitre.setStyle("-fx-background-radius: 8; -fx-border-radius: 8;");
         champDescription.setStyle("-fx-background-radius: 8; -fx-border-radius: 8;");
         champDate.setStyle("-fx-background-radius: 8; -fx-border-radius: 8;");
