@@ -117,8 +117,6 @@ public class MainWindow extends Application {
             case "BUREAU" -> { vb.setVisible(true); vb.setManaged(true); }
             case "LISTE" -> { vl.setVisible(true); vl.setManaged(true); }
         }
-
-        if (menu != null) { menu.setActiveButton(type); }
     }
 
     public static void main(String[] args) {

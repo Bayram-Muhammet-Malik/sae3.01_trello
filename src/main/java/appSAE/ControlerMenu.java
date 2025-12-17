@@ -22,7 +22,7 @@ public class ControlerMenu implements EventHandler<ActionEvent> {
 
     public void handle(ActionEvent e) {
         Button b = (Button) e.getSource();
-
         mainWindow.switchView(b.getId());
+        model.modifierLastVue(b.getId());
     }
 }

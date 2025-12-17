@@ -36,9 +36,10 @@ public class ControlerHomeBtn implements EventHandler<ActionEvent> {
                 if (fileToSave != null) {
                     try {
                         fileToSave.createNewFile();
-                        FichierManager.charger(fileToSave.getAbsolutePath());
+                        FichierManager.charger(model, fileToSave.getAbsolutePath());
                         model.modifierPath(fileToSave.getAbsolutePath());
                         mainWindow.switchView("BUREAU");
+                        model.modifierLastVue("BUREAU");
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -50,9 +51,10 @@ public class ControlerHomeBtn implements EventHandler<ActionEvent> {
                 openChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Fichier HiTask", "*.htsk"));
                 File fileToOpen = openChooser.showOpenDialog(stage);
                 if (fileToOpen != null) {
-                    FichierManager.charger(fileToOpen.getAbsolutePath());
+                    FichierManager.charger(model, fileToOpen.getAbsolutePath());
                     model.modifierPath(fileToOpen.getAbsolutePath());
                     mainWindow.switchView("BUREAU");
+                    model.modifierLastVue("BUREAU");
                 }
                 break;
         }

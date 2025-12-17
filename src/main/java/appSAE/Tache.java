@@ -3,7 +3,6 @@ package appSAE;
 import java.io.Serializable;
 
 public abstract class Tache implements Serializable {
-    private static final long serialVersionUID = 1L;
     protected String titre;
     protected String description;
     protected String date;
@@ -16,8 +15,6 @@ public abstract class Tache implements Serializable {
     }
 
     protected Priorite priorite = Priorite.NORMAL;
-
-
 
     public String getTitre() {
         return titre;

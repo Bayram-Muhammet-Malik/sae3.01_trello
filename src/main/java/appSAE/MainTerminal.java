@@ -3,10 +3,10 @@ package appSAE;
 import java.util.Scanner;
 
 public class MainTerminal {
-
+/*
     public static void main(String[] args) {
 
-        GestionnaireListes gestion = FichierManager.charger("listes.data");
+        GestionnaireListes gestion = FichierManager.charger("listes.data", new Model());
         if (gestion == null) {
             gestion = new GestionnaireListes();
         }
@@ -296,5 +296,5 @@ public class MainTerminal {
         }
 
         ajouterSousTache(liste, sc);
-    }
+    }*/
 }

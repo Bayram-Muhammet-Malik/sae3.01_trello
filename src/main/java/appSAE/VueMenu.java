@@ -31,6 +31,7 @@ public class VueMenu extends BorderPane implements Observateur {
         HBox hbox = new HBox(5);
 
         ControlerMenu controller = new ControlerMenu(model, mainWindow);
+        String lastVue = model.getLastVue();
 
         if (model.getFilepath() != null) {
             Label fileText = new Label("Unknown");
@@ -44,25 +45,28 @@ public class VueMenu extends BorderPane implements Observateur {
             }
 
             Button creerListeBtn = new Button("+ Créer une liste");
-            creerListeBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
+            creerListeBtn.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
             creerListeBtn.setOnAction(e -> this.ouvrirPopupCreaListe());
 
             Button trelloBtn = new Button();
             trelloBtn.setId("BUREAU");
             trelloBtn.setGraphic(createIcon("file:icons/trello-brands-solid-full.png"));
             trelloBtn.setStyle("-fx-background-color: transparent;");
+            if (lastVue == "BUREAU") trelloBtn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
             trelloBtn.setOnAction(controller);
 
             Button listBtn = new Button();
             listBtn.setId("LISTE");
             listBtn.setGraphic(createIcon("file:icons/list-check-solid-full.png"));
             listBtn.setStyle("-fx-background-color: transparent;");
+            if (lastVue == "LISTE") listBtn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
             listBtn.setOnAction(controller);
 
             Button ganttBtn = new Button();
             ganttBtn.setId("GANTT");
             ganttBtn.setGraphic(createIcon("file:icons/chart-gantt-solid-full.png"));
             ganttBtn.setStyle("-fx-background-color: transparent;");
+            if (lastVue == "GANTT") ganttBtn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
             ganttBtn.setOnAction(controller);
 
             navButtons.add(trelloBtn);
@@ -74,7 +78,8 @@ public class VueMenu extends BorderPane implements Observateur {
         Button homeBtn = new Button();
         homeBtn.setId("HOME");
         homeBtn.setGraphic(createIcon("file:icons/house-regular-full.png"));
-        homeBtn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
+        homeBtn.setStyle("-fx-background-color: transparent;");
+        if (lastVue == "HOME") homeBtn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
         homeBtn.setOnAction(controller);
 
         navButtons.add(homeBtn);
@@ -93,17 +98,6 @@ public class VueMenu extends BorderPane implements Observateur {
         return icon;
     }
 
-    public void setActiveButton(String type) {
-        for (Button btn : navButtons) {
-            String id = btn.getId();
-            if (id != null && id.equals(type)) {
-                btn.setStyle("-fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
-            } else {
-                btn.setStyle("-fx-background-color: transparent;");
-            }
-        }
-    }
-
     private void ouvrirPopupCreaListe() {
         Stage popup = new Stage();
         popup.setTitle("Créer une liste");
@@ -115,8 +109,6 @@ public class VueMenu extends BorderPane implements Observateur {
         titreField.setPromptText("Titre de la liste");
 
         Button valider = new Button("Ajouter");
-        valider.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 8px;");
-
         valider.setOnAction(new ControlerPopListe(model, titreField, popup));
 
         root.getChildren().addAll(new Label("Titre"), titreField, valider);

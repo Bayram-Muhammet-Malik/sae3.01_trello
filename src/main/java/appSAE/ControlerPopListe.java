@@ -26,6 +26,7 @@ public class ControlerPopListe implements EventHandler<ActionEvent> {
 
     public void handle(ActionEvent e) {
         model.ajouterListe(new Liste(titreField.getText()));
+        FichierManager.sauvegarder(model, model.getFilepath());
         stage.close();
     }
 }

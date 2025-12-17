@@ -1,7 +1,12 @@
 package appSAE;
 
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.stage.Stage;
+
+import java.util.ArrayList;
 
 public class VueBureau extends HBox implements Observateur {
     private final Model model;
@@ -23,7 +28,6 @@ public class VueBureau extends HBox implements Observateur {
     private VBox creerColonne(Liste ls) {
         VBox colonne = new VBox();
         colonne.setSpacing(10);
-        colonne.setStyle("-fx-background-color: #f3f4f6; -fx-padding: 12px; -fx-background-radius: 8px;");
         colonne.setPrefWidth(220);
 
         Label titre = new Label(ls.getTitre());
@@ -34,10 +38,8 @@ public class VueBureau extends HBox implements Observateur {
         }
 
         Button creerTacheBtn = new Button("+ Créer une tâche");
-        creerTacheBtn.setOnAction(new ControlerProjet(model));
+        creerTacheBtn.setOnAction(e -> ouvrirPopupCreaTache());
         creerTacheBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
-
-        creerTacheBtn.setOnAction(e -> {/*Truc*/});
 
         colonne.getChildren().addAll(titre, creerTacheBtn);
         return colonne;
@@ -67,5 +69,30 @@ public class VueBureau extends HBox implements Observateur {
         tache.getChildren().addAll(titre, description);
 
         return tache;
+    }
+
+    private void ouvrirPopupCreaTache() {
+        ArrayList<Control> JFXobj = new ArrayList<>();
+        Stage popup = new Stage();
+        popup.setTitle("Créer une tâche");
+
+        VBox root = new VBox(10);
+        root.setPadding(new Insets(15));
+
+        TextField titreField = new TextField();
+        titreField.setPromptText("Titre de la tâche");
+        JFXobj.add(titreField);
+
+        TextArea descField = new TextArea();
+        titreField.setPromptText("Description de la tâche");
+        JFXobj.add(descField);
+
+        Button valider = new Button("Ajouter");
+        valider.setOnAction(new ControlerPopTache(model, JFXobj, popup));
+
+        root.getChildren().addAll(new Label("Titre"), titreField, valider);
+
+        popup.setScene(new Scene(root));
+        popup.show();
     }
 }
