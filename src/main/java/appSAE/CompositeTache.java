@@ -1,6 +1,5 @@
 package appSAE;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +33,11 @@ public class CompositeTache extends Tache{
     public CompositeTache(String titre, String description, String date) {
         this(titre, description, date, EtatTache.A_FAIRE, null);
     }
-    
+
+
+
+
+
     public EtatTache getEtat() {
         return etat;
     }

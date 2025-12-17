@@ -78,7 +78,7 @@ public class MainTerminal {
 
             // On crée une nouvelle liste
             Liste liste = new Liste("Ma liste de test");
-            
+
             //tache principale
             CompositeTache t1 = new CompositeTache(
                     "Préparer la soutenance",
