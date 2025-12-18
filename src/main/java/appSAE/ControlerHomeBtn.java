@@ -36,7 +36,14 @@ public class ControlerHomeBtn implements EventHandler<ActionEvent> {
             switch (b.getId()) {
                 case "createBtn":
                     file = chooser.showSaveDialog(stage);
-                    if (file != null) file.createNewFile();
+                    if (file != null) {
+                        Model nvf = new Model();
+                        nvf.ajouterListe(new Liste("A faire"));
+                        nvf.ajouterListe(new Liste("En cours"));
+                        nvf.ajouterListe(new Liste("Terminé"));
+                        nvf.modifierLastVue("BUREAU");
+                        FichierManager.sauvegarder(nvf, file.getAbsolutePath());
+                    }
                     break;
                 case "openBtn":
                     file = chooser.showOpenDialog(stage);

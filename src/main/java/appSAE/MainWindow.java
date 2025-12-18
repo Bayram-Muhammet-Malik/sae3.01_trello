@@ -5,7 +5,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -126,6 +128,21 @@ public class MainWindow extends Application {
             case "LISTE" -> { vl.setVisible(true); vl.setManaged(true); }
             case "GANTT" -> { vg.setVisible(true); vg.setManaged(true); }
         }
+    }
+
+    public static void ouvrirPopupListe(Liste listeAModifier, Model model) {
+        String titreInitial = (listeAModifier == null) ? "" : listeAModifier.getTitre();
+        String titreFenetre = (listeAModifier == null) ? "Créer une liste" : "Modifier la liste";
+
+        TextInputDialog dialog = new TextInputDialog(titreInitial);
+        dialog.setTitle(titreFenetre);
+        dialog.setHeaderText(null);
+        dialog.setContentText("Titre :");
+
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.setOnAction(new ControlerPopListe(model, dialog.getEditor(), listeAModifier));
+
+        dialog.showAndWait();
     }
 
     public static void main(String[] args) {

@@ -11,21 +11,26 @@ public class ControlerPopListe implements EventHandler<ActionEvent> {
      */
     private Model model;
     private TextField titreField;
-    private Stage stage;
+    private final Liste listeAModifier;
 
-    /**
-     * Constructeur
-     * @param m l'objet Model
-     */
-    public ControlerPopListe(Model m, TextField titreField, Stage stage) {
-        this.model=m;
-        this.titreField=titreField;
-        this.stage=stage;
+    public ControlerPopListe(Model model, TextField titreField, Liste listeAModifier) {
+        this.model = model;
+        this.titreField = titreField;
+        this.listeAModifier = listeAModifier;
     }
 
+    @Override
     public void handle(ActionEvent e) {
-        model.ajouterListe(new Liste(titreField.getText()));
+        String t = titreField.getText() == null ? "" : titreField.getText().trim();
+        if (t.isBlank()) return;
+
+        if (listeAModifier == null) {
+            model.ajouterListe(new Liste(t));
+        } else {
+            listeAModifier.changerNom(t);
+            model.notifierObservateur();
+        }
+
         FichierManager.sauvegarder(model, model.getFilepath());
-        stage.close();
     }
 }
