@@ -189,7 +189,7 @@ public class VueBureau extends HBox implements Observateur {
 
         ligneHaut.getChildren().addAll(titre, espace, badge);
 
-        // description (indent + couleur plus douce)
+        // description (indent + couleur)
         Label description = new Label(tsk.getDescription() == null ? "" : tsk.getDescription());
         description.setWrapText(true);
         description.setStyle("-fx-text-fill: #4b5563; -fx-font-size: 12px; -fx-padding: 0 0 0 6px;");
@@ -226,5 +226,20 @@ public class VueBureau extends HBox implements Observateur {
             }
         }
         return badge;
+    }
+
+    // Modif de la tâche
+    private VBox modifierTache(Tache tsk) {
+        VBox carte = new VBox(6);
+        carte.setStyle(
+                "-fx-background-color: #ffffff;" +
+                        "-fx-padding: 12px;" +
+                        "-fx-background-radius: 10px;" +
+                        "-fx-border-color: #e5e7eb;" +
+                        "-fx-border-radius: 10px;"
+        );
+
+
+        return carte;
     }
 }
