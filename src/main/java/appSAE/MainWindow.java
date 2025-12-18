@@ -19,6 +19,7 @@ public class MainWindow extends Application {
     private VueMenu menu;
     private VueBureau vb;
     private VueListe vl;
+    private VueGantt vg;
 
     @Override
     public void start(Stage stage) {
@@ -89,7 +90,12 @@ public class MainWindow extends Application {
         vl.setVisible(false);
         vl.setManaged(false);
 
-        centreRoot.getChildren().addAll(homePage, vb, vl);
+        vg = new VueGantt(model);
+        model.enregistrerObservateur(vg);
+        vg.setVisible(false);
+        vg.setManaged(false);
+
+        centreRoot.getChildren().addAll(homePage, vb, vl, vg);
 
         root.setCenter(centreRoot);
         BorderPane.setMargin(centreRoot, new Insets(10));
@@ -111,11 +117,14 @@ public class MainWindow extends Application {
         vb.setManaged(false);
         vl.setVisible(false);
         vl.setManaged(false);
+        vg.setVisible(false);
+        vg.setManaged(false);
 
         switch (type) {
             case "HOME" -> { homePage.setVisible(true); homePage.setManaged(true); }
             case "BUREAU" -> { vb.setVisible(true); vb.setManaged(true); }
             case "LISTE" -> { vl.setVisible(true); vl.setManaged(true); }
+            case "GANTT" -> { vg.setVisible(true); vg.setManaged(true); }
         }
     }
 
