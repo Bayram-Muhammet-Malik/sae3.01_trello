@@ -24,37 +24,32 @@ public class ControlerHomeBtn implements EventHandler<ActionEvent> {
         this.mainWindow=window;
     }
 
+    @Override
     public void handle(ActionEvent e) {
         Button b = (Button) e.getSource();
         Stage stage = (Stage) b.getScene().getWindow();
+        FileChooser chooser = new FileChooser();
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Fichier HiTask", "*.htsk"));
+        File file = null;
 
-        switch (b.getId()) {
-            case "createBtn":
-                FileChooser saveChooser = new FileChooser();
-                saveChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Fichier HiTask", "*.htsk"));
-                File fileToSave = saveChooser.showSaveDialog(stage);
-                if (fileToSave != null) {
-                    try {
-                        fileToSave.createNewFile();
-                        FichierManager.charger(model, fileToSave.getAbsolutePath());
-                        mainWindow.switchView(model.getLastVue());
-                        model.modifierLastVue(model.getLastVue());
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-                break;
+        try {
+            switch (b.getId()) {
+                case "createBtn":
+                    file = chooser.showSaveDialog(stage);
+                    if (file != null) file.createNewFile();
+                    break;
+                case "openBtn":
+                    file = chooser.showOpenDialog(stage);
+                    break;
+            }
 
-            case "openBtn":
-                FileChooser openChooser = new FileChooser();
-                openChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Fichier HiTask", "*.htsk"));
-                File fileToOpen = openChooser.showOpenDialog(stage);
-                if (fileToOpen != null) {
-                    FichierManager.charger(model, fileToOpen.getAbsolutePath());
-                    mainWindow.switchView(model.getLastVue());
-                    model.modifierLastVue(model.getLastVue());
-                }
-                break;
+            if (file != null) {
+                FichierManager.charger(model, file.getAbsolutePath());
+                mainWindow.switchView(model.getLastVue());
+                model.modifierLastVue(model.getLastVue());
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 }

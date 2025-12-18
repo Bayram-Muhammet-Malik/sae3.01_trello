@@ -1,14 +1,13 @@
 package appSAE;
 
-import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Text;
+import javafx.stage.Stage;
+
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 public class VueBureau extends HBox implements Observateur {
-
     private final Model model;
 
     public VueBureau(Model model) {
@@ -27,17 +26,16 @@ public class VueBureau extends HBox implements Observateur {
 
     private VBox creerColonne(Liste ls) {
         VBox colonne = new VBox();
-        colonne.setSpacing(10);
+        colonne.setSpacing(5);
         colonne.setStyle("-fx-background-color: #f3f4f6; -fx-padding: 12px; -fx-background-radius: 8px;");
-        colonne.setPrefWidth(220);
+        colonne.setPrefWidth(325);
 
         Label titre = new Label(ls.getTitre());
         titre.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;");
 
         Button creerTacheBtn = new Button("+ Créer une tâche");
         creerTacheBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
-        creerTacheBtn.setOnAction(e -> ouvrirPopUpTache(ls)); // <-- popup tache
-
+        creerTacheBtn.setOnAction(e -> ouvrirPopUpTache(ls));
 
         colonne.getChildren().add(titre);
 
@@ -46,138 +44,15 @@ public class VueBureau extends HBox implements Observateur {
         }
 
         colonne.getChildren().add(creerTacheBtn);
-
         return colonne;
     }
 
-    private void ouvrirPopUpTache(Liste liste) {
-
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("créer une tâche");
-
-        ButtonType btnCreer = new ButtonType("créer", ButtonBar.ButtonData.OK_DONE);
-        ButtonType btnAnnuler = new ButtonType("annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().addAll(btnCreer, btnAnnuler);
-
-        // champs de texte
-        TextField champTitre = new TextField();
-        champTitre.setPromptText("nom de la tâche");
-
-        TextArea champDescription = new TextArea();
-        champDescription.setPromptText("description");
-        champDescription.setPrefRowCount(3);
-        champDescription.setWrapText(true);
-
-        DatePicker champDate = new DatePicker(LocalDate.now());
-
-        ComboBox<Tache.Priorite> champPriorite = new ComboBox<>();
-        champPriorite.getItems().addAll(Tache.Priorite.values());
-        champPriorite.setValue(Tache.Priorite.NORMAL);
-
-        // petit titre de popup
-        Text titre = new Text("nouvelle tâche");
-        titre.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
-
-        // formulaire
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-
-        grid.add(new Label("titre"), 0, 0);
-        grid.add(champTitre, 1, 0);
-
-        grid.add(new Label("description"), 0, 1);
-        grid.add(champDescription, 1, 1);
-
-        grid.add(new Label("date"), 0, 2);
-        grid.add(champDate, 1, 2);
-
-        grid.add(new Label("priorité"), 0, 3);
-        grid.add(champPriorite, 1, 3);
-
-        ColumnConstraints c0 = new ColumnConstraints();
-        c0.setMinWidth(90);
-        ColumnConstraints c1 = new ColumnConstraints();
-        c1.setHgrow(Priority.ALWAYS);
-        grid.getColumnConstraints().addAll(c0, c1);
-
-        // carte blanche avec bord + arrondis
-        VBox carte = new VBox(12, titre, grid);
-        carte.setPadding(new Insets(14));
-        carte.setStyle(
-                "-fx-background-color: white;" +
-                        "-fx-background-radius: 12;" +
-                        "-fx-border-color: #e5e7eb;" +
-                        "-fx-border-radius: 12;"
-        );
-
-        VBox root = new VBox(carte);
-        root.setPadding(new Insets(14));
-        root.setStyle("-fx-background-color: #f3f4f6;");
-
-        DialogPane pane = dialog.getDialogPane();
-        pane.setContent(root);
-
-        // style global
-        pane.setStyle(
-                "-fx-background-color: #f3f4f6;" +
-                        "-fx-font-size: 13;"
-        );
-
-        // style des endroits ou ecrire
-        champTitre.setStyle("-fx-background-radius: 8; -fx-border-radius: 8;");
-        champDescription.setStyle("-fx-background-radius: 8; -fx-border-radius: 8;");
-        champDate.setStyle("-fx-background-radius: 8; -fx-border-radius: 8;");
-        champPriorite.setStyle("-fx-background-radius: 8; -fx-border-radius: 8;");
-
-        // style boutons (bleu / gris)
-        Button bCreer = (Button) pane.lookupButton(btnCreer);
-        Button bAnnuler = (Button) pane.lookupButton(btnAnnuler);
-
-        bCreer.setStyle("-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 8 14;");
-        bAnnuler.setStyle("-fx-background-color: #e5e7eb; -fx-text-fill: #111827; -fx-background-radius: 8; -fx-padding: 8 14;");
-
-        // bloque “créer” si titre vide
-        bCreer.setDisable(true);
-        champTitre.textProperty().addListener((obs, oldV, newV) ->
-                bCreer.setDisable(newV == null || newV.isBlank())
-        );
-
-        dialog.showAndWait().ifPresent(result -> {
-            if (result != btnCreer) return;
-
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-            String dateString = champDate.getValue().format(fmt);
-
-            CompositeTache tache = new CompositeTache(
-                    champTitre.getText().trim(),
-                    champDescription.getText(),
-                    dateString,
-                    champPriorite.getValue()
-            );
-
-            liste.ajouterCarte(tache);
-            model.notifierObservateur();
-        });
-    }
-
-
-
-
     private VBox creerTache(Tache tsk) {
-
         VBox carte = new VBox(6);
-        carte.setStyle(
-                "-fx-background-color: #ffffff;" +
-                        "-fx-padding: 12px;" +
-                        "-fx-background-radius: 10px;" +
-                        "-fx-border-color: #e5e7eb;" +
-                        "-fx-border-radius: 10px;"
-        );
+        carte.setStyle("-fx-background-color: #ffffff; -fx-padding: 12px; -fx-background-radius: 10px; -fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
 
-        // ligne du haut : titre (gras) + badge priorité à droite
         HBox ligneHaut = new HBox(8);
-        ligneHaut.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        ligneHaut.setAlignment(Pos.CENTER_LEFT);
 
         Label titre = new Label(tsk.getTitre());
         titre.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #111827;");
@@ -185,48 +60,81 @@ public class VueBureau extends HBox implements Observateur {
         Region espace = new Region();
         HBox.setHgrow(espace, Priority.ALWAYS);
 
-        Label badge = creerBadgePriorite(tsk.getPriorite());
+        Tache.Priorite prio = (tsk.getPriorite() == null) ? Tache.Priorite.NORMAL : tsk.getPriorite();
+        Label badge = new Label(
+                switch (prio) {
+                    case NORMAL -> "Normal";
+                    case SECONDAIRE -> "Important";
+                    case URGENT -> "Urgent";
+                }
+        );
+        String styleBase = "-fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 999; -fx-font-size: 11px; -fx-font-weight: bold;";
+        badge.setStyle(
+                switch (prio) {
+                    case NORMAL -> "-fx-background-color: #93c47d;" + styleBase;
+                    case SECONDAIRE -> "-fx-background-color: #ffbb42;" + styleBase;
+                    case URGENT -> "-fx-background-color: #ef4444;" + styleBase;
+                }
+        );
 
         ligneHaut.getChildren().addAll(titre, espace, badge);
 
-        // description (indent + couleur)
         Label description = new Label(tsk.getDescription() == null ? "" : tsk.getDescription());
         description.setWrapText(true);
-        description.setStyle("-fx-text-fill: #4b5563; -fx-font-size: 12px; -fx-padding: 0 0 0 6px;");
+        description.setStyle("-fx-text-fill: #4b5563; -fx-font-size: 12px;");
 
         carte.getChildren().addAll(ligneHaut, description);
 
         return carte;
     }
 
-    private Label creerBadgePriorite(Tache.Priorite prio) {
-        Label badge = new Label();
+    private void ouvrirPopUpTache(Liste liste) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Créer une tâche");
 
-        String styleBase =
-                "-fx-text-fill: white;" +
-                        "-fx-padding: 2 8;" +
-                        "-fx-background-radius: 999;" +
-                        "-fx-font-size: 11px;" +
-                        "-fx-font-weight: bold;";
+        ButtonType btnCreer = new ButtonType("Créer", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnAnnuler = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(btnCreer, btnAnnuler);
 
-        if (prio == null) prio = Tache.Priorite.NORMAL;
+        TextField champTitre = new TextField();
+        champTitre.setPromptText("Nom de la tâche");
 
-        switch (prio) {
-            case NORMAL -> {
-                badge.setText("standard");
-                badge.setStyle("-fx-background-color: #226ec5;" + styleBase);
-            }
-            case SECONDAIRE -> {
-                badge.setText("Secondaire");
-                badge.setStyle("-fx-background-color: #81ff00;" + styleBase);
-            }
-            case URGENT -> {
-                badge.setText("urgent");
-                badge.setStyle("-fx-background-color: #ef4444;" + styleBase);
-            }
-        }
-        return badge;
+        TextArea champDescription = new TextArea();
+        champDescription.setPromptText("Description");
+        champDescription.setPrefRowCount(3);
+        champDescription.setWrapText(true);
+
+        DatePicker champDate = new DatePicker(LocalDate.now());
+        ComboBox<Tache.Priorite> champPriorite = new ComboBox<>();
+        champPriorite.getItems().addAll(Tache.Priorite.values());
+        champPriorite.setValue(Tache.Priorite.NORMAL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.getColumnConstraints().addAll(new ColumnConstraints(90), new ColumnConstraints() {{ setHgrow(Priority.ALWAYS); }});
+
+        grid.addRow(0, new Label("Titre"), champTitre);
+        grid.addRow(1, new Label("Description"), champDescription);
+        grid.addRow(2, new Label("Date"), champDate);
+        grid.addRow(3, new Label("Priorité"), champPriorite);
+
+        DialogPane pane = dialog.getDialogPane();
+        pane.setContent(grid);
+
+        Button bCreer = (Button) pane.lookupButton(btnCreer);
+        bCreer.setStyle("-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 8 14;");
+        bCreer.setDisable(true);
+        champTitre.textProperty().addListener((obs, oldV, newV) -> bCreer.setDisable(newV == null || newV.isBlank()));
+
+        ((Button) pane.lookupButton(btnAnnuler)).setStyle("-fx-background-color: #e5e7eb; -fx-text-fill: #111827; -fx-background-radius: 8; -fx-padding: 8 14;");
+
+        bCreer.setOnAction(new ControlerPopTache(model, liste, champTitre, champDescription, champDate, champPriorite, (Stage) dialog.getDialogPane().getScene().getWindow()));
+
+        dialog.showAndWait();
     }
+
+    
 
     // Modif de la tâche
     private VBox modifierTache(Tache tsk) {

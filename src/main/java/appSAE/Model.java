@@ -40,42 +40,11 @@ public class Model implements Sujet, Serializable {
         }
     }
 
-    // Méthode pour modifier la date d'une tâche
-    public void modifierDate(String titre, String date){
-        for (Liste liste : listes) {
-            for (CompositeTache t : liste.getTaches()) {
-                if (t.getTitre().equals(titre)) {
-                    t.date = date;
-                    notifierObservateur();
-                }
-            }
-        }
-    }
-
-    // Méthode pour modifier la description d'une tâche
-    public void modifierDescription(String titre, String description){
-        for (Liste liste : listes) {
-            for (CompositeTache t : liste.getTaches()) {
-                if (t.getTitre().equals(titre)) {
-                    t.description = description;
-                    notifierObservateur();
-                }
-            }
-        }
-    }
-
-    // Méthode pour modifier tous les elements d'une tache
-    public void modifierTout(String nomtache, String description, String date){
-        for (Liste liste : listes) {
-            for (CompositeTache t : liste.getTaches()) {
-                if (t.getTitre().equals(nomtache)) {
-                    t.titre = nomtache;
-                    t.description = description;
-                    t.date = date;
-                    notifierObservateur();
-                }
-            }
-        }
+    public void ajouterTache(Liste liste, String titre, String desc, String date, Tache.Priorite prio) {
+        if (prio == null) prio = Tache.Priorite.NORMAL;
+        CompositeTache tache = new CompositeTache(titre, desc, date, prio);
+        liste.ajouterCarte(tache);
+        notifierObservateur();
     }
 
     public List<Liste> getListes() {
