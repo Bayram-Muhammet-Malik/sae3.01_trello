@@ -54,6 +54,13 @@ public class VueBureau extends HBox implements Observateur {
         VBox carte = new VBox(6);
         carte.setStyle("-fx-background-color: #ffffff; -fx-padding: 12px; -fx-background-radius: 10px; -fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
 
+        ControlerDrag cd = new ControlerDrag(model, tsk);
+
+        carte.setOnDragOver(e -> cd.handleDrag(EtatDrag.OVER, e, carte));
+        carte.setOnDragEntered(e -> cd.handleDrag(EtatDrag.ENTERED, e, carte));
+        carte.setOnDragExited(e -> cd.handleDrag(EtatDrag.EXITED, e, carte));
+        carte.setOnDragDropped(e -> cd.handleDrag(EtatDrag.DROPPED, e, carte));
+
         HBox ligneHaut = new HBox(8);
         ligneHaut.setAlignment(Pos.CENTER_LEFT);
 

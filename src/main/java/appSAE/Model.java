@@ -89,4 +89,28 @@ public class Model implements Sujet, Serializable {
             this.obs.remove(i);
         }
     }
+
+    public void deplacerTache(String dashboard, Tache tache) {
+        Liste listeSource = null;
+        Liste listeCible = null;
+
+        for (Liste l : listes) {
+            if (l.getTaches().contains(tache)) {
+                listeSource = l;
+            }
+            if (l.getTitre().equals(dashboard)) {
+                listeCible = l;
+            }
+        }
+
+        if (listeSource == listeCible) {
+            return;
+
+        }
+        listeSource.supprimerTache(tache);
+        listeCible.ajouterCarte(tache);
+
+        notifierObservateur();
+    }
+
 }
