@@ -33,6 +33,9 @@ public class VueBureau extends HBox implements Observateur {
         Label titre = new Label(ls.getTitre());
         titre.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;");
 
+        titre.setOnMouseClicked(e -> modifierTitreListe(ls));
+
+
         Button creerTacheBtn = new Button("+ Créer une tâche");
         creerTacheBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
         creerTacheBtn.setOnAction(e -> ouvrirPopUpTache(ls, null)); // null = mode création
@@ -189,6 +192,38 @@ public class VueBureau extends HBox implements Observateur {
 
             model.notifierObservateur();
             FichierManager.sauvegarder(model, model.getFilepath());
+        });
+    }
+    private void modifierTitreListe(Liste liste) {
+
+        TextInputDialog dialog = new TextInputDialog(liste.getTitre());
+        dialog.setTitle("modifier la liste");
+        dialog.setHeaderText(null);
+        dialog.setContentText("nouveau titre :");
+
+        dialog.showAndWait().ifPresent(nouveauTitre -> {
+            if (nouveauTitre == null) return;
+            String t = nouveauTitre.trim();
+            if (t.isBlank()) return;
+
+            liste.changerNom(t);
+            model.notifierObservateur();
+            FichierManager.sauvegarder(model, model.getFilepath());
+        });
+    }
+
+    private void supprimerListeAvecConfirmation(Liste liste) {
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("supprimer la liste");
+        alert.setHeaderText("supprimer la liste : " + liste.getTitre() + " ?");
+        alert.setContentText("toutes les tâches dedans seront supprimées.");
+
+        alert.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK) {
+                model.supprimerListe(liste);
+                FichierManager.sauvegarder(model, model.getFilepath());
+            }
         });
     }
 }
