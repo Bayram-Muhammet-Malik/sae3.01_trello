@@ -1,5 +1,6 @@
 package appSAE;
 
+import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -7,7 +8,6 @@ import javafx.scene.layout.*;
 import java.time.LocalDate;
 
 public class VueBureau extends HBox implements Observateur {
-
     private final Model model;
 
     public VueBureau(Model model) {
@@ -33,8 +33,7 @@ public class VueBureau extends HBox implements Observateur {
         Label titre = new Label(ls.getTitre());
         titre.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;");
 
-        titre.setOnMouseClicked(e -> modifierTitreListe(ls));
-
+        titre.setOnMouseClicked(e -> MainWindow.ouvrirPopupListe(ls, model));
 
         Button creerTacheBtn = new Button("+ Créer une tâche");
         creerTacheBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
@@ -71,7 +70,6 @@ public class VueBureau extends HBox implements Observateur {
                     case URGENT -> "Urgent";
                 }
         );
-
         String styleBase = "-fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 999; -fx-font-size: 11px; -fx-font-weight: bold;";
         badge.setStyle(
                 switch (prio) {
@@ -101,25 +99,19 @@ public class VueBureau extends HBox implements Observateur {
 
     // popup unique : création (tacheAModifier == null) ou modification (sinon)
     private void ouvrirPopUpTache(Liste liste, CompositeTache tacheAModifier) {
-
         boolean modeModification = (tacheAModifier != null);
 
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle(modeModification ? "modifier une tâche" : "créer une tâche");
 
-        ButtonType btnValider = new ButtonType(
-                modeModification ? "enregistrer" : "créer",
-                ButtonBar.ButtonData.OK_DONE
-        );
+        ButtonType btnValider = new ButtonType(modeModification ? "enregistrer" : "créer", ButtonBar.ButtonData.OK_DONE);
         ButtonType btnAnnuler = new ButtonType("annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().addAll(btnValider, btnAnnuler);
 
         TextField champTitre = new TextField(modeModification ? tacheAModifier.getTitre() : "");
         champTitre.setPromptText("nom de la tâche");
 
-        TextArea champDescription = new TextArea(
-                modeModification ? (tacheAModifier.getDescription() == null ? "" : tacheAModifier.getDescription()) : ""
-        );
+        TextArea champDescription = new TextArea(modeModification ? (tacheAModifier.getDescription() == null ? "" : tacheAModifier.getDescription()) : "");
         champDescription.setPromptText("description");
         champDescription.setPrefRowCount(3);
         champDescription.setWrapText(true);
@@ -136,10 +128,7 @@ public class VueBureau extends HBox implements Observateur {
 
         ComboBox<Tache.Priorite> champPriorite = new ComboBox<>();
         champPriorite.getItems().addAll(Tache.Priorite.values());
-        champPriorite.setValue(
-                modeModification
-                        ? (tacheAModifier.getPriorite() == null ? Tache.Priorite.NORMAL : tacheAModifier.getPriorite())
-                        : Tache.Priorite.NORMAL
+        champPriorite.setValue(modeModification ? (tacheAModifier.getPriorite() == null ? Tache.Priorite.NORMAL : tacheAModifier.getPriorite()) : Tache.Priorite.NORMAL
         );
 
         GridPane grid = new GridPane();
@@ -169,47 +158,12 @@ public class VueBureau extends HBox implements Observateur {
                 bValider.setDisable(newV == null || newV.isBlank())
         );
 
-        dialog.showAndWait().ifPresent(result -> {
-            if (result != btnValider) return;
-
-            String dateStr = champDate.getValue().format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-            Tache.Priorite prio = (champPriorite.getValue() == null) ? Tache.Priorite.NORMAL : champPriorite.getValue();
-
-            if (!modeModification) {
-                CompositeTache nouvelle = new CompositeTache(
-                        champTitre.getText().trim(),
-                        champDescription.getText(),
-                        dateStr,
-                        prio
-                );
-                liste.ajouterCarte(nouvelle);
-            } else {
-                tacheAModifier.titre = champTitre.getText().trim();
-                tacheAModifier.description = champDescription.getText();
-                tacheAModifier.date = dateStr;
-                tacheAModifier.setPriorite(prio);
-            }
-
-            model.notifierObservateur();
-            FichierManager.sauvegarder(model, model.getFilepath());
+        dialog.setResultConverter(button -> {
+            if (button == btnValider) new ControlerPopTache(model, liste, champTitre, champDescription, champDate, champPriorite, modeModification, tacheAModifier).handle(new ActionEvent());
+            return button;
         });
-    }
-    private void modifierTitreListe(Liste liste) {
 
-        TextInputDialog dialog = new TextInputDialog(liste.getTitre());
-        dialog.setTitle("modifier la liste");
-        dialog.setHeaderText(null);
-        dialog.setContentText("nouveau titre :");
-
-        dialog.showAndWait().ifPresent(nouveauTitre -> {
-            if (nouveauTitre == null) return;
-            String t = nouveauTitre.trim();
-            if (t.isBlank()) return;
-
-            liste.changerNom(t);
-            model.notifierObservateur();
-            FichierManager.sauvegarder(model, model.getFilepath());
-        });
+        dialog.showAndWait();
     }
 
     private void supprimerListeAvecConfirmation(Liste liste) {

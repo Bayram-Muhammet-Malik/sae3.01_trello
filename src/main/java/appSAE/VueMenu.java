@@ -43,7 +43,7 @@ public class VueMenu extends BorderPane implements Observateur {
 
             Button creerListeBtn = new Button("+ Créer une liste");
             creerListeBtn.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
-            creerListeBtn.setOnAction(e -> this.ouvrirPopupCreaListe());
+            creerListeBtn.setOnAction(e -> MainWindow.ouvrirPopupListe(null, model));
 
             Button trelloBtn = createNavButton("BUREAU", "file:icons/trello-brands-solid-full.png", lastVue, controller);
             Button listBtn = createNavButton("LISTE", "file:icons/list-check-solid-full.png", lastVue, controller);
@@ -70,24 +70,5 @@ public class VueMenu extends BorderPane implements Observateur {
         btn.setStyle(id.equals(lastVue) ? "-fx-background-color: #1d4ed8; -fx-background-radius: 8px;" : "-fx-background-color: transparent;");
         btn.setOnAction(controller);
         return btn;
-    }
-
-    private void ouvrirPopupCreaListe() {
-        Stage popup = new Stage();
-        popup.setTitle("Créer une liste");
-
-        VBox root = new VBox(10);
-        root.setPadding(new Insets(10));
-
-        TextField titreField = new TextField();
-        titreField.setPromptText("Titre de la liste");
-
-        Button valider = new Button("Ajouter");
-        valider.setOnAction(new ControlerPopListe(model, titreField, popup));
-
-        root.getChildren().addAll(new Label("Titre"), titreField, valider);
-
-        popup.setScene(new Scene(root));
-        popup.show();
     }
 }
