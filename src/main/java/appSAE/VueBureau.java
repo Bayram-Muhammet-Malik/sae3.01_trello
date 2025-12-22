@@ -1,8 +1,10 @@
 package appSAE;
 
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 
 import java.time.LocalDate;
@@ -25,29 +27,40 @@ public class VueBureau extends HBox implements Observateur {
     }
 
     private VBox creerColonne(Liste ls) {
-        VBox colonne = new VBox();
-        colonne.setSpacing(5);
+        VBox colonne = new VBox(6);
         colonne.setStyle("-fx-background-color: #f3f4f6; -fx-padding: 12px; -fx-background-radius: 8px;");
         colonne.setPrefWidth(325);
 
         Label titre = new Label(ls.getTitre());
         titre.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;");
-
         titre.setOnMouseClicked(e -> MainWindow.ouvrirPopupListe(ls, model));
 
-        Button creerTacheBtn = new Button("+ Créer une tâche");
-        creerTacheBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
-        creerTacheBtn.setOnAction(e -> ouvrirPopUpTache(ls, null)); // null = mode création
+        ImageView deleteIcon = creerIconeSuppression();
+        deleteIcon.setOnMouseClicked(e -> {
+            e.consume();
+            supprimerListe(ls);
+        });
 
-        colonne.getChildren().add(titre);
+        Region espace = new Region();
+        HBox.setHgrow(espace, Priority.ALWAYS);
+
+        HBox header = new HBox(6, deleteIcon, titre, espace);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        colonne.getChildren().add(header);
 
         for (Tache t : model.getTachesFromListe(ls)) {
             colonne.getChildren().add(creerTache(ls, t));
         }
 
+        Button creerTacheBtn = new Button("+ Créer une tâche");
+        creerTacheBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
+        creerTacheBtn.setOnAction(e -> ouvrirPopUpTache(ls, null));
+
         colonne.getChildren().add(creerTacheBtn);
         return colonne;
     }
+
 
     private VBox creerTache(Liste liste, Tache tsk) {
         VBox carte = new VBox(6);
@@ -86,7 +99,15 @@ public class VueBureau extends HBox implements Observateur {
                 }
         );
 
-        ligneHaut.getChildren().addAll(titre, espace, badge);
+        ImageView deleteIcon = creerIconeSuppression();
+        deleteIcon.setOnMouseClicked(e -> {
+            e.consume();
+            if (tsk instanceof CompositeTache ct) {
+                supprimerTache(liste, ct);
+            }
+        });
+
+        ligneHaut.getChildren().addAll(titre, espace, badge, deleteIcon);
 
         Label description = new Label(tsk.getDescription() == null ? "" : tsk.getDescription());
         description.setWrapText(true);
@@ -94,7 +115,6 @@ public class VueBureau extends HBox implements Observateur {
 
         carte.getChildren().addAll(ligneHaut, description);
 
-        // clic sur une tâche => popup en mode modification
         carte.setOnMouseClicked(e -> {
             if (tsk instanceof CompositeTache ct) {
                 ouvrirPopUpTache(liste, ct);
@@ -104,7 +124,8 @@ public class VueBureau extends HBox implements Observateur {
         return carte;
     }
 
-    // popup unique : création (tacheAModifier == null) ou modification (sinon)
+
+    // popup  création (tacheAModifier == null) ou modification
     private void ouvrirPopUpTache(Liste liste, CompositeTache tacheAModifier) {
         boolean modeModification = (tacheAModifier != null);
 
@@ -173,18 +194,83 @@ public class VueBureau extends HBox implements Observateur {
         dialog.showAndWait();
     }
 
-    private void supprimerListeAvecConfirmation(Liste liste) {
+    private void supprimerListe(Liste liste) {
 
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("supprimer la liste");
-        alert.setHeaderText("supprimer la liste : " + liste.getTitre() + " ?");
-        alert.setContentText("toutes les tâches dedans seront supprimées.");
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Supprimer");
 
-        alert.showAndWait().ifPresent(btn -> {
-            if (btn == ButtonType.OK) {
+        ButtonType ok = new ButtonType("Supprimer", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancel = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(ok, cancel);
+
+        Label texte = new Label(
+                "Supprimer la liste : " + liste.getTitre() + " ?\n" +
+                        "Toutes les tâches seront supprimées."
+        );
+        texte.setWrapText(true);
+
+        VBox content = new VBox(10, texte);
+        content.setPadding(new Insets(20));
+
+        dialog.getDialogPane().setContent(content);
+
+        dialog.showAndWait().ifPresent(btn -> {
+            if (btn == ok) {
                 model.supprimerListe(liste);
                 FichierManager.sauvegarder(model, model.getFilepath());
+
+                Dialog<ButtonType> info = new Dialog<>();
+                info.setTitle("Information");
+                info.getDialogPane().getButtonTypes().add(ButtonType.OK);
+                info.getDialogPane().setContent(new Label("Suppression effectuée."));
+                info.showAndWait();
             }
         });
     }
+
+
+    private void supprimerTache(Liste liste, CompositeTache tache) {
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Supprimer");
+
+        ButtonType ok = new ButtonType("Supprimer", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancel = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(ok, cancel);
+
+        Label texte = new Label("Supprimer la tâche : " + tache.getTitre() + " ?");
+        texte.setWrapText(true);
+
+        VBox content = new VBox(10, texte);
+        content.setPadding(new Insets(20));
+
+        dialog.getDialogPane().setContent(content);
+
+        dialog.showAndWait().ifPresent(btn -> {
+            if (btn == ok) {
+                model.supprimerTache(liste, tache);
+                FichierManager.sauvegarder(model, model.getFilepath());
+
+                Dialog<ButtonType> info = new Dialog<>();
+                info.setTitle("Information");
+                info.getDialogPane().getButtonTypes().add(ButtonType.OK);
+                info.getDialogPane().setContent(new Label("Suppression effectuée."));
+                info.showAndWait();
+            }
+        });
+    }
+
+
+
+    private ImageView creerIconeSuppression() {
+        ImageView icone = new ImageView("file:icons/delete.png");
+        icone.setFitWidth(16);
+        icone.setFitHeight(16);
+        icone.setPreserveRatio(true);
+        icone.setPickOnBounds(true);
+        icone.setStyle("-fx-cursor: hand;");
+        return icone;
+    }
+
+
 }

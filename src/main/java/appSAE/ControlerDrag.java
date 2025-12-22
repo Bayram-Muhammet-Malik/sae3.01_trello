@@ -17,7 +17,6 @@ public class ControlerDrag {
     }
 
     public void handleDrag(EtatDrag etat, DragEvent e, Region displayBox) {
-
         switch (etat) {
 
             case OVER -> {
@@ -29,9 +28,7 @@ public class ControlerDrag {
 
             case ENTERED -> {
                 if (e.getGestureSource() != displayBox && e.getDragboard().hasString()) {
-                    displayBox.setStyle(
-                            "-fx-border-width:2px;-fx-border-color:black;-fx-opacity:.4;"
-                    );
+                    displayBox.setStyle("-fx-border-width:2px;-fx-border-color:black;-fx-opacity:.4;");
                 }
                 e.consume();
             }
@@ -48,7 +45,7 @@ public class ControlerDrag {
                 boolean success = false;
 
                 if (db.hasString()) {
-
+                    displayBox.setStyle("-fx-border-color:black;-fx-opacity:.4;");
                     model.deplacerTache(db.getString(), tache);
                     success = true;
                 }
