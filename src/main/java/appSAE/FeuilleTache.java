@@ -1,8 +1,8 @@
 package appSAE;
 
-public class SousTache extends Tache {
+public class FeuilleTache extends Tache {
 
-    public SousTache(String titre, String description, String date) {
+    public FeuilleTache(String titre, String description, String date) {
         this.titre = titre;
         this.description = description;
         this.date = date;

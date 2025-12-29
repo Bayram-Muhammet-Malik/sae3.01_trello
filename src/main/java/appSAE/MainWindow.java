@@ -4,10 +4,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -84,21 +81,13 @@ public class MainWindow extends Application {
 
         vb = new VueBureau(model);
         model.enregistrerObservateur(vb);
-        vb.setVisible(false);
-        vb.setManaged(false);
-
         vl = new VueListe(model);
         model.enregistrerObservateur(vl);
-        vl.setVisible(false);
-        vl.setManaged(false);
-
         vg = new VueGantt(model);
         model.enregistrerObservateur(vg);
-        vg.setVisible(false);
-        vg.setManaged(false);
 
         centreRoot.getChildren().addAll(homePage, vb, vl, vg);
-
+        this.switchView("HOME");
         root.setCenter(centreRoot);
         BorderPane.setMargin(centreRoot, new Insets(10));
 

@@ -9,27 +9,26 @@ import javafx.scene.layout.*;
 
 import java.time.LocalDate;
 
-public class VueBureau extends HBox implements Observateur {
+public class VueBureau extends ScrollPane implements Observateur {
     private final Model model;
 
     public VueBureau(Model model) {
         this.model = model;
-        this.setSpacing(5);
+        this.setFitToHeight(true);
+        this.setStyle("-fx-background-color: transparent;");
     }
 
     @Override
     public void actualiser(Sujet sujet) {
-        this.getChildren().clear();
-
-        for (Liste ls : model.getListes()) {
-            this.getChildren().add(creerColonne(ls));
-        }
+        HBox hb = new HBox();
+        for (Liste ls : model.getListes()) hb.getChildren().add(creerColonne(ls));
+        this.setContent(hb);
     }
 
     private VBox creerColonne(Liste ls) {
         VBox colonne = new VBox(6);
         colonne.setStyle("-fx-background-color: #f3f4f6; -fx-padding: 12px; -fx-background-radius: 8px;");
-        colonne.setPrefWidth(325);
+        colonne.setPrefWidth(320);
 
         Label titre = new Label(ls.getTitre());
         titre.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;");
@@ -47,20 +46,23 @@ public class VueBureau extends HBox implements Observateur {
         HBox header = new HBox(6, deleteIcon, titre, espace);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        colonne.getChildren().add(header);
-
-        for (Tache t : model.getTachesFromListe(ls)) {
-            colonne.getChildren().add(creerTache(ls, t));
-        }
-
+        VBox cartesBox = new VBox(6);
+        for (Tache t : model.getTachesFromListe(ls)) cartesBox.getChildren().add(creerTache(ls, t));
         Button creerTacheBtn = new Button("+ Créer une tâche");
         creerTacheBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
         creerTacheBtn.setOnAction(e -> ouvrirPopUpTache(ls, null));
 
-        colonne.getChildren().add(creerTacheBtn);
+        cartesBox.getChildren().add(creerTacheBtn);
+
+        ScrollPane scrollCartes = new ScrollPane(cartesBox);
+        scrollCartes.setFitToWidth(true);
+        scrollCartes.setStyle("-fx-background-color: transparent;");
+
+        colonne.getChildren().addAll(header, scrollCartes);
+        VBox.setVgrow(scrollCartes, Priority.ALWAYS);
+
         return colonne;
     }
-
 
     private VBox creerTache(Liste liste, Tache tsk) {
         VBox carte = new VBox(6);
@@ -188,7 +190,6 @@ public class VueBureau extends HBox implements Observateur {
     }
 
     private void supprimerListe(Liste liste) {
-
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Supprimer");
 
@@ -196,34 +197,22 @@ public class VueBureau extends HBox implements Observateur {
         ButtonType cancel = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().addAll(ok, cancel);
 
-        Label texte = new Label(
-                "Supprimer la liste : " + liste.getTitre() + " ?\n" +
-                        "Toutes les tâches seront supprimées."
-        );
+        Label texte = new Label("Supprimer la liste : " + liste.getTitre() + " ?\n" + "Toutes les tâches seront supprimées.");
         texte.setWrapText(true);
 
         VBox content = new VBox(10, texte);
         content.setPadding(new Insets(20));
 
         dialog.getDialogPane().setContent(content);
-
         dialog.showAndWait().ifPresent(btn -> {
             if (btn == ok) {
                 model.supprimerListe(liste);
                 FichierManager.sauvegarder(model, model.getFilepath());
-
-                Dialog<ButtonType> info = new Dialog<>();
-                info.setTitle("Information");
-                info.getDialogPane().getButtonTypes().add(ButtonType.OK);
-                info.getDialogPane().setContent(new Label("Suppression effectuée."));
-                info.showAndWait();
             }
         });
     }
 
-
     private void supprimerTache(Liste liste, CompositeTache tache) {
-
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Supprimer");
 
@@ -238,32 +227,18 @@ public class VueBureau extends HBox implements Observateur {
         content.setPadding(new Insets(20));
 
         dialog.getDialogPane().setContent(content);
-
         dialog.showAndWait().ifPresent(btn -> {
             if (btn == ok) {
                 model.supprimerTache(liste, tache);
                 FichierManager.sauvegarder(model, model.getFilepath());
-
-                Dialog<ButtonType> info = new Dialog<>();
-                info.setTitle("Information");
-                info.getDialogPane().getButtonTypes().add(ButtonType.OK);
-                info.getDialogPane().setContent(new Label("Suppression effectuée."));
-                info.showAndWait();
             }
         });
     }
 
-
-
     private ImageView creerIconeSuppression() {
-        ImageView icone = new ImageView("file:icons/delete.png");
-        icone.setFitWidth(16);
-        icone.setFitHeight(16);
-        icone.setPreserveRatio(true);
-        icone.setPickOnBounds(true);
-        icone.setStyle("-fx-cursor: hand;");
+        ImageView icone = new ImageView("file:icons/trash-can-solid-full.png");
+        icone.setFitWidth(20);
+        icone.setFitHeight(20);
         return icone;
     }
-
-
 }
