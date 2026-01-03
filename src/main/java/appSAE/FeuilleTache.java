@@ -1,11 +1,9 @@
 package appSAE;
 
-public class FeuilleTache extends Tache {
+import java.time.LocalDateTime;
 
-    public FeuilleTache(String titre, String description, String date) {
-        this.titre = titre;
-        this.description = description;
-        this.date = date;
-        this.estFait = false;
+public class FeuilleTache extends Tache {
+    public FeuilleTache(String titre, String description, LocalDateTime debut, LocalDateTime fin, Priorite prio) {
+        super(titre, description, debut, fin, prio);
     }
 }

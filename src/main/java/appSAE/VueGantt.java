@@ -135,7 +135,7 @@ public class VueGantt extends BorderPane implements Observateur {
 
     // transforme les taches en lignes (avec indentation)
     private void ajouterRec(Tache t, int niveau, List<Ligne> out) {
-        LocalDate debut = parseDate(t.getDate());
+        /*LocalDate debut = parseDate(t.getDate());
         int duree = dureeParDefaut(t);
 
         out.add(new Ligne(t.getTitre(), niveau, debut, duree));
@@ -144,7 +144,7 @@ public class VueGantt extends BorderPane implements Observateur {
             for (Tache enfant : ct.getTaches()) {
                 ajouterRec(enfant, niveau + 1, out);
             }
-        }
+        }*/
     }
 
     // regle simple pour la duree

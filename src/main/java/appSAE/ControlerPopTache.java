@@ -6,8 +6,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
-
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class ControlerPopTache implements EventHandler<ActionEvent> {
@@ -15,17 +14,19 @@ public class ControlerPopTache implements EventHandler<ActionEvent> {
     private final Liste liste;
     private final TextField titreField;
     private final TextArea descField;
-    private final DatePicker datePicker;
+    private final LocalDateTime dateDebut;
+    private final LocalDateTime dateFin;
     private final ComboBox<Tache.Priorite> prioBox;
     private final boolean modeModification;
     private final CompositeTache tacheAModifier;
 
-    public ControlerPopTache(Model model, Liste liste, TextField titreField, TextArea descField, DatePicker datePicker, ComboBox<Tache.Priorite> prioBox, boolean modeModification, CompositeTache tacheAModifier) {
+    public ControlerPopTache(Model model, Liste liste, TextField titreField, TextArea descField, LocalDateTime dateDebut, LocalDateTime dateFin, ComboBox<Tache.Priorite> prioBox, boolean modeModification, CompositeTache tacheAModifier) {
         this.model = model;
         this.liste = liste;
         this.titreField = titreField;
         this.descField = descField;
-        this.datePicker = datePicker;
+        this.dateDebut = dateDebut;
+        this.dateFin = dateFin;
         this.prioBox = prioBox;
         this.modeModification = modeModification;
         this.tacheAModifier = tacheAModifier;
@@ -33,15 +34,15 @@ public class ControlerPopTache implements EventHandler<ActionEvent> {
 
     @Override
     public void handle(ActionEvent e) {
-        String dateStr = datePicker.getValue().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         Tache.Priorite prio = (prioBox.getValue() == null) ? Tache.Priorite.NORMAL : prioBox.getValue();
 
         if (!modeModification) {
-            model.ajouterTache(liste, titreField.getText().trim(), descField.getText(), dateStr, prio);
+            model.ajouterTache(liste, titreField.getText().trim(), descField.getText(), dateDebut, dateFin, prio);
         } else if (tacheAModifier != null) {
             tacheAModifier.titre = titreField.getText().trim();
             tacheAModifier.description = descField.getText();
-            tacheAModifier.date = dateStr;
+            tacheAModifier.debut = dateDebut;
+            tacheAModifier.fin = dateFin;
             tacheAModifier.setPriorite(prio);
             model.notifierObservateur();
         }

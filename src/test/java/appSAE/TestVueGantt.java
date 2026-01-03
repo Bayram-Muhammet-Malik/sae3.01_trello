@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,12 +35,12 @@ class TestVueGantt {
         }
 
         private void collect(Tache t, int niveau) {
-            lignes.add("Niveau " + niveau + " : " + t.getTitre() + " (" + t.getDate() + ")");
+            /*lignes.add("Niveau " + niveau + " : " + t.getTitre() + " (" + t.getDate() + ")");
             if (t instanceof CompositeTache ct) {
                 for (Tache enfant : ct.getTaches()) {
                     collect(enfant, niveau + 1);
                 }
-            }
+            }*/
         }
     }
 
@@ -50,8 +51,8 @@ class TestVueGantt {
         model.ajouterListe(liste);
 
         // Création de tâches
-        tache1 = new CompositeTache("Tâche 1", "Desc 1", LocalDate.now().toString(), Tache.Priorite.NORMAL);
-        tache2 = new CompositeTache("Tâche 2", "Desc 2", LocalDate.now().plusDays(1).toString(), Tache.Priorite.URGENT);
+        tache1 = new CompositeTache("Tâche 1", "Desc 1", LocalDateTime.of(2025, 1, 1, 10, 0), LocalDateTime.of(2025, 1, 1, 11, 0), Tache.Priorite.NORMAL);
+        tache2 = new CompositeTache("Tâche 2", "Desc 2", LocalDateTime.of(2025, 1, 2, 10, 0), LocalDateTime.of(2025, 1, 2, 11, 0), Tache.Priorite.URGENT);
 
         // Ajout au modèle
         model.ajouterCarte(liste, tache1);

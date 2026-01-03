@@ -8,6 +8,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 public class VueBureau extends ScrollPane implements Observateur {
     private final Model model;
@@ -20,14 +24,13 @@ public class VueBureau extends ScrollPane implements Observateur {
 
     @Override
     public void actualiser(Sujet sujet) {
-        HBox hb = new HBox();
+        HBox hb = new HBox(20);
         for (Liste ls : model.getListes()) hb.getChildren().add(creerColonne(ls));
         this.setContent(hb);
     }
 
     private VBox creerColonne(Liste ls) {
-        VBox colonne = new VBox(6);
-        colonne.setStyle("-fx-background-color: #f3f4f6; -fx-padding: 12px; -fx-background-radius: 8px;");
+        VBox colonne = new VBox(5);
         colonne.setPrefWidth(320);
 
         Label titre = new Label(ls.getTitre());
@@ -43,24 +46,21 @@ public class VueBureau extends ScrollPane implements Observateur {
         Region espace = new Region();
         HBox.setHgrow(espace, Priority.ALWAYS);
 
-        HBox header = new HBox(6, deleteIcon, titre, espace);
+        HBox header = new HBox(5, deleteIcon, titre, espace);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        VBox cartesBox = new VBox(6);
+        VBox cartesBox = new VBox(5);
         for (Tache t : model.getTachesFromListe(ls)) cartesBox.getChildren().add(creerTache(ls, t));
+        ScrollPane scrollCartes = new ScrollPane(cartesBox);
+        scrollCartes.setFitToWidth(true);
+        scrollCartes.setMinHeight(0);
+        scrollCartes.setStyle("-fx-background-color: transparent;");
+
         Button creerTacheBtn = new Button("+ Créer une tâche");
         creerTacheBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
         creerTacheBtn.setOnAction(e -> ouvrirPopUpTache(ls, null));
 
-        cartesBox.getChildren().add(creerTacheBtn);
-
-        ScrollPane scrollCartes = new ScrollPane(cartesBox);
-        scrollCartes.setFitToWidth(true);
-        scrollCartes.setStyle("-fx-background-color: transparent;");
-
-        colonne.getChildren().addAll(header, scrollCartes);
-        VBox.setVgrow(scrollCartes, Priority.ALWAYS);
-
+        colonne.getChildren().addAll(header, scrollCartes, creerTacheBtn);
         return colonne;
     }
 
@@ -78,18 +78,12 @@ public class VueBureau extends ScrollPane implements Observateur {
         HBox.setHgrow(espace, Priority.ALWAYS);
 
         Tache.Priorite prio = (tsk.getPriorite() == null) ? Tache.Priorite.NORMAL : tsk.getPriorite();
-        Label badge = new Label(
-                switch (prio) {
-                    case NORMAL -> "Normal";
-                    case SECONDAIRE -> "Important";
-                    case URGENT -> "Urgent";
-                }
-        );
+        Label badge = new Label(prio.getLabel());
         String styleBase = "-fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 999; -fx-font-size: 11px; -fx-font-weight: bold;";
         badge.setStyle(
                 switch (prio) {
                     case NORMAL -> "-fx-background-color: #93c47d;" + styleBase;
-                    case SECONDAIRE -> "-fx-background-color: #ffbb42;" + styleBase;
+                    case IMPORTANT -> "-fx-background-color: #ffbb42;" + styleBase;
                     case URGENT -> "-fx-background-color: #ef4444;" + styleBase;
                 }
         );
@@ -106,49 +100,71 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         Label description = new Label(tsk.getDescription() == null ? "" : tsk.getDescription());
         description.setWrapText(true);
-        description.setStyle("-fx-text-fill: #4b5563; -fx-font-size: 12px;");
 
-        carte.getChildren().addAll(ligneHaut, description);
+        Label dates = new Label("Du " + tsk.getDebut().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm", Locale.FRENCH)) + " au " + tsk.getFin().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm", Locale.FRENCH)));
+
+        carte.getChildren().addAll(ligneHaut, description, dates);
 
         carte.setOnMouseClicked(e -> {
             if (tsk instanceof CompositeTache ct) {
                 ouvrirPopUpTache(liste, ct);
             }
         });
-
         return carte;
     }
 
-
-    // popup  création (tacheAModifier == null) ou modification
+    // popup création (tacheAModifier == null) ou modification
     private void ouvrirPopUpTache(Liste liste, CompositeTache tacheAModifier) {
         boolean modeModification = (tacheAModifier != null);
 
         Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle(modeModification ? "modifier une tâche" : "créer une tâche");
+        dialog.setTitle(modeModification ? "Modifier une tâche" : "Créer une tâche");
 
-        ButtonType btnValider = new ButtonType(modeModification ? "enregistrer" : "créer", ButtonBar.ButtonData.OK_DONE);
-        ButtonType btnAnnuler = new ButtonType("annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType btnValider = new ButtonType(modeModification ? "Enregistrer" : "Créer", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnAnnuler = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().addAll(btnValider, btnAnnuler);
 
+        // Titre + desc
         TextField champTitre = new TextField(modeModification ? tacheAModifier.getTitre() : "");
-        champTitre.setPromptText("nom de la tâche");
+        champTitre.setPromptText("Nom de la tâche");
 
         TextArea champDescription = new TextArea(modeModification ? (tacheAModifier.getDescription() == null ? "" : tacheAModifier.getDescription()) : "");
-        champDescription.setPromptText("description");
+        champDescription.setPromptText("Description");
         champDescription.setPrefRowCount(3);
         champDescription.setWrapText(true);
 
-        DatePicker champDate = new DatePicker(LocalDate.now());
+        // Date/Heure début et fin
+        DatePicker dateDebut = new DatePicker(LocalDate.now());
+        ComboBox<Integer> hDeb = new ComboBox<>(), mDeb = new ComboBox<>();
+        for (int h = 0; h < 24; h++) hDeb.getItems().add(h);
+        for (int m = 0; m < 60; m += 5) mDeb.getItems().add(m);
+        hDeb.setValue(LocalTime.now().getHour());
+        mDeb.setValue(LocalTime.now().getMinute() - (LocalTime.now().getMinute()) % 5);
+
+        DatePicker dateFin = new DatePicker(LocalDate.now());
+        ComboBox<Integer> hFin = new ComboBox<>(), mFin = new ComboBox<>();
+        for (int h = 0; h < 24; h++) hFin.getItems().add(h);
+        for (int m = 0; m < 60; m += 5) mFin.getItems().add(m);
+        hFin.setValue(LocalTime.now().getHour());
+        mFin.setValue(LocalTime.now().getMinute() - (LocalTime.now().getMinute()) % 5);
+
         if (modeModification) {
-            try {
-                champDate.setValue(LocalDate.parse(
-                        tacheAModifier.getDate(),
-                        java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy")
-                ));
-            } catch (Exception ignored) {}
+            LocalDateTime deb = tacheAModifier.getDebut();
+            if (deb != null) {
+                dateDebut.setValue(deb.toLocalDate());
+                hDeb.setValue(deb.getHour());
+                mDeb.setValue(deb.getMinute());
+            }
+
+            LocalDateTime fin = tacheAModifier.getFin();
+            if (fin != null) {
+                dateFin.setValue(fin.toLocalDate());
+                hFin.setValue(fin.getHour());
+                mFin.setValue(fin.getMinute());
+            }
         }
 
+        // Priorité de la tâche
         ComboBox<Tache.Priorite> champPriorite = new ComboBox<>();
         champPriorite.getItems().addAll(Tache.Priorite.values());
         champPriorite.setValue(modeModification ? (tacheAModifier.getPriorite() == null ? Tache.Priorite.NORMAL : tacheAModifier.getPriorite()) : Tache.Priorite.NORMAL
@@ -162,10 +178,11 @@ public class VueBureau extends ScrollPane implements Observateur {
                 new ColumnConstraints() {{ setHgrow(Priority.ALWAYS); }}
         );
 
-        grid.addRow(0, new Label("titre"), champTitre);
-        grid.addRow(1, new Label("description"), champDescription);
-        grid.addRow(2, new Label("date"), champDate);
-        grid.addRow(3, new Label("priorité"), champPriorite);
+        grid.addRow(0, new Label("Titre"), champTitre);
+        grid.addRow(1, new Label("Description"), champDescription);
+        grid.addRow(2, new Label("Début"), new HBox(5, dateDebut, hDeb, new Label(":"), mDeb));
+        grid.addRow(3, new Label("Fin"), new HBox(5, dateFin, hFin, new Label(":"), mFin));
+        grid.addRow(4, new Label("Priorité"), champPriorite);
 
         DialogPane pane = dialog.getDialogPane();
         pane.setContent(grid);
@@ -182,7 +199,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         );
 
         dialog.setResultConverter(button -> {
-            if (button == btnValider) new ControlerPopTache(model, liste, champTitre, champDescription, champDate, champPriorite, modeModification, tacheAModifier).handle(new ActionEvent());
+            if (button == btnValider) new ControlerPopTache(model, liste, champTitre, champDescription, LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue()) ), LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue())), champPriorite, modeModification, tacheAModifier).handle(new ActionEvent());
             return button;
         });
 
