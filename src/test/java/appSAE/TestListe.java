@@ -3,10 +3,10 @@ package appSAE;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class TestListe {
-
     @Test
     void constructeurCreeListeAvecBonTitreEtListeVide() {
         Liste liste = new Liste("À faire");
@@ -43,7 +43,7 @@ public class TestListe {
     @Test
     void getTachesPermetDAjouterUneCompositeTache() {
         Liste liste = new Liste("Liste de tâches");
-        CompositeTache t1 = new CompositeTache("Tâche 1", "Desc 1", "2025-01-01", Tache.Priorite.NORMAL);
+        CompositeTache t1 = new CompositeTache("Tâche 1", "Desc 1", LocalDateTime.of(2025, 1, 1, 10, 0), LocalDateTime.of(2025, 1, 1, 11, 0), Tache.Priorite.NORMAL);
 
         // On ajoute via la liste retournée par getTaches()
         List<CompositeTache> taches = liste.getTaches();
@@ -58,8 +58,8 @@ public class TestListe {
     @Test
     void getTachesPermetDeSupprimerUneCompositeTache() {
         Liste liste = new Liste("Liste");
-        CompositeTache t1 = new CompositeTache("Tâche 1", "Desc 1", "2025-01-01");
-        CompositeTache t2 = new CompositeTache("Tâche 2", "Desc 2", "2025-01-02");
+        CompositeTache t1 = new CompositeTache("Tâche 1", "Desc 1", LocalDateTime.of(2025, 1, 1, 10, 0), LocalDateTime.of(2025, 1, 1, 11, 0), Tache.Priorite.NORMAL);
+        CompositeTache t2 = new CompositeTache("Tâche 2", "Desc 2", LocalDateTime.of(2025, 1, 2, 10, 0), LocalDateTime.of(2025, 1, 2, 11, 0), Tache.Priorite.NORMAL);
 
         liste.getTaches().add(t1);
         liste.getTaches().add(t2);
@@ -82,8 +82,8 @@ public class TestListe {
         Liste liste1 = new Liste("Liste 1");
         Liste liste2 = new Liste("Liste 2");
 
-        CompositeTache t1 = new CompositeTache("Tâche L1", "Desc", "2025-01-01");
-        CompositeTache t2 = new CompositeTache("Tâche L2", "Desc", "2025-01-02");
+        CompositeTache t1 = new CompositeTache("Tâche L1", "Desc", LocalDateTime.of(2025, 1, 1, 10, 0), LocalDateTime.of(2025, 1, 1, 11, 0), Tache.Priorite.NORMAL);
+        CompositeTache t2 = new CompositeTache("Tâche L2", "Desc", LocalDateTime.of(2025, 1, 2, 10, 0), LocalDateTime.of(2025, 1, 2, 11, 0), Tache.Priorite.NORMAL);
 
         liste1.getTaches().add(t1);
         liste2.getTaches().add(t2);

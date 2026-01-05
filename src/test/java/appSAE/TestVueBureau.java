@@ -3,10 +3,11 @@ package appSAE;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class TestVueBureau {
-
     private Model model;
     private Liste aFaire;
     private Liste enCours;
@@ -23,8 +24,8 @@ class TestVueBureau {
         model.ajouterListe(enCours);
 
         // Ajout de tâches
-        model.ajouterTache(aFaire, "Tâche 1", "Description 1", "2025-01-01", Tache.Priorite.NORMAL);
-        model.ajouterTache(enCours, "Tâche 2", "Description 2", "2025-01-02", Tache.Priorite.URGENT);
+        model.ajouterTache(aFaire, "Tâche 1", "Description 1", LocalDateTime.of(2025, 1, 1, 10, 0), LocalDateTime.of(2025, 1, 1, 11, 0), Tache.Priorite.NORMAL);
+        model.ajouterTache(enCours, "Tâche 2", "Description 2", LocalDateTime.of(2025, 1, 2, 10, 0), LocalDateTime.of(2025, 1, 2, 11, 0), Tache.Priorite.URGENT);
     }
 
     @Test
@@ -45,7 +46,7 @@ class TestVueBureau {
 
     @Test
     void testAjouterCarte() {
-        CompositeTache nouvelleTache = new CompositeTache("Tâche 3", "Desc 3", "2025-01-03", Tache.Priorite.SECONDAIRE);
+        CompositeTache nouvelleTache = new CompositeTache("Tâche 3", "Desc 3", LocalDateTime.of(2025, 1, 3, 10, 0), LocalDateTime.of(2025, 1, 3, 11, 0), Tache.Priorite.IMPORTANT);
         model.ajouterCarte(aFaire, nouvelleTache);
 
         assertEquals(2, model.getTachesFromListe(aFaire).size(), "À faire doit maintenant contenir 2 tâches");

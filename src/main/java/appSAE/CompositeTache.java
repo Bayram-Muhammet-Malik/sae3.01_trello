@@ -1,22 +1,14 @@
 package appSAE;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CompositeTache extends Tache{
     private final List<Tache> content = new ArrayList<>();
 
-    // constructeur complet
-    public CompositeTache(String titre, String description, String date, Priorite prio) {
-        this.titre = titre;
-        this.description = description;
-        this.date = date;
-        this.estFait = false;
-        this.priorite = (prio == null) ? Priorite.NORMAL : prio;
-    }
-
-    public CompositeTache(String titre, String description, String date) {
-        this(titre, description, date, null);
+    public CompositeTache(String titre, String description, LocalDateTime debut, LocalDateTime fin, Priorite prio) {
+        super(titre, description, debut, fin, prio);
     }
 
     public void ajouterTache(Tache tache) {

@@ -8,6 +8,7 @@ out/
 target/
 *.iml
 *.class
+.zed/
 
 ### Eclipse ###
 .apt_generated

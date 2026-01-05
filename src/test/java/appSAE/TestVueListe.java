@@ -33,22 +33,8 @@ class TestVueListe {
 
         LocalDate aujourdHui = LocalDate.now();
 
-        // Tâche du jour
-        CompositeTache t1 = new CompositeTache(
-                "Tâche jour",
-                "desc",
-                format.format(aujourdHui),
-                Tache.Priorite.NORMAL
-        );
-
-
-        // Tâche demain
-        CompositeTache t2 = new CompositeTache(
-                "Tâche demain",
-                "desc",
-                format.format(aujourdHui.plusDays(1)),
-                Tache.Priorite.URGENT
-        );
+        CompositeTache t1 = new CompositeTache("Tâche jour", "desc", aujourdHui.atTime(10, 0), aujourdHui.atTime(11, 0), Tache.Priorite.NORMAL);
+        CompositeTache t2 = new CompositeTache("Tâche demain", "desc", aujourdHui.plusDays(1).atTime(10, 0), aujourdHui.plusDays(1).atTime(11, 0), Tache.Priorite.URGENT);
 
         model.ajouterCarte(liste, t1);
         model.ajouterCarte(liste, t2);
@@ -69,7 +55,7 @@ class TestVueListe {
             jt.date = dateJour;
 
             for (CompositeTache t : liste.getTaches()) {
-                if (dateJour.equals(t.getDate())) {
+                if (dateJour.equals(t.getDebut().toLocalDate())) {
                     collecterTache(t, 0, jt.taches);
                 }
             }

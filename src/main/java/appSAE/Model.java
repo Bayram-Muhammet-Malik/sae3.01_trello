@@ -1,10 +1,13 @@
 package appSAE;
 
+import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Model implements Sujet, Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
     private transient List<Observateur> obs;
     private List<Liste> listes;
@@ -40,9 +43,9 @@ public class Model implements Sujet, Serializable {
         }
     }
 
-    public void ajouterTache(Liste liste, String titre, String desc, String date, Tache.Priorite prio) {
+    public void ajouterTache(Liste liste, String titre, String desc, LocalDateTime debut, LocalDateTime fin, Tache.Priorite prio) {
         if (prio == null) prio = Tache.Priorite.NORMAL;
-        CompositeTache tache = new CompositeTache(titre, desc, date, prio);
+        CompositeTache tache = new CompositeTache(titre, desc, debut, fin, prio);
         liste.ajouterCarte(tache);
         notifierObservateur();
     }
