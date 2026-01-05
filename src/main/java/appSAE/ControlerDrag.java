@@ -1,58 +1,70 @@
 package appSAE;
 
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 
 public class ControlerDrag {
 
-    private final Model model;
-    private final Tache tache;
+    private Model model;
+    private Tache tache;
+    private Liste liste;
+    private VBox carte;
+    public static Tache tacheEnCours;
 
 
-    public ControlerDrag(Model model, Tache tache) {
+    public ControlerDrag(Model model, Tache tache, Liste listeCible, VBox carte) {
         this.model = model;
         this.tache = tache;
+        this.liste = listeCible;
+        this.carte = carte;
     }
 
-    public void handleDrag(EtatDrag etat, DragEvent e, Region displayBox) {
-        switch (etat) {
-
-            case OVER -> {
-                if (e.getGestureSource() != displayBox && e.getDragboard().hasString()) {
-                    e.acceptTransferModes(TransferMode.MOVE);
-                }
-                e.consume();
-            }
-
-            case ENTERED -> {
-                if (e.getGestureSource() != displayBox && e.getDragboard().hasString()) {
-                    displayBox.setStyle("-fx-border-width:2px;-fx-border-color:black;-fx-opacity:.4;");
-                }
-                e.consume();
-            }
-
-            case EXITED -> {
-                if (!e.isAccepted()) {
-                    displayBox.setStyle("-fx-border-width:2px;-fx-border-color:black;");
-                }
-                e.consume();
-            }
-
-            case DROPPED -> {
-                Dragboard db = e.getDragboard();
-                boolean success = false;
-
-                if (db.hasString()) {
-                    displayBox.setStyle("-fx-border-color:black;-fx-opacity:.4;");
-                    model.deplacerTache(db.getString(), tache);
-                    success = true;
-                }
-
-                e.setDropCompleted(success);
-                e.consume();
-            }
+    public void handleDragOver(DragEvent e) {
+        if (tache != null) {
+            e.acceptTransferModes(TransferMode.MOVE);
         }
+        e.consume();
+    }
+
+    public void handleDragEntered(DragEvent e) {
+        if (e.getGestureSource() != carte && e.getDragboard().hasString()) {
+            carte.setStyle("");
+        }
+        e.consume();
+    }
+
+    public void handleDragExited(DragEvent e) {
+        if (!e.isAccepted()) {
+            carte.setStyle("-fx-border-width:2px;-fx-border-color:black;");
+        }
+        e.consume();
+    }
+
+    public void handleDragDropped(DragEvent e) {
+        if (tache != null){
+            model.deplacerTache(liste, tache);
+
+            e.setDropCompleted(true);
+        } else {
+            e.setDropCompleted(false);
+        }
+        e.consume();
+    }
+
+    public void handleDragDetected(MouseEvent e) {
+        tacheEnCours = tache;
+        Dragboard db = carte.startDragAndDrop(TransferMode.MOVE);
+
+        ClipboardContent content = new ClipboardContent();
+        content.putString("TACHE");
+        db.setContent(content);
+
+        e.consume();
+    }
+
+    public void setOnDragDone(DragEvent e) {
+        ControlerDrag.tacheEnCours = null;
+        e.consume();
     }
 }

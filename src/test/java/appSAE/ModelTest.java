@@ -9,7 +9,7 @@ class ModelTest {
 
     private Model model;
     private Observateur observateur;
-    private Liste liste;
+    private Liste liste1, liste2, liste3;
     private CompositeTache tache; // Utilise la vraie classe CompositeTache
 
     @BeforeEach
@@ -18,10 +18,19 @@ class ModelTest {
         observateur = new FakeObservateur();
         model.enregistrerObservateur(observateur);
 
-        liste = new Liste("Liste1");
+        liste1 = new Liste("Liste1");
+        liste2 = new Liste("Liste2");
         tache = new CompositeTache("T1", "desc", "01/01/2025"); // vraie classe
-        liste.ajouterCarte(tache);
-        model.ajouterListe(liste);
+        liste1.ajouterCarte(tache);
+
+        model.ajouterListe(liste1);
+        model.ajouterListe(liste2);
+    }
+
+    @Test
+    void testDeplacerTache() {
+        model.deplacerTache(liste2, tache);
+        assertEquals(1, liste2.getTaches().size());
     }
 
     @Test
@@ -32,15 +41,15 @@ class ModelTest {
 
     @Test
     void testSupprimerListe() {
-        model.supprimerListe(liste);
+        model.supprimerListe(liste1);
         assertEquals(0, model.getListes().size());
     }
 
     @Test
     void testAjouterCarte() {
         CompositeTache t2 = new CompositeTache("T2", "d", "01"); // vraie classe
-        model.ajouterCarte(liste, t2);
-        assertEquals(2, liste.getTaches().size());
+        model.ajouterCarte(liste1, t2);
+        assertEquals(2, liste1.getTaches().size());
     }
 
 

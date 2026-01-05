@@ -90,27 +90,27 @@ public class Model implements Sujet, Serializable {
         }
     }
 
-    public void deplacerTache(String dashboard, Tache tache) {
-        Liste listeSource = null;
-        Liste listeCible = null;
+    /*
+    * déplacer une tâche d'une liste à l'autre
+    * param :
+    *   dashbord :
+     */
+    public void deplacerTache(Liste listeCible, Tache tache) {
+
+        if (listeCible == null || tache == null)
+            return;
 
         for (Liste l : listes) {
             if (l.getTaches().contains(tache)) {
-                listeSource = l;
-            }
-            if (l.getTitre().equals(dashboard)) {
-                listeCible = l;
+                if (l == listeCible)
+                    return;
+
+                l.supprimerTache(tache);
+                listeCible.ajouterCarte(tache);
+
+                notifierObservateur();
             }
         }
-
-        if (listeSource == listeCible) {
-            return;
-
-        }
-        listeSource.supprimerTache(tache);
-        listeCible.ajouterCarte(tache);
-
-        notifierObservateur();
     }
 
 }

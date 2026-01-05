@@ -5,6 +5,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 
 import java.time.LocalDate;
@@ -30,6 +34,27 @@ public class VueBureau extends HBox implements Observateur {
         VBox colonne = new VBox(6);
         colonne.setStyle("-fx-background-color: #f3f4f6; -fx-padding: 12px; -fx-background-radius: 8px;");
         colonne.setPrefWidth(325);
+
+
+        colonne.setOnDragOver(e -> {
+            if (ControlerDrag.tacheEnCours != null) {
+                e.acceptTransferModes(TransferMode.MOVE);
+            }
+            e.consume();
+        });
+
+        colonne.setOnDragDropped(e -> {
+            if (ControlerDrag.tacheEnCours != null) {
+                model.deplacerTache(ls, ControlerDrag.tacheEnCours);
+                ControlerDrag.tacheEnCours = null;
+                e.setDropCompleted(true);
+            } else {
+                e.setDropCompleted(false);
+            }
+            e.consume();
+        });
+
+
 
         Label titre = new Label(ls.getTitre());
         titre.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;");
@@ -66,12 +91,15 @@ public class VueBureau extends HBox implements Observateur {
         VBox carte = new VBox(6);
         carte.setStyle("-fx-background-color: #ffffff; -fx-padding: 12px; -fx-background-radius: 10px; -fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
 
-        ControlerDrag cd = new ControlerDrag(model, tsk);
+        ControlerDrag cd = new ControlerDrag(model, tsk, liste, carte);
 
-        carte.setOnDragOver(e -> cd.handleDrag(EtatDrag.OVER, e, carte));
-        carte.setOnDragEntered(e -> cd.handleDrag(EtatDrag.ENTERED, e, carte));
-        carte.setOnDragExited(e -> cd.handleDrag(EtatDrag.EXITED, e, carte));
-        carte.setOnDragDropped(e -> cd.handleDrag(EtatDrag.DROPPED, e, carte));
+        carte.setOnDragDetected(cd::handleDragDetected);
+        carte.setOnDragOver(cd::handleDragOver);
+        carte.setOnDragEntered(cd::handleDragEntered);
+        carte.setOnDragExited(cd::handleDragExited);
+        carte.setOnDragDropped(cd::handleDragDropped);
+        carte.setOnDragDone(cd::setOnDragDone);
+
 
         HBox ligneHaut = new HBox(8);
         ligneHaut.setAlignment(Pos.CENTER_LEFT);
