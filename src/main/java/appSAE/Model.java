@@ -111,9 +111,29 @@ public class Model implements Sujet, Serializable {
                 l.supprimerTache(tache);
                 listeCible.ajouterCarte(tache);
 
+                FichierManager.sauvegarder(this, filepath);
                 notifierObservateur();
             }
         }
     }
+
+    public void deplacerListe(Liste liste, int nouvelIndex) {
+        if (liste == null) return;
+        int ancienIndex = listes.indexOf(liste);
+        if (ancienIndex == -1 || nouvelIndex < 0 || nouvelIndex >= listes.size())
+            return;
+
+        if (ancienIndex == nouvelIndex) return;
+
+        listes.remove(ancienIndex);
+        listes.add(nouvelIndex, liste);
+
+        notifierObservateur();
+
+        if (filepath != null) {
+            FichierManager.sauvegarder(this, filepath);
+        }
+    }
+
 
 }

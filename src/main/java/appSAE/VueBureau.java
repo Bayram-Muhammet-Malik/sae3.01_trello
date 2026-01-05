@@ -20,6 +20,7 @@ import java.util.Locale;
 
 public class VueBureau extends ScrollPane implements Observateur {
     private final Model model;
+    private Liste listeDragEnCours;
 
     public VueBureau(Model model) {
         this.model = model;
@@ -37,7 +38,6 @@ public class VueBureau extends ScrollPane implements Observateur {
     private VBox creerColonne(Liste ls) {
         VBox colonne = new VBox(5);
         colonne.setPrefWidth(320);
-
 
         colonne.setOnDragOver(e -> {
             if (ControlerDrag.tacheEnCours != null) {
@@ -57,8 +57,6 @@ public class VueBureau extends ScrollPane implements Observateur {
             e.consume();
         });
 
-
-
         Label titre = new Label(ls.getTitre());
         titre.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;");
         titre.setOnMouseClicked(e -> MainWindow.ouvrirPopupListe(ls, model));
@@ -71,6 +69,43 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         HBox header = new HBox(5, deleteIcon, titre);
         header.setAlignment(Pos.CENTER_LEFT);
+
+        // Drag&drop liste
+        header.setOnDragDetected(e -> {
+            Dragboard db = header.startDragAndDrop(TransferMode.MOVE);
+            ClipboardContent cc = new ClipboardContent();
+            cc.putString("LISTE");
+            db.setContent(cc);
+            listeDragEnCours = ls;
+            e.consume();
+        });
+
+        header.setOnDragOver(e -> {
+            Dragboard db = e.getDragboard();
+            if (db.hasString() && "LISTE".equals(db.getString()) && listeDragEnCours != null) {
+                e.acceptTransferModes(TransferMode.MOVE);
+            }
+            e.consume();
+        });
+
+        header.setOnDragDropped(e -> {
+            Dragboard db = e.getDragboard();
+            if (db.hasString() && "LISTE".equals(db.getString()) && listeDragEnCours != null) {
+                HBox parent = (HBox) colonne.getParent();
+                int nouvelIndex = parent.getChildren().indexOf(colonne);
+                model.deplacerListe(listeDragEnCours, nouvelIndex);
+                listeDragEnCours = null;
+                e.setDropCompleted(true);
+            } else {
+                e.setDropCompleted(false);
+            }
+            e.consume();
+        });
+
+        header.setOnDragDone(e -> {
+            listeDragEnCours = null;
+            e.consume();
+        });
 
         VBox cartesBox = new VBox(5);
         for (Tache t : model.getTachesFromListe(ls)) cartesBox.getChildren().add(creerTache(ls, t));
