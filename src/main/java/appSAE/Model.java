@@ -128,11 +128,9 @@ public class Model implements Sujet, Serializable {
         listes.remove(ancienIndex);
         listes.add(nouvelIndex, liste);
 
+        FichierManager.sauvegarder(this, filepath);
         notifierObservateur();
 
-        if (filepath != null) {
-            FichierManager.sauvegarder(this, filepath);
-        }
     }
 
 
