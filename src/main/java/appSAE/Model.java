@@ -145,5 +145,53 @@ public class Model implements Sujet, Serializable {
 
     }
 
+    public void deplacerTacheDansListe(Liste listeCible, Tache tache) {
+        if (listeCible == null || tache == null) return;
+
+        // 1) enlever la tâche de là où elle est
+
+        // si elle a un parent composite => sous-tâche
+        CompositeTache parent = tache.getParentTache();
+        if (parent != null) {
+            parent.getTaches().remove(tache);
+            tache.setParentTache(null);
+        } else {
+            // sinon c'est une tâche racine d'une liste
+            for (Liste l : listes) {
+                if (l.getTaches().remove(tache)) {
+                    break;
+                }
+            }
+        }
+
+        // 2) l'ajouter dans la liste cible
+        listeCible.ajouterCarte(tache);
+
+        notifierObservateur();
+        FichierManager.sauvegarder(this, filepath);
+    }
+
+    public void deplacerTacheSousComposite(CompositeTache nouveauParent, Tache tache) {
+        if (nouveauParent == null || tache == null) return;
+
+        // 1) enlever de son ancien parent
+        CompositeTache ancienParent = tache.getParentTache();
+        if (ancienParent != null) {
+            ancienParent.getTaches().remove(tache);
+        } else {
+            // tâche racine dans une liste
+            for (Liste l : listes) {
+                if (l.getTaches().remove(tache)) break;
+            }
+        }
+
+        // 2) l'ajouter comme sous-tâche
+        nouveauParent.ajouterTache(tache);
+
+        notifierObservateur();
+        FichierManager.sauvegarder(this, filepath);
+    }
+
+
 
 }

@@ -47,7 +47,7 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         colonne.setOnDragDropped(e -> {
             if (ControlerDrag.tacheEnCours != null) {
-                model.deplacerTache(ls, ControlerDrag.tacheEnCours);
+                model.deplacerTacheDansListe(ls, ControlerDrag.tacheEnCours);
                 ControlerDrag.tacheEnCours = null;
                 e.setDropCompleted(true);
             } else {
@@ -123,14 +123,26 @@ public class VueBureau extends ScrollPane implements Observateur {
 
     private VBox creerTache(Liste liste, Tache tsk, int profondeur) {
         VBox carte = new VBox(6);
-        carte.setStyle("-fx-background-color: #ffffff; -fx-padding: 12px; -fx-background-radius: 10px; -fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
+
+        String couleurFond = "";
+        if (profondeur % 2 == 0){
+            couleurFond = "#ffffff";
+        } else {
+            couleurFond = "#f3f4f6";
+
+        };
+        carte.setStyle(
+                "-fx-background-color: " + couleurFond + ";" +
+                        " -fx-padding: 12px;" +
+                        " -fx-background-radius: 10px;" +
+                        " -fx-border-color: #e5e7eb;" +
+                        " -fx-border-radius: 10px;"
+        );
 
         ControlerDrag cd = new ControlerDrag(model, tsk, liste, carte);
 
         carte.setOnDragDetected(cd::handleDragDetected);
         carte.setOnDragOver(cd::handleDragOver);
-        carte.setOnDragEntered(cd::handleDragEntered);
-        carte.setOnDragExited(cd::handleDragExited);
         carte.setOnDragDropped(cd::handleDragDropped);
         carte.setOnDragDone(cd::setOnDragDone);
 
@@ -169,8 +181,19 @@ public class VueBureau extends ScrollPane implements Observateur {
         cst.setManaged(false);
         cst.setOnMouseClicked(e -> ouvrirPopUpTache(liste, null, tsk));
 
-        carte.setOnMouseEntered(e -> { cst.setVisible(true); cst.setManaged(true); });
-        carte.setOnMouseExited(e -> { cst.setVisible(false); cst.setManaged(false); });
+        carte.setOnMouseEntered(e -> {
+            // ne rien afficher si un drag est en cours
+            if (ControlerDrag.tacheEnCours == null) {
+                cst.setVisible(true);
+                cst.setManaged(true);
+            }
+        });
+
+        carte.setOnMouseExited(e -> {
+            cst.setVisible(false);
+            cst.setManaged(false);
+        });
+
 
         VBox sousTachesBox = new VBox(6);
         if (tsk instanceof CompositeTache ct) {

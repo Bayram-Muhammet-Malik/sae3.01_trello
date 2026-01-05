@@ -1,7 +1,10 @@
 package appSAE;
 
-import javafx.scene.input.*;
-import javafx.scene.layout.Region;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 
 public class ControlerDrag {
@@ -12,7 +15,6 @@ public class ControlerDrag {
     private VBox carte;
     public static Tache tacheEnCours;
 
-
     public ControlerDrag(Model model, Tache tache, Liste listeCible, VBox carte) {
         this.model = model;
         this.tache = tache;
@@ -21,29 +23,47 @@ public class ControlerDrag {
     }
 
     public void handleDragOver(DragEvent e) {
-        if (tache != null) {
+        if (ControlerDrag.tacheEnCours != null) {
             e.acceptTransferModes(TransferMode.MOVE);
         }
         e.consume();
     }
 
-    public void handleDragEntered(DragEvent e) {
-        if (e.getGestureSource() != carte && e.getDragboard().hasString()) {
-            carte.setStyle("");
-        }
-        e.consume();
-    }
-
-    public void handleDragExited(DragEvent e) {
-        if (!e.isAccepted()) {
-            carte.setStyle("-fx-border-width:2px;-fx-border-color:black;");
-        }
-        e.consume();
-    }
-
     public void handleDragDropped(DragEvent e) {
-        if (tache != null){
-            model.deplacerTache(liste, tache);
+        if (ControlerDrag.tacheEnCours != null) {
+
+            Tache source = ControlerDrag.tacheEnCours;
+            Tache cible  = this.tache;
+
+            if (cible != null && source != cible) {
+                CompositeTache ctCible;
+
+                if (cible instanceof CompositeTache existing) {
+                    ctCible = existing;
+                } else {
+                    ctCible = new CompositeTache(
+                            cible.getTitre(),
+                            cible.getDescription(),
+                            cible.getDebut(),
+                            cible.getFin(),
+                            cible.getPriorite()
+                    );
+
+                    CompositeTache parent = cible.getParentTache();
+                    if (parent != null) {
+                        parent.modifierSousTache(cible, ctCible);
+                    } else {
+                        for (Liste l : model.getListes()) {
+                            l.modifierTache(cible, ctCible);
+                        }
+                    }
+                }
+
+                model.deplacerTacheSousComposite(ctCible, source);
+
+            } else {
+                model.deplacerTacheDansListe(liste, source);
+            }
 
             e.setDropCompleted(true);
         } else {
