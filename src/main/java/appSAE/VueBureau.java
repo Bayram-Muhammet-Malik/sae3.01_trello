@@ -3,6 +3,7 @@ package appSAE;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -43,10 +44,7 @@ public class VueBureau extends ScrollPane implements Observateur {
             supprimerListe(ls);
         });
 
-        Region espace = new Region();
-        HBox.setHgrow(espace, Priority.ALWAYS);
-
-        HBox header = new HBox(5, deleteIcon, titre, espace);
+        HBox header = new HBox(5, deleteIcon, titre);
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox cartesBox = new VBox(5);
@@ -89,12 +87,6 @@ public class VueBureau extends ScrollPane implements Observateur {
         );
 
         ImageView deleteIcon = creerIconeSuppression();
-        deleteIcon.setOnMouseClicked(e -> {
-            e.consume();
-            if (tsk instanceof CompositeTache ct) {
-                supprimerTache(liste, ct);
-            }
-        });
 
         ligneHaut.getChildren().addAll(titre, espace, badge, deleteIcon);
 
@@ -106,21 +98,26 @@ public class VueBureau extends ScrollPane implements Observateur {
         carte.getChildren().addAll(ligneHaut, description, dates);
 
         carte.setOnMouseClicked(e -> {
-            if (tsk instanceof CompositeTache ct) {
-                ouvrirPopUpTache(liste, ct);
+            Node source = (Node) e.getTarget();
+
+            if (source == deleteIcon) {
+                supprimerTache(liste, tsk);
+                return;
             }
+
+            ouvrirPopUpTache(liste, tsk);
         });
         return carte;
     }
 
     // popup création (tacheAModifier == null) ou modification
-    private void ouvrirPopUpTache(Liste liste, CompositeTache tacheAModifier) {
+    private void ouvrirPopUpTache(Liste liste, Tache tacheAModifier) {
         boolean modeModification = (tacheAModifier != null);
 
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle(modeModification ? "Modifier une tâche" : "Créer une tâche");
 
-        ButtonType btnValider = new ButtonType(modeModification ? "Enregistrer" : "Créer", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnValider = new ButtonType("Enregistrer", ButtonBar.ButtonData.OK_DONE);
         ButtonType btnAnnuler = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().addAll(btnValider, btnAnnuler);
 
@@ -135,33 +132,42 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         // Date/Heure début et fin
         DatePicker dateDebut = new DatePicker(LocalDate.now());
+        DatePicker dateFin   = new DatePicker(LocalDate.now());
         ComboBox<Integer> hDeb = new ComboBox<>(), mDeb = new ComboBox<>();
-        for (int h = 0; h < 24; h++) hDeb.getItems().add(h);
-        for (int m = 0; m < 60; m += 5) mDeb.getItems().add(m);
-        hDeb.setValue(LocalTime.now().getHour());
-        mDeb.setValue(LocalTime.now().getMinute() - (LocalTime.now().getMinute()) % 5);
-
-        DatePicker dateFin = new DatePicker(LocalDate.now());
         ComboBox<Integer> hFin = new ComboBox<>(), mFin = new ComboBox<>();
-        for (int h = 0; h < 24; h++) hFin.getItems().add(h);
-        for (int m = 0; m < 60; m += 5) mFin.getItems().add(m);
-        hFin.setValue(LocalTime.now().getHour());
-        mFin.setValue(LocalTime.now().getMinute() - (LocalTime.now().getMinute()) % 5);
+
+        for (int h = 0; h < 24; h++) {
+            hDeb.getItems().add(h);
+            hFin.getItems().add(h);
+        }
+        for (int m = 0; m < 60; m += 5) {
+            mDeb.getItems().add(m);
+            mFin.getItems().add(m);
+        }
 
         if (modeModification) {
             LocalDateTime deb = tacheAModifier.getDebut();
+            LocalDateTime fin = tacheAModifier.getFin();
+
             if (deb != null) {
                 dateDebut.setValue(deb.toLocalDate());
                 hDeb.setValue(deb.getHour());
                 mDeb.setValue(deb.getMinute());
             }
 
-            LocalDateTime fin = tacheAModifier.getFin();
             if (fin != null) {
                 dateFin.setValue(fin.toLocalDate());
                 hFin.setValue(fin.getHour());
                 mFin.setValue(fin.getMinute());
             }
+        } else {
+            int heure = LocalTime.now().getHour();
+            int minute = LocalTime.now().getMinute() - (LocalTime.now().getMinute() % 5);
+
+            hDeb.setValue(heure);
+            mDeb.setValue(minute);
+            hFin.setValue(heure);
+            mFin.setValue(minute);
         }
 
         // Priorité de la tâche
@@ -173,10 +179,6 @@ public class VueBureau extends ScrollPane implements Observateur {
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.getColumnConstraints().addAll(
-                new ColumnConstraints(90),
-                new ColumnConstraints() {{ setHgrow(Priority.ALWAYS); }}
-        );
 
         grid.addRow(0, new Label("Titre"), champTitre);
         grid.addRow(1, new Label("Description"), champDescription);
@@ -198,12 +200,9 @@ public class VueBureau extends ScrollPane implements Observateur {
                 bValider.setDisable(newV == null || newV.isBlank())
         );
 
-        dialog.setResultConverter(button -> {
-            if (button == btnValider) new ControlerPopTache(model, liste, champTitre, champDescription, LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue()) ), LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue())), champPriorite, modeModification, tacheAModifier).handle(new ActionEvent());
-            return button;
+        dialog.showAndWait().ifPresent(btn -> {
+            if (btn == btnValider) new ControlerPopTache(model, liste, champTitre, champDescription, LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue())), LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue())), champPriorite, modeModification, tacheAModifier).handle(new ActionEvent());
         });
-
-        dialog.showAndWait();
     }
 
     private void supprimerListe(Liste liste) {
@@ -229,7 +228,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         });
     }
 
-    private void supprimerTache(Liste liste, CompositeTache tache) {
+    private void supprimerTache(Liste liste, Tache tache) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Supprimer");
 
@@ -256,6 +255,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         ImageView icone = new ImageView("file:icons/trash-can-solid-full.png");
         icone.setFitWidth(20);
         icone.setFitHeight(20);
+        icone.setPickOnBounds(true);
         return icone;
     }
 }

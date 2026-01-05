@@ -3,11 +3,9 @@ package appSAE;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class ControlerPopTache implements EventHandler<ActionEvent> {
     private final Model model;
@@ -18,9 +16,9 @@ public class ControlerPopTache implements EventHandler<ActionEvent> {
     private final LocalDateTime dateFin;
     private final ComboBox<Tache.Priorite> prioBox;
     private final boolean modeModification;
-    private final CompositeTache tacheAModifier;
+    private final Tache tacheAModifier;
 
-    public ControlerPopTache(Model model, Liste liste, TextField titreField, TextArea descField, LocalDateTime dateDebut, LocalDateTime dateFin, ComboBox<Tache.Priorite> prioBox, boolean modeModification, CompositeTache tacheAModifier) {
+    public ControlerPopTache(Model model, Liste liste, TextField titreField, TextArea descField, LocalDateTime dateDebut, LocalDateTime dateFin, ComboBox<Tache.Priorite> prioBox, boolean modeModification, Tache tacheAModifier) {
         this.model = model;
         this.liste = liste;
         this.titreField = titreField;
