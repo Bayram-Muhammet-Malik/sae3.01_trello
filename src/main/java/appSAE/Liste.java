@@ -9,7 +9,7 @@ public class Liste implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
     private String titre;
-    private List<CompositeTache> taches;
+    private List<Tache> taches;
 
     public Liste(String titre) {
         this.titre = titre;
@@ -23,16 +23,23 @@ public class Liste implements Serializable {
     public String getTitre(){
         return this.titre;
     }
-    public List<CompositeTache> getTaches(){
+    public List<Tache> getTaches(){
         return this.taches;
+    }
+
+    public void modifierTache(Tache ancienne, Tache nouvelle) {
+        int index = taches.indexOf(ancienne);
+        if (index >= 0) {
+            taches.set(index, nouvelle);
+            nouvelle.setParentTache(null);
+        }
     }
 
     public void supprimerTache(Tache tache) {
         this.taches.remove(tache);
     }
 
-
     public void ajouterCarte(Tache tache) {
-        this.taches.add((CompositeTache) tache);
+        this.taches.add(tache);
     }
 }

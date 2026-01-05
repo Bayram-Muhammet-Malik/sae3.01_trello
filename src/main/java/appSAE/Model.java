@@ -45,8 +45,15 @@ public class Model implements Sujet, Serializable {
 
     public void ajouterTache(Liste liste, String titre, String desc, LocalDateTime debut, LocalDateTime fin, Tache.Priorite prio) {
         if (prio == null) prio = Tache.Priorite.NORMAL;
-        CompositeTache tache = new CompositeTache(titre, desc, debut, fin, prio);
+        FeuilleTache tache = new FeuilleTache(titre, desc, debut, fin, prio);
         liste.ajouterCarte(tache);
+        notifierObservateur();
+    }
+
+    public void ajouterSousTache(CompositeTache parent, String titre, String desc, LocalDateTime debut, LocalDateTime fin, Tache.Priorite prio) {
+        if (prio == null) prio = Tache.Priorite.NORMAL;
+        FeuilleTache tache = new FeuilleTache(titre, desc, debut, fin, prio);
+        parent.ajouterTache(tache);
         notifierObservateur();
     }
 
@@ -58,7 +65,7 @@ public class Model implements Sujet, Serializable {
     }
     public String getLastVue(){ return lastVue; }
 
-    public List<CompositeTache> getTachesFromListe(Liste liste){
+    public List<Tache> getTachesFromListe(Liste liste){
         return liste.getTaches();
     }
 

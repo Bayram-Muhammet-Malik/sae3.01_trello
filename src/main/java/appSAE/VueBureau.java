@@ -48,7 +48,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox cartesBox = new VBox(5);
-        for (Tache t : model.getTachesFromListe(ls)) cartesBox.getChildren().add(creerTache(ls, t));
+        for (Tache t : model.getTachesFromListe(ls)) cartesBox.getChildren().add(creerTache(ls, t, 0));
         ScrollPane scrollCartes = new ScrollPane(cartesBox);
         scrollCartes.setFitToWidth(true);
         scrollCartes.setMinHeight(0);
@@ -56,13 +56,13 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         Button creerTacheBtn = new Button("+ Créer une tâche");
         creerTacheBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
-        creerTacheBtn.setOnAction(e -> ouvrirPopUpTache(ls, null));
+        creerTacheBtn.setOnAction(e -> ouvrirPopUpTache(ls, null, null));
 
         colonne.getChildren().addAll(header, scrollCartes, creerTacheBtn);
         return colonne;
     }
 
-    private VBox creerTache(Liste liste, Tache tsk) {
+    private VBox creerTache(Liste liste, Tache tsk, int profondeur) {
         VBox carte = new VBox(6);
         carte.setStyle("-fx-background-color: #ffffff; -fx-padding: 12px; -fx-background-radius: 10px; -fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
 
@@ -95,7 +95,25 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         Label dates = new Label("Du " + tsk.getDebut().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm", Locale.FRENCH)) + " au " + tsk.getFin().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm", Locale.FRENCH)));
 
-        carte.getChildren().addAll(ligneHaut, description, dates);
+        Button cst = new Button("+ Créer une sous tâche");
+        cst.setVisible(false);
+        cst.setManaged(false);
+        cst.setOnMouseClicked(e -> ouvrirPopUpTache(liste, null, tsk));
+
+        carte.setOnMouseEntered(e -> { cst.setVisible(true); cst.setManaged(true); });
+        carte.setOnMouseExited(e -> { cst.setVisible(false); cst.setManaged(false); });
+
+        VBox sousTachesBox = new VBox(6);
+        if (tsk instanceof CompositeTache ct) {
+            for (Tache sousTache : ct.getTaches()) {
+                VBox sousCarte = creerTache(liste, sousTache, profondeur + 1);
+                sousCarte.setStyle("-fx-background-color: #f9fafb; -fx-padding: 10px; -fx-background-radius: 8px; -fx-border-color: #d1d5db; -fx-border-radius: 8px;");
+                sousCarte.setTranslateX(profondeur * 10);
+                sousTachesBox.getChildren().add(sousCarte);
+            }
+        }
+
+        carte.getChildren().addAll(ligneHaut, description, dates, cst, sousTachesBox);
 
         carte.setOnMouseClicked(e -> {
             Node source = (Node) e.getTarget();
@@ -105,13 +123,13 @@ public class VueBureau extends ScrollPane implements Observateur {
                 return;
             }
 
-            ouvrirPopUpTache(liste, tsk);
+            ouvrirPopUpTache(liste, tsk, null);
         });
         return carte;
     }
 
     // popup création (tacheAModifier == null) ou modification
-    private void ouvrirPopUpTache(Liste liste, Tache tacheAModifier) {
+    private void ouvrirPopUpTache(Liste liste, Tache tacheAModifier, Tache parentTache) {
         boolean modeModification = (tacheAModifier != null);
 
         Dialog<ButtonType> dialog = new Dialog<>();
@@ -201,7 +219,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         );
 
         dialog.showAndWait().ifPresent(btn -> {
-            if (btn == btnValider) new ControlerPopTache(model, liste, champTitre, champDescription, LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue())), LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue())), champPriorite, modeModification, tacheAModifier).handle(new ActionEvent());
+            if (btn == btnValider) new ControlerPopTache(model, liste, champTitre, champDescription, LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue())), LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue())), champPriorite, tacheAModifier, parentTache).handle(new ActionEvent());
         });
     }
 

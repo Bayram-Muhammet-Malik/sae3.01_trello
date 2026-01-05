@@ -15,10 +15,10 @@ public class ControlerPopTache implements EventHandler<ActionEvent> {
     private final LocalDateTime dateDebut;
     private final LocalDateTime dateFin;
     private final ComboBox<Tache.Priorite> prioBox;
-    private final boolean modeModification;
     private final Tache tacheAModifier;
+    private final Tache parentTache;
 
-    public ControlerPopTache(Model model, Liste liste, TextField titreField, TextArea descField, LocalDateTime dateDebut, LocalDateTime dateFin, ComboBox<Tache.Priorite> prioBox, boolean modeModification, Tache tacheAModifier) {
+    public ControlerPopTache(Model model, Liste liste, TextField titreField, TextArea descField, LocalDateTime dateDebut, LocalDateTime dateFin, ComboBox<Tache.Priorite> prioBox, Tache tacheAModifier, Tache parentTache) {
         this.model = model;
         this.liste = liste;
         this.titreField = titreField;
@@ -26,21 +26,36 @@ public class ControlerPopTache implements EventHandler<ActionEvent> {
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
         this.prioBox = prioBox;
-        this.modeModification = modeModification;
         this.tacheAModifier = tacheAModifier;
+        this.parentTache = parentTache;
     }
 
     @Override
     public void handle(ActionEvent e) {
         Tache.Priorite prio = (prioBox.getValue() == null) ? Tache.Priorite.NORMAL : prioBox.getValue();
 
-        if (!modeModification) {
-            model.ajouterTache(liste, titreField.getText().trim(), descField.getText(), dateDebut, dateFin, prio);
-        } else if (tacheAModifier != null) {
-            tacheAModifier.titre = titreField.getText().trim();
-            tacheAModifier.description = descField.getText();
-            tacheAModifier.debut = dateDebut;
-            tacheAModifier.fin = dateFin;
+        if (tacheAModifier == null) {
+            if (parentTache == null){
+                model.ajouterTache(liste, titreField.getText().trim(), descField.getText(), dateDebut, dateFin, prio);
+            } else {
+                CompositeTache parent;
+                if (parentTache instanceof FeuilleTache ft) {
+                    parent = new CompositeTache(parentTache.getTitre(), parentTache.getDescription(), parentTache.getDebut(), parentTache.getFin(), parentTache.getPriorite());
+                    if (parentTache.getParentTache() != null) {
+                        parentTache.getParentTache().modifierSousTache(parentTache, parent);
+                    } else {
+                        liste.modifierTache(parentTache, parent);
+                    }
+                } else {
+                    parent = (CompositeTache) parentTache;
+                }
+                model.ajouterSousTache(parent, titreField.getText().trim(), descField.getText(), dateDebut, dateFin, prio);
+            }
+        } else {
+            tacheAModifier.setTitre(titreField.getText().trim());
+            tacheAModifier.setDescription(descField.getText());
+            tacheAModifier.setDebut(dateDebut);
+            tacheAModifier.setFin(dateFin);
             tacheAModifier.setPriorite(prio);
             model.notifierObservateur();
         }

@@ -100,7 +100,7 @@ public class VueGantt extends BorderPane implements Observateur {
 
         // lignes a afficher (racines + sous-taches)
         List<Ligne> lignes = new ArrayList<>();
-        for (CompositeTache t : liste.getTaches()) {
+        for (Tache t : liste.getTaches()) {
             ajouterRec(t, 0, lignes);
         }
 

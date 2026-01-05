@@ -2,15 +2,14 @@ package appSAE;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public abstract class Tache implements Serializable {
     @Serial
-    protected static final long serialVersionUID = 1L;
-    protected String titre, description;
-    protected LocalDateTime debut, fin;
-    protected boolean estFait;
+    private static final long serialVersionUID = 1L;
+    private String titre, description;
+    private LocalDateTime debut, fin;
+    private boolean estFait;
 
     public enum Priorite {
         URGENT, IMPORTANT, NORMAL;
@@ -20,7 +19,8 @@ public abstract class Tache implements Serializable {
         }
     }
 
-    protected Priorite priorite = Priorite.NORMAL;
+    private Priorite priorite = Priorite.NORMAL;
+    private CompositeTache parentTache = null;
 
     /**
      * Contructeur
@@ -55,6 +55,30 @@ public abstract class Tache implements Serializable {
 
     public Priorite getPriorite() {
         return priorite;
+    }
+
+    public CompositeTache getParentTache() {
+        return parentTache;
+    }
+
+    public void setParentTache(CompositeTache parentTache) {
+        this.parentTache = parentTache;
+    }
+
+    public void setTitre(String titre) {
+        this.titre = titre;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public void setDebut(LocalDateTime debut) {
+        this.debut = debut;
+    }
+    public void setFin(LocalDateTime fin) {
+        this.fin = fin;
+    }
+    public void setEstFait(boolean estFait) {
+        this.estFait = estFait;
     }
     public void setPriorite(Priorite priorite) {
         this.priorite = priorite;

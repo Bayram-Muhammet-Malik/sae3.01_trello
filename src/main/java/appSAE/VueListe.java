@@ -83,7 +83,7 @@ public class VueListe extends BorderPane implements Observateur {
         );
 
         boolean trouve = false;
-        for (CompositeTache t : liste.getTaches()) {
+        for (Tache t : liste.getTaches()) {
             /*
             if (dateJour.equals(t.getDate())) {
                 boiteTaches.getChildren().add(creerTache(t, 0));
