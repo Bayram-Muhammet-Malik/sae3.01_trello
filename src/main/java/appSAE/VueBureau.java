@@ -6,6 +6,9 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 
 import java.time.LocalDate;
@@ -16,6 +19,7 @@ import java.util.Locale;
 
 public class VueBureau extends ScrollPane implements Observateur {
     private final Model model;
+    private Liste listeDragEnCours;
 
     public VueBureau(Model model) {
         this.model = model;
@@ -34,6 +38,24 @@ public class VueBureau extends ScrollPane implements Observateur {
         VBox colonne = new VBox(5);
         colonne.setPrefWidth(320);
 
+        colonne.setOnDragOver(e -> {
+            if (ControlerDrag.tacheEnCours != null) {
+                e.acceptTransferModes(TransferMode.MOVE);
+            }
+            e.consume();
+        });
+
+        colonne.setOnDragDropped(e -> {
+            if (ControlerDrag.tacheEnCours != null) {
+                model.deplacerTache(ls, ControlerDrag.tacheEnCours);
+                ControlerDrag.tacheEnCours = null;
+                e.setDropCompleted(true);
+            } else {
+                e.setDropCompleted(false);
+            }
+            e.consume();
+        });
+
         Label titre = new Label(ls.getTitre());
         titre.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;");
         titre.setOnMouseClicked(e -> MainWindow.ouvrirPopupListe(ls, model));
@@ -46,6 +68,43 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         HBox header = new HBox(5, deleteIcon, titre);
         header.setAlignment(Pos.CENTER_LEFT);
+
+        // Drag&drop liste
+        header.setOnDragDetected(e -> {
+            Dragboard db = header.startDragAndDrop(TransferMode.MOVE);
+            ClipboardContent cc = new ClipboardContent();
+            cc.putString("LISTE");
+            db.setContent(cc);
+            listeDragEnCours = ls;
+            e.consume();
+        });
+
+        header.setOnDragOver(e -> {
+            Dragboard db = e.getDragboard();
+            if (db.hasString() && "LISTE".equals(db.getString()) && listeDragEnCours != null) {
+                e.acceptTransferModes(TransferMode.MOVE);
+            }
+            e.consume();
+        });
+
+        header.setOnDragDropped(e -> {
+            Dragboard db = e.getDragboard();
+            if (db.hasString() && "LISTE".equals(db.getString()) && listeDragEnCours != null) {
+                HBox parent = (HBox) colonne.getParent();
+                int nouvelIndex = parent.getChildren().indexOf(colonne);
+                model.deplacerListe(listeDragEnCours, nouvelIndex);
+                listeDragEnCours = null;
+                e.setDropCompleted(true);
+            } else {
+                e.setDropCompleted(false);
+            }
+            e.consume();
+        });
+
+        header.setOnDragDone(e -> {
+            listeDragEnCours = null;
+            e.consume();
+        });
 
         VBox cartesBox = new VBox(5);
         for (Tache t : model.getTachesFromListe(ls)) cartesBox.getChildren().add(creerTache(ls, t, 0));
@@ -65,6 +124,16 @@ public class VueBureau extends ScrollPane implements Observateur {
     private VBox creerTache(Liste liste, Tache tsk, int profondeur) {
         VBox carte = new VBox(6);
         carte.setStyle("-fx-background-color: #ffffff; -fx-padding: 12px; -fx-background-radius: 10px; -fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
+
+        ControlerDrag cd = new ControlerDrag(model, tsk, liste, carte);
+
+        carte.setOnDragDetected(cd::handleDragDetected);
+        carte.setOnDragOver(cd::handleDragOver);
+        carte.setOnDragEntered(cd::handleDragEntered);
+        carte.setOnDragExited(cd::handleDragExited);
+        carte.setOnDragDropped(cd::handleDragDropped);
+        carte.setOnDragDone(cd::setOnDragDone);
+
 
         HBox ligneHaut = new HBox(8);
         ligneHaut.setAlignment(Pos.CENTER_LEFT);
@@ -107,8 +176,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         if (tsk instanceof CompositeTache ct) {
             for (Tache sousTache : ct.getTaches()) {
                 VBox sousCarte = creerTache(liste, sousTache, profondeur + 1);
-                sousCarte.setStyle("-fx-background-color: #f9fafb; -fx-padding: 10px; -fx-background-radius: 8px; -fx-border-color: #d1d5db; -fx-border-radius: 8px;");
-                sousCarte.setTranslateX(profondeur * 10);
+                sousCarte.setTranslateX(profondeur * 2);
                 sousTachesBox.getChildren().add(sousCarte);
             }
         }
@@ -119,6 +187,7 @@ public class VueBureau extends ScrollPane implements Observateur {
             Node source = (Node) e.getTarget();
 
             if (source == deleteIcon) {
+                e.consume();
                 supprimerTache(liste, tsk);
                 return;
             }
@@ -263,7 +332,12 @@ public class VueBureau extends ScrollPane implements Observateur {
         dialog.getDialogPane().setContent(content);
         dialog.showAndWait().ifPresent(btn -> {
             if (btn == ok) {
-                model.supprimerTache(liste, tache);
+                if (tache.getParentTache() != null && tache.getParentTache() instanceof CompositeTache parent) {
+                    model.supprimerSousTache(parent, tache);
+                } else {
+                    model.supprimerTache(liste, tache);
+                }
+
                 FichierManager.sauvegarder(model, model.getFilepath());
             }
         });
