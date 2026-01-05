@@ -12,20 +12,11 @@ import java.util.List;
 
 public class VueListe extends BorderPane implements Observateur {
 
-    // modele principal
     private final Model modele;
-
-    // format de date utilise dans les taches : jj-mm-aaaa
     private final DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-
-    // conteneur principal
     private final VBox conteneurAgenda = new VBox(10);
     private final ScrollPane scroll = new ScrollPane(conteneurAgenda);
-
-    // liste des elements repliables
     private final List<ElementRepliable> elements = new ArrayList<>();
-
-    // nombre de jours affiches
     private final int NB_JOURS = 7;
 
     public VueListe(Model modele) {
@@ -39,7 +30,7 @@ public class VueListe extends BorderPane implements Observateur {
         rafraichir();
     }
 
-    // reconstruit toute la vue
+    // reconstruit la vue
     private void rafraichir() {
         conteneurAgenda.getChildren().clear();
         elements.clear();
@@ -49,17 +40,15 @@ public class VueListe extends BorderPane implements Observateur {
             return;
         }
 
-        Liste liste = modele.getListes().get(0);
-
         LocalDate aujourdHui = LocalDate.now();
         for (int i = 0; i < NB_JOURS; i++) {
             LocalDate jour = aujourdHui.plusDays(i);
-            conteneurAgenda.getChildren().add(creerJour(jour, liste));
+            conteneurAgenda.getChildren().add(creerJour(jour));
         }
     }
 
-    // cree un bloc pour un jour
-    private VBox creerJour(LocalDate jour, Liste liste) {
+    // crée un bloc pour un jour
+    private VBox creerJour(LocalDate jour) {
         VBox blocJour = new VBox(6);
 
         String dateJour = formatDate.format(jour);
@@ -73,41 +62,56 @@ public class VueListe extends BorderPane implements Observateur {
 
         ligneJour.getChildren().addAll(flecheJour, labelJour);
 
-        // conteneur des taches du jour
-        VBox boiteTaches = new VBox(4);
-        boiteTaches.setPadding(new Insets(8));
-        boiteTaches.setStyle(
+        // Contenu par jour (avec les listes)
+        VBox boiteContenuJour = new VBox(8);
+        boiteContenuJour.setPadding(new Insets(8));
+        boiteContenuJour.setStyle(
                 "-fx-background-color: white;" +
                         "-fx-border-color: #dddddd;" +
                         "-fx-border-radius: 6;"
         );
 
-        boolean trouve = false;
-        for (CompositeTache t : liste.getTaches()) {
-            /*
-            if (dateJour.equals(t.getDate())) {
-                boiteTaches.getChildren().add(creerTache(t, 0));
-                trouve = true;
-            }*/
+        boolean auMoinsUneTache = false;
+
+        // Affichage des tâches
+        for (Liste liste : modele.getListes()) {
+            VBox boiteTachesListe = new VBox(3);
+
+            for (Tache t : modele.getTachesFromListe(liste)) {
+                if (t.getDebut() == null) continue;
+
+                if (t.getDebut().toLocalDate().equals(jour)) {
+                    boiteTachesListe.getChildren().add(creerTache(t, 0));
+                    auMoinsUneTache = true;
+                }
+            }
+
+            // s'il y a au moins une tâche pour cette liste ce jour
+            if (!boiteTachesListe.getChildren().isEmpty()) {
+                Label titreListe = new Label(liste.getTitre() + " :");
+                titreListe.setStyle("-fx-font-weight: bold;");
+                VBox blocListe = new VBox(3, titreListe, boiteTachesListe);
+                boiteContenuJour.getChildren().add(blocListe);
+            }
         }
 
-        if (!trouve) {
-            boiteTaches.getChildren().add(new Label("aucune tache"));
+        if (!auMoinsUneTache) {
+            boiteContenuJour.getChildren().add(new Label("aucune tache"));
         }
 
-        // replier / deplier le jour
+        // replier / déplier le jour
         flecheJour.setOnAction(e -> {
-            boolean visible = boiteTaches.isVisible();
-            boiteTaches.setVisible(!visible);
-            boiteTaches.setManaged(!visible);
+            boolean visible = boiteContenuJour.isVisible();
+            boiteContenuJour.setVisible(!visible);
+            boiteContenuJour.setManaged(!visible);
             flecheJour.setText(visible ? "▸" : "▾");
         });
 
-        blocJour.getChildren().addAll(ligneJour, boiteTaches);
+        blocJour.getChildren().addAll(ligneJour, boiteContenuJour);
         return blocJour;
     }
 
-    // cree une tache (avec sous-taches)
+    // crée une tâche
     private VBox creerTache(Tache tache, int niveau) {
         VBox bloc = new VBox(2);
 
@@ -153,7 +157,7 @@ public class VueListe extends BorderPane implements Observateur {
         return bloc;
     }
 
-    // cree un bouton fleche simple
+    // crée un bouton fleche pour le replier le contenu du jour
     private Button creerFleche(String texte) {
         Button b = new Button(texte);
         b.setMinSize(16, 16);
@@ -161,14 +165,14 @@ public class VueListe extends BorderPane implements Observateur {
         return b;
     }
 
-    // mise a jour depuis le modele
+    // mise à jour
     @Override
     public void actualiser(Sujet sujet) {
         rafraichir();
     }
 
     /*
-     classe simple pour gerer le repli / depli
+     * classe pour gérer le repli / dépli
      */
     private static class ElementRepliable {
 
