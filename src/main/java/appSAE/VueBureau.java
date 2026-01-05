@@ -1,7 +1,5 @@
 package appSAE;
 
-import javafx.event.ActionEvent;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -11,9 +9,6 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
@@ -63,7 +58,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         ImageView deleteIcon = creerIconeSuppression();
         deleteIcon.setOnMouseClicked(e -> {
             e.consume();
-            supprimerListe(ls);
+            Popup.supprimerListe(ls, model);
         });
 
         HBox header = new HBox(5, deleteIcon, titre);
@@ -115,7 +110,7 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         Button creerTacheBtn = new Button("+ Créer une tâche");
         creerTacheBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
-        creerTacheBtn.setOnAction(e -> ouvrirPopUpTache(ls, null, null));
+        creerTacheBtn.setOnAction(e -> Popup.ouvrirPopUpTache(ls, null, null, model));
 
         colonne.getChildren().addAll(header, scrollCartes, creerTacheBtn);
         return colonne;
@@ -123,29 +118,21 @@ public class VueBureau extends ScrollPane implements Observateur {
 
     private VBox creerTache(Liste liste, Tache tsk, int profondeur) {
         VBox carte = new VBox(6);
+        VBox content = new VBox(6);
 
-        String couleurFond = "";
+        String couleurFond;
         if (profondeur % 2 == 0){
             couleurFond = "#ffffff";
         } else {
             couleurFond = "#f3f4f6";
-
-        };
-        carte.setStyle(
-                "-fx-background-color: " + couleurFond + ";" +
-                        " -fx-padding: 12px;" +
-                        " -fx-background-radius: 10px;" +
-                        " -fx-border-color: #e5e7eb;" +
-                        " -fx-border-radius: 10px;"
-        );
+        }
+        carte.setStyle("-fx-background-color: " + couleurFond + "; -fx-padding: 12px; -fx-background-radius: 10px; -fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
 
         ControlerDrag cd = new ControlerDrag(model, tsk, liste, carte);
-
         carte.setOnDragDetected(cd::handleDragDetected);
         carte.setOnDragOver(cd::handleDragOver);
         carte.setOnDragDropped(cd::handleDragDropped);
         carte.setOnDragDone(cd::setOnDragDone);
-
 
         HBox ligneHaut = new HBox(8);
         ligneHaut.setAlignment(Pos.CENTER_LEFT);
@@ -168,7 +155,6 @@ public class VueBureau extends ScrollPane implements Observateur {
         );
 
         ImageView deleteIcon = creerIconeSuppression();
-
         ligneHaut.getChildren().addAll(titre, espace, badge, deleteIcon);
 
         Label description = new Label(tsk.getDescription() == null ? "" : tsk.getDescription());
@@ -179,21 +165,13 @@ public class VueBureau extends ScrollPane implements Observateur {
         Button cst = new Button("+ Créer une sous tâche");
         cst.setVisible(false);
         cst.setManaged(false);
-        cst.setOnMouseClicked(e -> ouvrirPopUpTache(liste, null, tsk));
+        cst.setOnMouseClicked(e -> Popup.ouvrirPopUpTache(liste, null, tsk, model));
 
-        carte.setOnMouseEntered(e -> {
-            // ne rien afficher si un drag est en cours
-            if (ControlerDrag.tacheEnCours == null) {
-                cst.setVisible(true);
-                cst.setManaged(true);
-            }
+        content.hoverProperty().addListener((obs, oldVal, isHovering) -> {
+            if (ControlerDrag.tacheEnCours != null) return;
+            cst.setVisible(isHovering);
+            cst.setManaged(isHovering);
         });
-
-        carte.setOnMouseExited(e -> {
-            cst.setVisible(false);
-            cst.setManaged(false);
-        });
-
 
         VBox sousTachesBox = new VBox(6);
         if (tsk instanceof CompositeTache ct) {
@@ -204,166 +182,21 @@ public class VueBureau extends ScrollPane implements Observateur {
             }
         }
 
-        carte.getChildren().addAll(ligneHaut, description, dates, cst, sousTachesBox);
+        content.getChildren().addAll(ligneHaut, description, dates, cst);
 
-        carte.setOnMouseClicked(e -> {
+        content.setOnMouseClicked(e -> {
             Node source = (Node) e.getTarget();
+            e.consume();
 
             if (source == deleteIcon) {
-                e.consume();
-                supprimerTache(liste, tsk);
+                Popup.supprimerTache(liste, tsk, model);
                 return;
             }
 
-            ouvrirPopUpTache(liste, tsk, null);
+            Popup.ouvrirPopUpTache(liste, tsk, null, model);
         });
+        carte.getChildren().addAll(content, sousTachesBox);
         return carte;
-    }
-
-    // popup création (tacheAModifier == null) ou modification
-    private void ouvrirPopUpTache(Liste liste, Tache tacheAModifier, Tache parentTache) {
-        boolean modeModification = (tacheAModifier != null);
-
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle(modeModification ? "Modifier une tâche" : "Créer une tâche");
-
-        ButtonType btnValider = new ButtonType("Enregistrer", ButtonBar.ButtonData.OK_DONE);
-        ButtonType btnAnnuler = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().addAll(btnValider, btnAnnuler);
-
-        // Titre + desc
-        TextField champTitre = new TextField(modeModification ? tacheAModifier.getTitre() : "");
-        champTitre.setPromptText("Nom de la tâche");
-
-        TextArea champDescription = new TextArea(modeModification ? (tacheAModifier.getDescription() == null ? "" : tacheAModifier.getDescription()) : "");
-        champDescription.setPromptText("Description");
-        champDescription.setPrefRowCount(3);
-        champDescription.setWrapText(true);
-
-        // Date/Heure début et fin
-        DatePicker dateDebut = new DatePicker(LocalDate.now());
-        DatePicker dateFin   = new DatePicker(LocalDate.now());
-        ComboBox<Integer> hDeb = new ComboBox<>(), mDeb = new ComboBox<>();
-        ComboBox<Integer> hFin = new ComboBox<>(), mFin = new ComboBox<>();
-
-        for (int h = 0; h < 24; h++) {
-            hDeb.getItems().add(h);
-            hFin.getItems().add(h);
-        }
-        for (int m = 0; m < 60; m += 5) {
-            mDeb.getItems().add(m);
-            mFin.getItems().add(m);
-        }
-
-        if (modeModification) {
-            LocalDateTime deb = tacheAModifier.getDebut();
-            LocalDateTime fin = tacheAModifier.getFin();
-
-            if (deb != null) {
-                dateDebut.setValue(deb.toLocalDate());
-                hDeb.setValue(deb.getHour());
-                mDeb.setValue(deb.getMinute());
-            }
-
-            if (fin != null) {
-                dateFin.setValue(fin.toLocalDate());
-                hFin.setValue(fin.getHour());
-                mFin.setValue(fin.getMinute());
-            }
-        } else {
-            int heure = LocalTime.now().getHour();
-            int minute = LocalTime.now().getMinute() - (LocalTime.now().getMinute() % 5);
-
-            hDeb.setValue(heure);
-            mDeb.setValue(minute);
-            hFin.setValue(heure);
-            mFin.setValue(minute);
-        }
-
-        // Priorité de la tâche
-        ComboBox<Tache.Priorite> champPriorite = new ComboBox<>();
-        champPriorite.getItems().addAll(Tache.Priorite.values());
-        champPriorite.setValue(modeModification ? (tacheAModifier.getPriorite() == null ? Tache.Priorite.NORMAL : tacheAModifier.getPriorite()) : Tache.Priorite.NORMAL
-        );
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-
-        grid.addRow(0, new Label("Titre"), champTitre);
-        grid.addRow(1, new Label("Description"), champDescription);
-        grid.addRow(2, new Label("Début"), new HBox(5, dateDebut, hDeb, new Label(":"), mDeb));
-        grid.addRow(3, new Label("Fin"), new HBox(5, dateFin, hFin, new Label(":"), mFin));
-        grid.addRow(4, new Label("Priorité"), champPriorite);
-
-        DialogPane pane = dialog.getDialogPane();
-        pane.setContent(grid);
-
-        Button bValider = (Button) pane.lookupButton(btnValider);
-        bValider.setStyle("-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 8 14;");
-
-        Button bAnnuler = (Button) pane.lookupButton(btnAnnuler);
-        bAnnuler.setStyle("-fx-background-color: #e5e7eb; -fx-text-fill: #111827; -fx-background-radius: 8; -fx-padding: 8 14;");
-
-        bValider.setDisable(champTitre.getText() == null || champTitre.getText().isBlank());
-        champTitre.textProperty().addListener((obs, oldV, newV) ->
-                bValider.setDisable(newV == null || newV.isBlank())
-        );
-
-        dialog.showAndWait().ifPresent(btn -> {
-            if (btn == btnValider) new ControlerPopTache(model, liste, champTitre, champDescription, LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue())), LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue())), champPriorite, tacheAModifier, parentTache).handle(new ActionEvent());
-        });
-    }
-
-    private void supprimerListe(Liste liste) {
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Supprimer");
-
-        ButtonType ok = new ButtonType("Supprimer", ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancel = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().addAll(ok, cancel);
-
-        Label texte = new Label("Supprimer la liste : " + liste.getTitre() + " ?\n" + "Toutes les tâches seront supprimées.");
-        texte.setWrapText(true);
-
-        VBox content = new VBox(10, texte);
-        content.setPadding(new Insets(20));
-
-        dialog.getDialogPane().setContent(content);
-        dialog.showAndWait().ifPresent(btn -> {
-            if (btn == ok) {
-                model.supprimerListe(liste);
-                FichierManager.sauvegarder(model, model.getFilepath());
-            }
-        });
-    }
-
-    private void supprimerTache(Liste liste, Tache tache) {
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Supprimer");
-
-        ButtonType ok = new ButtonType("Supprimer", ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancel = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().addAll(ok, cancel);
-
-        Label texte = new Label("Supprimer la tâche : " + tache.getTitre() + " ?");
-        texte.setWrapText(true);
-
-        VBox content = new VBox(10, texte);
-        content.setPadding(new Insets(20));
-
-        dialog.getDialogPane().setContent(content);
-        dialog.showAndWait().ifPresent(btn -> {
-            if (btn == ok) {
-                if (tache.getParentTache() != null && tache.getParentTache() instanceof CompositeTache parent) {
-                    model.supprimerSousTache(parent, tache);
-                } else {
-                    model.supprimerTache(liste, tache);
-                }
-
-                FichierManager.sauvegarder(model, model.getFilepath());
-            }
-        });
     }
 
     private ImageView creerIconeSuppression() {

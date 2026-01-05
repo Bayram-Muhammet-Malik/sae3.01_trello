@@ -1,0 +1,149 @@
+package appSAE;
+
+import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+public class Popup {
+    // Popup de création et modification de tâche et de sous-tâche
+    public static void ouvrirPopUpTache(Liste liste, Tache tacheAModifier, Tache parentTache, Model model) {
+        boolean modeModification = (tacheAModifier != null);
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle(modeModification ? "Modifier une tâche" : "Créer une tâche");
+
+        ButtonType btnValider = new ButtonType("Enregistrer", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnAnnuler = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(btnValider, btnAnnuler);
+
+        // Titre + desc
+        TextField champTitre = new TextField(modeModification ? tacheAModifier.getTitre() : "");
+        champTitre.setPromptText("Nom de la tâche");
+
+        TextArea champDescription = new TextArea(modeModification ? (tacheAModifier.getDescription() == null ? "" : tacheAModifier.getDescription()) : "");
+        champDescription.setPromptText("Description");
+        champDescription.setPrefRowCount(3);
+        champDescription.setWrapText(true);
+
+        // Date/Heure début et fin
+        DatePicker dateDebut = new DatePicker(LocalDate.now());
+        DatePicker dateFin = new DatePicker(LocalDate.now());
+        ComboBox<Integer> hDeb = new ComboBox<>(), mDeb = new ComboBox<>();
+        ComboBox<Integer> hFin = new ComboBox<>(), mFin = new ComboBox<>();
+
+        for (int h = 0; h < 24; h++) {
+            hDeb.getItems().add(h);
+            hFin.getItems().add(h);
+        }
+        for (int m = 0; m < 60; m += 5) {
+            mDeb.getItems().add(m);
+            mFin.getItems().add(m);
+        }
+
+        if (modeModification) {
+            LocalDateTime deb = tacheAModifier.getDebut();
+            LocalDateTime fin = tacheAModifier.getFin();
+
+            if (deb != null) {
+                dateDebut.setValue(deb.toLocalDate());
+                hDeb.setValue(deb.getHour());
+                mDeb.setValue(deb.getMinute());
+            }
+
+            if (fin != null) {
+                dateFin.setValue(fin.toLocalDate());
+                hFin.setValue(fin.getHour());
+                mFin.setValue(fin.getMinute());
+            }
+        } else {
+            int heure = LocalTime.now().getHour();
+            int minute = LocalTime.now().getMinute() - (LocalTime.now().getMinute() % 5);
+
+            hDeb.setValue(heure);
+            mDeb.setValue(minute);
+            hFin.setValue(heure);
+            mFin.setValue(minute);
+        }
+
+        // Priorité de la tâche
+        ComboBox<Tache.Priorite> champPriorite = new ComboBox<>();
+        champPriorite.getItems().addAll(Tache.Priorite.values());
+        champPriorite.setValue(modeModification ? (tacheAModifier.getPriorite() == null ? Tache.Priorite.NORMAL : tacheAModifier.getPriorite()) : Tache.Priorite.NORMAL
+        );
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+
+        grid.addRow(0, new Label("Titre"), champTitre);
+        grid.addRow(1, new Label("Description"), champDescription);
+        grid.addRow(2, new Label("Début"), new HBox(5, dateDebut, hDeb, new Label(":"), mDeb));
+        grid.addRow(3, new Label("Fin"), new HBox(5, dateFin, hFin, new Label(":"), mFin));
+        grid.addRow(4, new Label("Priorité"), champPriorite);
+
+        DialogPane pane = dialog.getDialogPane();
+        pane.setContent(grid);
+
+        Button bValider = (Button) pane.lookupButton(btnValider);
+        bValider.setStyle("-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 8 14;");
+
+        Button bAnnuler = (Button) pane.lookupButton(btnAnnuler);
+        bAnnuler.setStyle("-fx-background-color: #e5e7eb; -fx-text-fill: #111827; -fx-background-radius: 8; -fx-padding: 8 14;");
+
+        bValider.setDisable(champTitre.getText() == null || champTitre.getText().isBlank());
+        champTitre.textProperty().addListener((obs, oldV, newV) ->
+                bValider.setDisable(newV == null || newV.isBlank())
+        );
+
+        dialog.showAndWait().ifPresent(btn -> {
+            if (btn == btnValider)
+                new ControlerPopTache(model, liste, champTitre, champDescription, LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue())), LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue())), champPriorite, tacheAModifier, parentTache).handle(new ActionEvent());
+        });
+    }
+
+    //Popup de suppression d'une liste et tâche
+    public static void popupSuppression(String message, Runnable action) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Supprimer");
+
+        ButtonType ok = new ButtonType("Supprimer", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancel = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(ok, cancel);
+
+        Label texte = new Label(message);
+        texte.setWrapText(true);
+
+        VBox content = new VBox(10, texte);
+        content.setPadding(new Insets(20));
+
+        dialog.getDialogPane().setContent(content);
+        dialog.showAndWait().ifPresent(btn -> {
+            if (btn == ok) action.run();
+        });
+    }
+
+    public static void supprimerListe(Liste liste, Model model) {
+        popupSuppression("Supprimer la liste : " + liste.getTitre() + " ?\nToutes les tâches seront supprimées.", () -> {
+            model.supprimerListe(liste);
+            FichierManager.sauvegarder(model, model.getFilepath());
+        });
+    }
+
+    public static void supprimerTache(Liste liste, Tache tache, Model model) {
+        popupSuppression("Supprimer la tâche : " + tache.getTitre() + " ?", () -> {
+            if (tache.getParentTache() instanceof CompositeTache parent) {
+                model.supprimerSousTache(parent, tache);
+            } else {
+                model.supprimerTache(liste, tache);
+            }
+            FichierManager.sauvegarder(model, model.getFilepath());
+        });
+    }
+}

@@ -10,29 +10,22 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VueListe extends BorderPane implements Observateur {
-
+public class VueListe extends ScrollPane implements Observateur {
     private final Model modele;
     private final DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private final VBox conteneurAgenda = new VBox(10);
-    private final ScrollPane scroll = new ScrollPane(conteneurAgenda);
     private final List<ElementRepliable> elements = new ArrayList<>();
     private final int NB_JOURS = 7;
 
     public VueListe(Model modele) {
         this.modele = modele;
-
-        conteneurAgenda.setPadding(new Insets(12));
-        scroll.setFitToWidth(true);
-
-        setCenter(scroll);
-
-        rafraichir();
+        this.setStyle("-fx-background-color: transparent;");
+        this.setFitToWidth(true);
     }
 
-    // reconstruit la vue
-    private void rafraichir() {
-        conteneurAgenda.getChildren().clear();
+    @Override
+    public void actualiser(Sujet sujet) {
+        VBox conteneurAgenda = new VBox(10);
+        this.setContent(conteneurAgenda);
         elements.clear();
 
         if (modele.getListes().isEmpty()) {
@@ -65,7 +58,7 @@ public class VueListe extends BorderPane implements Observateur {
         // Contenu par jour (avec les listes)
         VBox boiteContenuJour = new VBox(8);
         boiteContenuJour.setPadding(new Insets(8));
-        boiteContenuJour.setStyle("-fx-background-color: white;" + "-fx-border-color: #dddddd;" + "-fx-border-radius: 6;");
+        boiteContenuJour.setStyle("-fx-background-color: white; -fx-border-color: #dddddd; -fx-border-radius: 6;");
 
         boolean auMoinsUneTache = false;
 
@@ -161,17 +154,10 @@ public class VueListe extends BorderPane implements Observateur {
         return b;
     }
 
-    // mise à jour
-    @Override
-    public void actualiser(Sujet sujet) {
-        rafraichir();
-    }
-
     /*
      * classe pour gérer le repli / dépli
      */
     private static class ElementRepliable {
-
         private final Button fleche;
         private final VBox enfants;
         private final boolean actif;
