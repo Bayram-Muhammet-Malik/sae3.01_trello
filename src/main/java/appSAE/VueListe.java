@@ -1,8 +1,7 @@
 package appSAE;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 
 import java.time.LocalDate;
@@ -11,183 +10,125 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VueListe extends ScrollPane implements Observateur {
-    private final Model modele;
-    private final DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private final List<ElementRepliable> elements = new ArrayList<>();
-    private final int NB_JOURS = 7;
+    private final Model model;
 
     public VueListe(Model modele) {
-        this.modele = modele;
+        this.model = modele;
         this.setStyle("-fx-background-color: transparent;");
         this.setFitToWidth(true);
     }
 
     @Override
     public void actualiser(Sujet sujet) {
-        VBox conteneurAgenda = new VBox(10);
+        VBox conteneurAgenda = new VBox();
         this.setContent(conteneurAgenda);
-        elements.clear();
 
-        if (modele.getListes().isEmpty()) {
+        if (model.getListes().isEmpty()) {
             conteneurAgenda.getChildren().add(new Label("aucune liste"));
             return;
         }
 
-        LocalDate aujourdHui = LocalDate.now();
-        for (int i = 0; i < NB_JOURS; i++) {
-            LocalDate jour = aujourdHui.plusDays(i);
-            conteneurAgenda.getChildren().add(creerJour(jour));
-        }
+        LocalDate lundi = LocalDate.now().minusDays(LocalDate.now().getDayOfWeek().getValue() - 1);
+        for (int i = 0; i < 7; i++) conteneurAgenda.getChildren().add(creerJour(lundi.plusDays(i)));
     }
 
-    // crée un bloc pour un jour
     private VBox creerJour(LocalDate jour) {
-        VBox blocJour = new VBox(6);
+        Button fleche = creerFleche("▾ " + DateTimeFormatter.ofPattern("EEEE").format(jour) + " - " + DateTimeFormatter.ofPattern("dd-MM-yyyy").format(jour));
 
-        String dateJour = formatDate.format(jour);
+        VBox contenu = new VBox(8);
+        contenu.setStyle("-fx-background-color: white; -fx-border-radius: 6; -fx-padding: 5px");
 
-        // ligne du jour
-        HBox ligneJour = new HBox(6);
-        ligneJour.setAlignment(Pos.CENTER_LEFT);
+        boolean auMoinsUne = false;
+        for (Liste liste : model.getListes()) {
+            VBox tachesListe = new VBox(3);
 
-        Button flecheJour = creerFleche("▾");
-        Label labelJour = new Label(dateJour);
+            for (Tache t : model.getTachesFromListe(liste)) {
+                LocalDate d = t.getDebut() != null ? t.getDebut().toLocalDate() : null;
+                LocalDate f = t.getFin() != null ? t.getFin().toLocalDate() : null;
 
-        ligneJour.getChildren().addAll(flecheJour, labelJour);
-
-        // Contenu par jour (avec les listes)
-        VBox boiteContenuJour = new VBox(8);
-        boiteContenuJour.setPadding(new Insets(8));
-        boiteContenuJour.setStyle("-fx-background-color: white; -fx-border-color: #dddddd; -fx-border-radius: 6;");
-
-        boolean auMoinsUneTache = false;
-
-        // Affichage des tâches
-        for (Liste liste : modele.getListes()) {
-            VBox boiteTachesListe = new VBox(3);
-
-            for (Tache t : modele.getTachesFromListe(liste)) {
-                if (t.getDebut() == null) continue;
-
-                if (t.getDebut().toLocalDate().equals(jour)) {
-                    boiteTachesListe.getChildren().add(creerTache(t, 0));
-                    auMoinsUneTache = true;
-                }
+                if (d != null && !jour.isBefore(d) && (f == null || !jour.isAfter(f))) tachesListe.getChildren().add(creerTache(t, liste, 0));
             }
 
-            // s'il y a au moins une tâche pour cette liste ce jour
-            if (!boiteTachesListe.getChildren().isEmpty()) {
-                Label titreListe = new Label(liste.getTitre() + " :");
-                titreListe.setStyle("-fx-font-weight: bold;");
-                VBox blocListe = new VBox(3, titreListe, boiteTachesListe);
-                boiteContenuJour.getChildren().add(blocListe);
+            if (!tachesListe.getChildren().isEmpty()) {
+                auMoinsUne = true;
+                Label titre = new Label(liste.getTitre() + " :");
+                contenu.getChildren().addAll(titre, tachesListe);
             }
         }
+        if (!auMoinsUne) contenu.getChildren().add(new Label("Aucune tâche"));
 
-        if (!auMoinsUneTache) {
-            boiteContenuJour.getChildren().add(new Label("aucune tache"));
-        }
-
-        // replier / déplier le jour
-        flecheJour.setOnAction(e -> {
-            boolean visible = boiteContenuJour.isVisible();
-            boiteContenuJour.setVisible(!visible);
-            boiteContenuJour.setManaged(!visible);
-            flecheJour.setText(visible ? "▸" : "▾");
-        });
-
-        blocJour.getChildren().addAll(ligneJour, boiteContenuJour);
-        return blocJour;
+        fleche.setOnAction(e -> toggle(contenu, fleche));
+        return new VBox(6, fleche, contenu);
     }
 
-    // crée une tâche
-    private VBox creerTache(Tache tache, int niveau) {
-        VBox bloc = new VBox(2);
+    private VBox creerTache(Tache t, Liste l, int espace) {
+        boolean hasChildren = t instanceof CompositeTache ct && !ct.getTaches().isEmpty();
 
-        boolean aDesSousTaches =
-                (tache instanceof CompositeTache ct) && !ct.getTaches().isEmpty();
-
-        HBox ligne = new HBox(6);
-        ligne.setAlignment(Pos.CENTER_LEFT);
-
-        Region indent = new Region();
-        indent.setMinWidth(niveau * 16);
-
-        Button fleche = creerFleche(aDesSousTaches ? "▾" : "");
-        fleche.setDisable(!aDesSousTaches);
-        fleche.setOpacity(aDesSousTaches ? 1 : 0);
+        Button fleche = creerFleche(hasChildren ? "▾" : "");
+        fleche.setDisable(!hasChildren);
+        fleche.setOpacity(hasChildren ? 1 : 0);
 
         CheckBox check = new CheckBox();
-        check.setSelected(tache.estFait());
+        check.setSelected(t.estFait());
 
-        Label titre = new Label(tache.getTitre());
+        Label badge = new Label(t.getPriorite().getLabel());
+        String styleBase = "-fx-text-fill: white; -fx-padding: 1 4; -fx-background-radius: 999; -fx-font-size: 10px; -fx-font-weight: bold;";
+        badge.setStyle(
+                switch (t.getPriorite()) {
+                    case NORMAL -> "-fx-background-color: #93c47d;" + styleBase;
+                    case IMPORTANT -> "-fx-background-color: #ffbb42;" + styleBase;
+                    case URGENT -> "-fx-background-color: #ef4444;" + styleBase;
+                }
+        );
 
-        ligne.getChildren().addAll(indent, fleche, check, titre);
+        Button edit = new Button("Modifier");
+        edit.setStyle("-fx-background-color: transparent; -fx-padding: 0px 10px; -fx-text-fill: blue");
+        edit.setOnAction(e -> Popup.ouvrirPopUpTache(l, t, null, model));
 
-        VBox boiteEnfants = new VBox(2);
+        ImageView deleteIcon = new ImageView("file:icons/trash-can-solid-full.png");
+        deleteIcon.setFitWidth(15);
+        deleteIcon.setFitHeight(15);
+        deleteIcon.setPickOnBounds(true);
+        deleteIcon.setOnMouseClicked(e -> {Popup.supprimerTache(l, t, model);});
 
-        ElementRepliable element =
-                new ElementRepliable(fleche, boiteEnfants, aDesSousTaches);
-        elements.add(element);
-
-        bloc.getChildren().add(ligne);
-
-        if (aDesSousTaches) {
-            CompositeTache ct = (CompositeTache) tache;
-
-            for (Tache enfant : ct.getTaches()) {
-                boiteEnfants.getChildren().add(creerTache(enfant, niveau + 1));
-            }
-
-            bloc.getChildren().add(boiteEnfants);
-            fleche.setOnAction(e -> element.changerEtatAffichage());
+        VBox enfants = new VBox();
+        if (hasChildren) {
+            CompositeTache ct = (CompositeTache) t;
+            for (Tache child : ct.getTaches()) enfants.getChildren().add(creerTache(child, null,espace + 1));
+            fleche.setOnAction(e -> toggle(enfants, fleche));
         }
 
+        VBox bloc = new VBox();
+        bloc.setTranslateX(espace * 10);
+        bloc.getChildren().add(new HBox(5, fleche, check, badge, new Label(t.getTitre()), edit, deleteIcon));
+        if (hasChildren) bloc.getChildren().add(enfants);
         return bloc;
     }
 
-    // crée un bouton fleche pour le replier le contenu du jour
+    // Méthodes Utilitaires
     private Button creerFleche(String texte) {
         Button b = new Button(texte);
-        b.setMinSize(16, 16);
-        b.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+        b.setStyle("-fx-background-color: transparent; -fx-font-weight: Bold; -fx-font-size: 16px; -fx-padding: 0;");
         return b;
     }
 
-    /*
-     * classe pour gérer le repli / dépli
-     */
-    private static class ElementRepliable {
-        private final Button fleche;
-        private final VBox enfants;
-        private final boolean actif;
-        private boolean affiche = true;
+    private void toggle(VBox box, Button fleche) {
+        boolean visible = box.isVisible();
+        box.setVisible(!visible);
+        box.setManaged(!visible);
+        String updated = fleche.getText().replaceFirst("^[▸▾]", visible ? "▸" : "▾");
+        fleche.setText(updated);
+    }
 
-        ElementRepliable(Button fleche, VBox enfants, boolean actif) {
-            this.fleche = fleche;
-            this.enfants = enfants;
-            this.actif = actif;
+    private List<Tache> tachesDuJour(LocalDate jour) {
+        List<Tache> res = new ArrayList<>();
+        for (Liste liste : model.getListes()) {
+            for (Tache t : model.getTachesFromListe(liste)) {
+                if (t.getDebut() != null && t.getDebut().toLocalDate().equals(jour)) {
+                    res.add(t);
+                }
+            }
         }
-
-        void changerEtatAffichage() {
-            if (!actif) return;
-
-            if (affiche) cacherEnfants();
-            else afficherEnfants();
-        }
-
-        void afficherEnfants() {
-            affiche = true;
-            enfants.setVisible(true);
-            enfants.setManaged(true);
-            fleche.setText("▾");
-        }
-
-        void cacherEnfants() {
-            affiche = false;
-            enfants.setVisible(false);
-            enfants.setManaged(false);
-            fleche.setText("▸");
-        }
+        return res;
     }
 }

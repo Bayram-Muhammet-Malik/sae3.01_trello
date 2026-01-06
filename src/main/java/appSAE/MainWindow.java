@@ -23,6 +23,7 @@ public class MainWindow extends Application {
     @Override
     public void start(Stage stage) {
         BorderPane root = new BorderPane();
+        root.setStyle("-fx-background-color: #f4f4f4");
 
         Model model = new Model();
         menu = new VueMenu(model, this);
