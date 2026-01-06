@@ -3,7 +3,6 @@ package appSAE;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
 
 public class ControlerPopListe implements EventHandler<ActionEvent> {
     /**
