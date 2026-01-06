@@ -56,6 +56,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         titre.setOnMouseClicked(e -> MainWindow.ouvrirPopupListe(ls, model));
 
         ImageView deleteIcon = creerIconeSuppression();
+        Tooltip.install(deleteIcon, new Tooltip("Supprimer"));
         deleteIcon.setOnMouseClicked(e -> {
             e.consume();
             Popup.supprimerListe(ls, model);
@@ -155,6 +156,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         );
 
         ImageView deleteIcon = creerIconeSuppression();
+        Tooltip.install(deleteIcon, new Tooltip("Supprimer"));
         ligneHaut.getChildren().addAll(titre, espace, badge, deleteIcon);
 
         Label description = new Label(tsk.getDescription() == null ? "" : tsk.getDescription());
