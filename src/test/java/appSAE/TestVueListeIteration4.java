@@ -67,7 +67,7 @@ class TestVueListeIteration4 {
             JourTexte jt = new JourTexte();
             jt.date = dateJour;
 
-            for (CompositeTache t : liste.getTaches()) {
+            for (Tache t : liste.getTaches()) {
                 String dateTache = format.format(
                         t.getDebut().toLocalDate()
                 );

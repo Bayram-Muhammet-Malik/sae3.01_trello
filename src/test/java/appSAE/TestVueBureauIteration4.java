@@ -59,14 +59,14 @@ class TestVueBureauIteration4 {
         assertEquals(1, model.getTachesFromListe(aFaire).size(),
                 "La liste À faire doit contenir une tâche");
 
-        CompositeTache tacheAFaire = model.getTachesFromListe(aFaire).get(0);
+        Tache tacheAFaire = model.getTachesFromListe(aFaire).get(0);
         assertEquals("Tâche 1", tacheAFaire.getTitre());
         assertEquals(Tache.Priorite.NORMAL, tacheAFaire.getPriorite());
 
         assertEquals(1, model.getTachesFromListe(enCours).size(),
                 "La liste En cours doit contenir une tâche");
 
-        CompositeTache tacheEnCours = model.getTachesFromListe(enCours).get(0);
+        Tache tacheEnCours = model.getTachesFromListe(enCours).get(0);
         assertEquals(Tache.Priorite.URGENT, tacheEnCours.getPriorite());
     }
 
@@ -91,7 +91,7 @@ class TestVueBureauIteration4 {
 
     @Test
     void testSupprimerTacheDepuisVueBureau() {
-        CompositeTache tache = model.getTachesFromListe(aFaire).get(0);
+        Tache tache = model.getTachesFromListe(aFaire).get(0);
 
         model.supprimerTache(aFaire, tache);
 
