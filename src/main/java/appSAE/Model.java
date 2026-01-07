@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Model implements Sujet, Serializable {
-
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -45,6 +44,8 @@ public class Model implements Sujet, Serializable {
         }
     }
 
+    // --- création de tâches ---
+
     public void ajouterTache(Liste liste,
                              String titre,
                              String desc,
@@ -53,7 +54,8 @@ public class Model implements Sujet, Serializable {
                              Tache.Priorite prio) {
         ajouterTache(liste, titre, desc, debut, fin, prio, null);
     }
-    // Dépendance
+
+    // avec tâche préalable
     public void ajouterTache(Liste liste,
                              String titre,
                              String desc,
@@ -77,7 +79,7 @@ public class Model implements Sujet, Serializable {
         ajouterSousTache(parent, titre, desc, debut, fin, prio, null);
     }
 
-    // dépendance
+    // sous-tâche avec dépendance
     public void ajouterSousTache(CompositeTache parent,
                                  String titre,
                                  String desc,
@@ -91,6 +93,8 @@ public class Model implements Sujet, Serializable {
         parent.ajouterTache(tache);
         notifierObservateur();
     }
+
+    // --- accès aux données ---
 
     public List<Liste> getListes() {
         return listes;
@@ -106,6 +110,8 @@ public class Model implements Sujet, Serializable {
         return liste.getTaches();
     }
 
+    // --- opérations sur tâches ---
+
     public void ajouterCarte(Liste liste, Tache nouvelleTache) {
         liste.ajouterCarte(nouvelleTache);
         notifierObservateur();
@@ -120,6 +126,13 @@ public class Model implements Sujet, Serializable {
         parent.supprimerTache(tache);
         notifierObservateur();
     }
+
+    public void setTacheFait(Tache tache, boolean fait) {
+        tache.setEstFait(fait);
+        notifierObservateur();
+    }
+
+    // --- observateurs ---
 
     @Override
     public void enregistrerObservateur(Observateur o) {
@@ -144,6 +157,8 @@ public class Model implements Sujet, Serializable {
             this.obs.remove(i);
         }
     }
+
+    // --- déplacements ---
 
     public void deplacerTache(Liste listeCible, Tache tache) {
         if (listeCible == null || tache == null)

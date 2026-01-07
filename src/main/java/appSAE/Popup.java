@@ -145,10 +145,6 @@ public class Popup {
     }
 
     private static boolean datesInvalides(DatePicker dateDebut, ComboBox<Integer> hDeb, ComboBox<Integer> mDeb, DatePicker dateFin, ComboBox<Integer> hFin, ComboBox<Integer> mFin, Tache parentTache) {
-        System.out.println("parent = " + parentTache);
-        System.out.println("pDeb = " + (parentTache == null ? null : parentTache.getDebut()));
-        System.out.println("pFin = " + (parentTache == null ? null : parentTache.getFin()));
-
         LocalDateTime deb = LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue()));
         LocalDateTime fin = LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue()));
 

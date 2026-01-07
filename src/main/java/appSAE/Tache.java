@@ -1,9 +1,12 @@
 package appSAE;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public abstract class Tache implements Serializable {
+    @Serial
+    protected static final long serialVersionUID = 1L;
 
     public enum Priorite {
         NORMAL("Normal"),
@@ -26,7 +29,8 @@ public abstract class Tache implements Serializable {
     private LocalDateTime debut;
     private LocalDateTime fin;
     private Priorite priorite;
-    private boolean fait;
+    private boolean estFait;
+
     private Tache prerequise;
     private CompositeTache parentTache;
 
@@ -36,7 +40,7 @@ public abstract class Tache implements Serializable {
         this.debut = debut;
         this.fin = fin;
         this.priorite = priorite;
-        this.fait = false;
+        this.estFait = false;
     }
 
     public String getTitre() {
@@ -80,11 +84,28 @@ public abstract class Tache implements Serializable {
     }
 
     public boolean estFait() {
-        return fait;
+        return estFait;
     }
 
-    public void setFait(boolean fait) {
-        this.fait = fait;
+    // ancien comportement + nom compatible avec ton code existant
+    public void setEstFait(boolean fait) {
+        boolean ancien = this.estFait;
+        this.estFait = fait;
+        if (ancien == fait) return;
+        mettreAJourParent();
+    }
+
+    protected void mettreAJourParent() {
+        CompositeTache parent = getParentTache();
+        if (parent == null) return;
+
+        if (!this.estFait) {
+            if (parent.estFait()) parent.setEstFait(false);
+            return;
+        }
+
+        boolean tousFaits = parent.getTaches().stream().allMatch(Tache::estFait);
+        if (tousFaits && !parent.estFait()) parent.setEstFait(true);
     }
 
     public CompositeTache getParentTache() {
@@ -95,8 +116,7 @@ public abstract class Tache implements Serializable {
         this.parentTache = parentTache;
     }
 
-    // --- nouveau : gestion de la tâche préalable ---
-
+    // gestion de la tâche préalable
     public Tache getPrerequise() {
         return prerequise;
     }

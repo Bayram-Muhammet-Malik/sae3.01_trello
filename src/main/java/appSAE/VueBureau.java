@@ -5,6 +5,9 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -136,6 +139,10 @@ public class VueBureau extends ScrollPane implements Observateur {
         HBox ligneHaut = new HBox(8);
         ligneHaut.setAlignment(Pos.CENTER_LEFT);
 
+        CheckBox fait = new CheckBox();
+        fait.setSelected(tsk.estFait());
+        fait.selectedProperty().addListener((obs, oldVal, newVal) -> { model.setTacheFait(tsk, newVal); });
+
         Label titre = new Label(tsk.getTitre());
         titre.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #111827;");
 
@@ -155,7 +162,7 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         ImageView deleteIcon = creerIconeSuppression();
         Tooltip.install(deleteIcon, new Tooltip("Supprimer"));
-        ligneHaut.getChildren().addAll(titre, espace, badge, deleteIcon);
+        ligneHaut.getChildren().addAll(fait, titre, espace, badge, deleteIcon);
 
         Label description = new Label(tsk.getDescription() == null ? "" : tsk.getDescription());
         description.setWrapText(true);
