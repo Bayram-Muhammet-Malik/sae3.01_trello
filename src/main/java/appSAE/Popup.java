@@ -4,7 +4,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
@@ -33,20 +32,8 @@ public class Popup {
         champDescription.setPrefRowCount(3);
         champDescription.setWrapText(true);
 
-        // Date/Heure début et fin
         DatePicker dateDebut = new DatePicker(LocalDate.now());
-        DatePicker dateFin = new DatePicker(LocalDate.now());
-        ComboBox<Integer> hDeb = new ComboBox<>(), mDeb = new ComboBox<>();
-        ComboBox<Integer> hFin = new ComboBox<>(), mFin = new ComboBox<>();
-
-        for (int h = 0; h < 24; h++) {
-            hDeb.getItems().add(h);
-            hFin.getItems().add(h);
-        }
-        for (int m = 0; m < 60; m += 5) {
-            mDeb.getItems().add(m);
-            mFin.getItems().add(m);
-        }
+        DatePicker dateFin = new DatePicker(LocalDate.now().plusDays(1));
 
         if (modeModification) {
             LocalDateTime deb = tacheAModifier.getDebut();
@@ -54,28 +41,18 @@ public class Popup {
 
             if (deb != null) {
                 dateDebut.setValue(deb.toLocalDate());
-                hDeb.setValue(deb.getHour());
-                mDeb.setValue(deb.getMinute());
             }
             if (fin != null) {
                 dateFin.setValue(fin.toLocalDate());
-                hFin.setValue(fin.getHour());
-                mFin.setValue(fin.getMinute());
             }
-        } else {
-            int heure = LocalTime.now().getHour();
-            int minute = LocalTime.now().getMinute() - (LocalTime.now().getMinute() % 5);
-
-            hDeb.setValue(heure);
-            mDeb.setValue(minute);
-            hFin.setValue(heure);
-            mFin.setValue(minute);
         }
 
         // Priorité de la tâche
         ComboBox<Tache.Priorite> champPriorite = new ComboBox<>();
         champPriorite.getItems().addAll(Tache.Priorite.values());
-        champPriorite.setValue(modeModification ? (tacheAModifier.getPriorite() == null ? Tache.Priorite.NORMAL : tacheAModifier.getPriorite()) : Tache.Priorite.NORMAL
+        champPriorite.setValue(modeModification ?
+                (tacheAModifier.getPriorite() == null ? Tache.Priorite.NORMAL : tacheAModifier.getPriorite())
+                : Tache.Priorite.NORMAL
         );
 
         // choix de la tâche préalable
@@ -108,14 +85,15 @@ public class Popup {
         if (modeModification && tacheAModifier.getPrerequise() != null) {
             comboPrerequise.setValue(tacheAModifier.getPrerequise());
         }
+
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
 
         grid.addRow(0, new Label("Titre"), champTitre);
         grid.addRow(1, new Label("Description"), champDescription);
-        grid.addRow(2, new Label("Début"), new HBox(5, dateDebut, hDeb, new Label(":"), mDeb));
-        grid.addRow(3, new Label("Fin"), new HBox(5, dateFin, hFin, new Label(":"), mFin));
+        grid.addRow(2, new Label("Début"), dateDebut);
+        grid.addRow(3, new Label("Fin"), dateFin);
         grid.addRow(4, new Label("Priorité"), champPriorite);
         grid.addRow(5, new Label("Tâche préalable"), comboPrerequise);
 
@@ -129,27 +107,54 @@ public class Popup {
         bAnnuler.setStyle("-fx-background-color: #e5e7eb; -fx-text-fill: #111827; -fx-background-radius: 8; -fx-padding: 8 14;");
 
         Runnable verifierDates = () -> {
-            boolean invalide = datesInvalides(dateDebut, hDeb, mDeb, dateFin, hFin, mFin, parentTache);
+            boolean invalide = datesInvalides(dateDebut, dateFin, parentTache);
             boolean titreVide = champTitre.getText() == null || champTitre.getText().isBlank();
             bValider.setDisable(invalide || titreVide);
         };
-        List<ObservableValue<?>> champs = List.of(dateDebut.valueProperty(), dateFin.valueProperty(), hDeb.valueProperty(), mDeb.valueProperty(), hFin.valueProperty(), mFin.valueProperty(), champTitre.textProperty());
+
+        List<ObservableValue<?>> champs = List.of(
+                dateDebut.valueProperty(),
+                dateFin.valueProperty(),
+                champTitre.textProperty()
+        );
         champs.forEach(prop -> prop.addListener((o, ov, nv) -> verifierDates.run()));
         verifierDates.run();
 
         dialog.showAndWait().ifPresent(btn -> {
-            if (btn == btnValider)
-                new ControlerPopTache(model, liste, champTitre, champDescription, LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue())), LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue())), champPriorite, tacheAModifier, parentTache, comboPrerequise.getValue()).handle(new ActionEvent());
+            if (btn == btnValider) {
+                // Début à minuit, fin à fin de journée
+                LocalDateTime deb = LocalDateTime.of(dateDebut.getValue(), LocalTime.MIN);
+                LocalDateTime fin = LocalDateTime.of(dateFin.getValue(), LocalTime.MAX);
+
+                new ControlerPopTache(
+                        model,
+                        liste,
+                        champTitre,
+                        champDescription,
+                        deb,
+                        fin,
+                        champPriorite,
+                        tacheAModifier,
+                        parentTache,
+                        comboPrerequise.getValue()
+                ).handle(new ActionEvent());
+            }
         });
     }
 
-    private static boolean datesInvalides(DatePicker dateDebut, ComboBox<Integer> hDeb, ComboBox<Integer> mDeb, DatePicker dateFin, ComboBox<Integer> hFin, ComboBox<Integer> mFin, Tache parentTache) {
-        LocalDateTime deb = LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue()));
-        LocalDateTime fin = LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue()));
+    // dateFin doit être au moins le jour suivant dateDebut (>= 1 jour de durée)
+    private static boolean datesInvalides(DatePicker dateDebut, DatePicker dateFin, Tache parentTache) {
+        LocalDate dDeb = dateDebut.getValue();
+        LocalDate dFin = dateFin.getValue();
 
-        if (deb.isAfter(fin)) return true;
+        if (dDeb == null || dFin == null) return true;
+
+        // minimum 1 jour : fin doit être >= début + 1 jour
+        if (!dFin.isAfter(dDeb)) return true;
 
         if (parentTache != null) {
+            LocalDateTime deb = LocalDateTime.of(dDeb, LocalTime.MIN);
+            LocalDateTime fin = LocalDateTime.of(dFin, LocalTime.MAX);
             LocalDateTime pDeb = parentTache.getDebut();
             LocalDateTime pFin = parentTache.getFin();
 
