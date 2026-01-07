@@ -2,20 +2,17 @@ package appSAE;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /*
  vue gantt tres simple :
@@ -37,6 +34,8 @@ public class VueGantt extends BorderPane implements Observateur {
 
     private final ScrollPane scrollNoms = new ScrollPane(listeNoms);
     private final ScrollPane scrollBarres = new ScrollPane(zoneBarres);
+
+    private final List<Ligne> lignes = new ArrayList<>();
 
     public VueGantt(Model modele) {
         this.modele = modele;
@@ -88,9 +87,7 @@ public class VueGantt extends BorderPane implements Observateur {
     }
 
     // reconstruit tout l'affichage
-    private void rafraichir() {
-        Map<Tache, Double> yParTache = new HashMap<>();
-
+    public void rafraichir() {
         listeNoms.getChildren().clear();
         zoneBarres.getChildren().clear();
 
@@ -99,42 +96,56 @@ public class VueGantt extends BorderPane implements Observateur {
             return;
         }
 
-        Liste liste = modele.getListes().get(0);
-
-        // header simple : jours 01 02 03 ...
         ajouterHeaderJours();
 
-        // lignes a afficher (racines + sous-taches)
-        List<Ligne> lignes = new ArrayList<>();
-        for (Tache t : liste.getTaches()) {
-            ajouterRec(t, 0, lignes, null);
-        }
-
-        Map<Ligne, Double> yParLigne = new HashMap<>();
-
-        double y = 40;
-        double h = 22;
-
-        for (Ligne l : lignes) {
-            if (l.niveau == 0) {
-                listeNoms.getChildren().add(creerNom(l));
-                yParTache.put(l.tacheAssociee, y); // stocke par tache
-                dessinerBarre(l, y, h);
-                y += h + 6;
-            } else {
-                // dessiner la sous-tâche DANS la barre du parent
-                Double yParent = yParTache.get(l.parentTache);
-                if (yParent != null) {
-                    dessinerBarre(l, yParent, h - 8); // plus fine
-                }
+        // on reconstruit toujours les lignes, pour TOUTES les listes
+        lignes.clear();
+        for (Liste liste : modele.getListes()) {
+            for (Tache t : liste.getTaches()) {
+                construireLignesRec(t, 0, null);
             }
         }
 
+        double y = 60; // un peu plus bas pour laisser la place au header
+        for (Ligne l : lignes) {
 
+            // Colonne de gauche : checkbox + nom
+            if (l.checkbox == null) {
+                listeNoms.getChildren().add(creerNom(l));
+            } else {
+                HBox ligneBox = new HBox(6);
+                ligneBox.setAlignment(Pos.CENTER_LEFT);
+                ligneBox.setPadding(new Insets(2, 6, 2, 6));
+                Region indent = new Region();
+                indent.setMinWidth(l.niveau * 16);
+                ligneBox.getChildren().addAll(indent, l.checkbox);
+                listeNoms.getChildren().add(ligneBox);
+            }
+
+            if (!l.visible) continue;
+
+            // Petite ligne horizontale de fond pour chaque tâche principale
+            if (l.niveau == 0) {
+                Line fond = new Line(40, y + 24, 40 + largeurJour * 7, y + 24);
+                fond.setStroke(Color.web("#e5e7eb"));
+                zoneBarres.getChildren().add(fond);
+            }
+
+            // Tâches principales : grande barre + toutes les sous-tâches dedans
+            if (l.niveau == 0) {
+                int profMax = profondeurMax(l);     // profondeur de la hiérarchie de sous-tâches
+                double hauteurParNiveau = 16;       // hauteur pour chaque niveau de sous-tâche
+                double h = (profMax + 1) * hauteurParNiveau + 10;
+
+                dessinerBarrePrincipaleEtSousTachesRec(l, y, h, profMax, hauteurParNiveau);
+                y += h + 8;
+            }
+        }
 
         zoneBarres.setMinWidth(40 + largeurJour * 7 + 40);
         zoneBarres.setMinHeight(y + 20);
     }
+
 
     // affiche les numeros des jours
     private void ajouterHeaderJours() {
@@ -152,55 +163,31 @@ public class VueGantt extends BorderPane implements Observateur {
         }
     }
 
-    // transforme les taches en lignes (avec indentation)
-    private void ajouterRec(Tache t, int niveau, List<Ligne> out, Tache parent) {
-        LocalDateTime deb = (t.getDebut() != null) ? t.getDebut() : LocalDateTime.now();
-        LocalDateTime fin = (t.getFin() != null) ? t.getFin() : deb;
-
-        Ligne ligne = new Ligne(t.getTitre(), niveau, deb, fin, t, parent);
-        out.add(ligne);
-
-        if (t instanceof CompositeTache ct) {
-            for (Tache enfant : ct.getTaches()) {
-                ajouterRec(enfant, niveau + 1, out, t);
-            }
-        }
-    }
-
-
-
-    // regle simple pour la duree
-    private int dureeParDefaut(Tache t) {
-        if (t instanceof CompositeTache ct && !ct.getTaches().isEmpty()) return 3;
-        return 1;
-    }
-
-    // si date invalide, on met aujourd'hui (pour ne pas planter)
-    private LocalDate parseDate(String s) {
-        try {
-            return LocalDate.parse(s, formatDate);
-        } catch (Exception e) {
-            return LocalDate.now();
-        }
-    }
-
     // affiche le nom a gauche
     private HBox creerNom(Ligne l) {
-        HBox ligne = new HBox(6);
-        ligne.setAlignment(Pos.CENTER_LEFT);
-        ligne.setPadding(new Insets(2, 6, 2, 6));
+        HBox ligneBox = new HBox(6);
+        ligneBox.setAlignment(Pos.CENTER_LEFT);
+        ligneBox.setPadding(new Insets(2, 6, 2, 6));
 
         Region indent = new Region();
         indent.setMinWidth(l.niveau * 16);
 
-        Label nom = new Label(l.nom);
+        CheckBox cb = new CheckBox(l.nom);
+        cb.setSelected(l.visible);
+        l.checkbox = cb;
 
-        ligne.getChildren().addAll(indent, nom);
-        return ligne;
+        cb.selectedProperty().addListener((obs, oldV, newV) -> {
+            l.visible = newV;   // contrôle uniquement l'affichage à droite
+            rafraichir();
+        });
+
+        ligneBox.getChildren().addAll(indent, cb);
+        return ligneBox;
     }
 
-    // dessine la barre a droite
+    // dessine une barre (bleue pour niveau 0)
     private void dessinerBarre(Ligne l, double y, double h) {
+        if (l.debut == null || l.fin == null) return;
 
         long decalageJour = l.debut.toLocalDate().toEpochDay() - debutSemaine.toEpochDay();
         if (decalageJour < 0 || decalageJour > 6) return;
@@ -216,20 +203,11 @@ public class VueGantt extends BorderPane implements Observateur {
         barre.setArcWidth(10);
         barre.setArcHeight(10);
 
-        boolean estSousTache = l.niveau > 0;
-        String couleur = estSousTache ? "#22c55e" : "#3b82f6";
-        barre.setStyle("-fx-fill: " + couleur + "; -fx-opacity: 0.9;");
+        // niveau 0 = bleu
+        barre.setStyle("-fx-fill: #3b82f6; -fx-opacity: 0.9;");
 
-        // contour noir pour sous-tâches
-        if (estSousTache) {
-            barre.setStroke(javafx.scene.paint.Color.BLACK);
-            barre.setStrokeWidth(1.2);
-        }
-
-        // tooltip
         Tooltip.install(barre, new Tooltip(l.nom));
 
-        // popup au clic
         barre.setOnMouseClicked(e -> {
             Popup.ouvrirPopUpTache(
                     modele.getListes().get(0),
@@ -242,10 +220,120 @@ public class VueGantt extends BorderPane implements Observateur {
         zoneBarres.getChildren().add(barre);
     }
 
+    // profondeur max d'une tâche (en nombre de niveaux de sous-tâches)
+    private int profondeurMax(Ligne racine) {
+        return profondeurMaxRec(racine.tacheAssociee, 0);
+    }
 
+    private int profondeurMaxRec(Tache tache, int niveauActuel) {
+        int max = niveauActuel;
+        if (tache instanceof CompositeTache ct) {
+            for (Tache st : ct.getTaches()) {
+                for (Ligne l : lignes) {
+                    if (l.tacheAssociee == st && l.visible) {
+                        max = Math.max(max, profondeurMaxRec(st, niveauActuel + 1));
+                        break;
+                    }
+                }
+            }
+        }
+        return max;
+    }
+
+    // dessine la barre principale (bleu) + toutes les sous-tâches (verts) à l'intérieur
+    private void dessinerBarrePrincipaleEtSousTachesRec(Ligne lignePrincipale,
+                                                        double y,
+                                                        double h,
+                                                        int profMax,
+                                                        double hauteurParNiveau) {
+        // barre bleue
+        dessinerBarre(lignePrincipale, y, h);
+
+        // sous-tâches de tous niveaux
+        dessinerSousTachesRec(lignePrincipale.tacheAssociee, y, h, 1, hauteurParNiveau);
+    }
+
+    // dessine récursivement toutes les sous-tâches (1.1, 1.1.1, 1.1.1.1, ...) en vert
+    private void dessinerSousTachesRec(Tache parentTache,
+                                       double yParent,
+                                       double hParent,
+                                       int niveauRelatif,
+                                       double hauteurParNiveau) {
+
+        for (Ligne l : lignes) {
+            if (l.parentTache == parentTache && l.visible) {
+
+                // hauteur de ce niveau
+                double h = hauteurParNiveau;
+                // position verticale (on empile les niveaux à l'intérieur de la barre bleue)
+                double yRect = yParent + (niveauRelatif * hauteurParNiveau);
+
+                dessinerSousTacheDansBarre(l, yRect, h);
+
+                // si cette sous-tâche a elle-même des sous-tâches, dessiner les suivantes plus bas
+                if (l.tacheAssociee instanceof CompositeTache) {
+                    dessinerSousTachesRec(l.tacheAssociee,
+                            yParent,
+                            hParent,
+                            niveauRelatif + 1,
+                            hauteurParNiveau);
+                }
+            }
+        }
+    }
+
+    // dessine une sous-tâche (rectangle vert) dans la barre de son parent
+    private void dessinerSousTacheDansBarre(Ligne l, double y, double h) {
+        if (l.debut == null || l.fin == null) return;
+
+        long decalageJour = l.debut.toLocalDate().toEpochDay() - debutSemaine.toEpochDay();
+        if (decalageJour < 0 || decalageJour > 6) return;
+
+        double offsetHeure = (l.debut.getHour() + l.debut.getMinute() / 60.0) / 24.0;
+        double dureeHeures = java.time.Duration.between(l.debut, l.fin).toMinutes() / 60.0;
+        if (dureeHeures <= 0) dureeHeures = 0.25;
+
+        double x = 40 + decalageJour * largeurJour + offsetHeure * largeurJour;
+        double w = (dureeHeures / 24.0) * largeurJour;
+
+        Rectangle barre = new Rectangle(x, y, w, h);
+        barre.setArcWidth(6);
+        barre.setArcHeight(6);
+
+        barre.setStyle("-fx-fill: #22c55e; -fx-opacity: 0.9;");
+        barre.setStroke(javafx.scene.paint.Color.BLACK);
+        barre.setStrokeWidth(1.0);
+
+        Tooltip.install(barre, new Tooltip(l.nom));
+
+        barre.setOnMouseClicked(e -> {
+            Popup.ouvrirPopUpTache(
+                    modele.getListes().get(0),
+                    l.tacheAssociee,
+                    l.parentTache,
+                    modele
+            );
+        });
+
+        zoneBarres.getChildren().add(barre);
+    }
+
+    // construit la structure des lignes à partir des tâches
+    private void construireLignesRec(Tache t, int niveau, Tache parent) {
+        Ligne ligne = new Ligne(t.getTitre(), niveau, t.getDebut(), t.getFin(), t, parent);
+        lignes.add(ligne);
+
+        if (t instanceof CompositeTache ct) {
+            for (Tache st : ct.getTaches()) {
+                construireLignesRec(st, niveau + 1, t);
+            }
+        }
+    }
 
     @Override
     public void actualiser(Sujet sujet) {
+        // si le modèle change complètement, on peut faire :
+        // lignes.clear(); et reconstruire, mais là on ne touche qu'au rafraîchissement
         rafraichir();
     }
 
@@ -257,6 +345,8 @@ public class VueGantt extends BorderPane implements Observateur {
         LocalDateTime fin;
         Tache tacheAssociee;
         Tache parentTache;
+        boolean visible = true; // par défaut visible
+        CheckBox checkbox;
 
         Ligne(String nom, int niveau, LocalDateTime debut, LocalDateTime fin, Tache tache, Tache parent) {
             this.nom = nom;
