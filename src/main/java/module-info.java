@@ -8,5 +8,4 @@ module appSAE {
 
     opens appSAE to javafx.fxml;
     exports appSAE;
-
 }

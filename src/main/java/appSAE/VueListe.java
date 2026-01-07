@@ -6,13 +6,13 @@ import javafx.scene.layout.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class VueListe extends ScrollPane implements Observateur {
+
     private final Model model;
     private final ComboBox<String> triBox;
+    private final ComboBox<String> filtreBox;
 
     public VueListe(Model modele) {
         this.model = modele;
@@ -20,16 +20,22 @@ public class VueListe extends ScrollPane implements Observateur {
         this.setFitToWidth(true);
 
         triBox = new ComboBox<>();
-        triBox.getItems().addAll("Titre A→Z", "Priorité", "Durée");
+        triBox.getItems().addAll("Titre A→Z", "Titre Z→A", "Priorité ↑", "Priorité ↓", "Durée ↑", "Durée ↓");
         triBox.setValue("Titre A→Z");
+
+        filtreBox = new ComboBox<>();
+        filtreBox.getItems().addAll("Tous", "Fait", "Non fait");
+        filtreBox.setValue("Tous");
+
         triBox.valueProperty().addListener((obs, o, n) -> actualiser(model));
+        filtreBox.valueProperty().addListener((obs, o, n) -> actualiser(model));
     }
 
     @Override
     public void actualiser(Sujet sujet) {
         VBox conteneurAgenda = new VBox(8);
 
-        HBox barreTri = new HBox(5, new Label("Trier par :"), triBox);
+        HBox barreTri = new HBox(10, new Label("Trier par :"), triBox, new Label("Filtrer :"), filtreBox);
         barreTri.setStyle("-fx-alignment: center; -fx-padding: 4 0;");
         conteneurAgenda.getChildren().add(barreTri);
 
@@ -40,14 +46,13 @@ public class VueListe extends ScrollPane implements Observateur {
         }
 
         LocalDate lundi = LocalDate.now().minusDays(LocalDate.now().getDayOfWeek().getValue() - 1);
-        for (int i = 0; i < 7; i++) conteneurAgenda.getChildren().add(creerJour(lundi.plusDays(i)));
 
+        for (int i = 0; i < 7; i++) conteneurAgenda.getChildren().add(creerJour(lundi.plusDays(i)));
         this.setContent(conteneurAgenda);
     }
 
     private VBox creerJour(LocalDate jour) {
-        Button fleche = creerFleche("▾ " + DateTimeFormatter.ofPattern("EEEE").format(jour)
-                + " - " + DateTimeFormatter.ofPattern("dd-MM-yyyy").format(jour));
+        Button fleche = creerFleche("▾ " + DateTimeFormatter.ofPattern("EEEE").format(jour) + " - " + DateTimeFormatter.ofPattern("dd-MM-yyyy").format(jour));
 
         VBox contenu = new VBox(8);
         contenu.setStyle("-fx-background-color: white; -fx-border-radius: 6; -fx-padding: 5px");
@@ -55,45 +60,22 @@ public class VueListe extends ScrollPane implements Observateur {
         boolean auMoinsUne = false;
 
         for (Liste liste : model.getListes()) {
+
+            List<Tache> tachesDuJour = model.getTachesFromListe(liste).stream().filter(t -> estActiveLeJour(t, jour)).filter(t -> switch (filtreBox.getValue()) {
+                        case "Fait" -> t.estFait();
+                        case "Non fait" -> !t.estFait();
+                        default -> true;
+                    }).toList();
+
+            if (tachesDuJour.isEmpty()) continue;
+
+            List<Tache> tachesTriees = new ArrayList<>(tachesDuJour);
+            tachesTriees.sort(getComparator());
+
             VBox tachesListe = new VBox(3);
-
-            List<Tache> tachesDuJour = new ArrayList<>();
-            for (Iterator<Tache> it = model.getTachesFromListe(liste).iterator(); it.hasNext(); ) {
-                Tache t = it.next();
-                LocalDate d = t.getDebut() != null ? t.getDebut().toLocalDate() : null;
-                LocalDate f = t.getFin() != null ? t.getFin().toLocalDate() : null;
-
-                if (d != null && !jour.isBefore(d) && (f == null || !jour.isAfter(f))) {
-                    tachesDuJour.add(t);
-                }
-            }
-
-// tri selon le choix de triBox
-            tachesDuJour.sort((t1, t2) -> {
-                switch (triBox.getValue()) {
-                    case "Priorité":
-                        return t1.getPriorite().compareTo(t2.getPriorite());
-                    case "Durée": {
-                        int d1 = calculerDuree(t1);
-                        int d2 = calculerDuree(t2);
-                        return Integer.compare(d2,d1);
-                    }
-                    case "Titre A→Z":
-                    default:
-                        return t1.getTitre().compareToIgnoreCase(t2.getTitre());
-                }
-            });
-
-
-            for (Iterator<Tache> it = tachesDuJour.iterator(); it.hasNext(); ) {
-                Tache t = it.next();
-                tachesListe.getChildren().add(creerTache(t, liste, 0));
-            }
-
-            if (!tachesListe.getChildren().isEmpty()) {
-                auMoinsUne = true;
-                contenu.getChildren().add(tachesListe);
-            }
+            for (Tache t : tachesTriees) tachesListe.getChildren().add(creerTache(t, liste, 0, jour));
+            contenu.getChildren().add(tachesListe);
+            auMoinsUne = true;
         }
 
         if (!auMoinsUne) contenu.getChildren().add(new Label("Aucune tâche"));
@@ -102,19 +84,31 @@ public class VueListe extends ScrollPane implements Observateur {
         return new VBox(6, fleche, contenu);
     }
 
-    private VBox creerTache(Tache t, Liste l, int niveau) {
+    private Comparator<Tache> getComparator() {
+        return switch (triBox.getValue()) {
+            case "Titre A→Z" -> Comparator.comparing(t -> t.getTitre().toLowerCase());
+            case "Titre Z→A" -> Comparator.comparing((Tache t) -> t.getTitre().toLowerCase()).reversed();
+            case "Priorité ↑" -> Comparator.comparing(Tache::getPriorite);
+            case "Priorité ↓" -> Comparator.comparing(Tache::getPriorite).reversed();
+            case "Durée ↑" -> Comparator.comparingInt(this::calculerDuree);
+            case "Durée ↓" -> Comparator.comparingInt(this::calculerDuree).reversed();
+            default -> Comparator.comparing(t -> t.getTitre().toLowerCase());
+        };
+    }
+
+    private VBox creerTache(Tache t, Liste l, int niveau, LocalDate jourCourant) {
         boolean hasChildren = t instanceof CompositeTache ct && !ct.getTaches().isEmpty();
 
         Button fleche = creerFleche(hasChildren ? "▾" : "");
         fleche.setDisable(!hasChildren);
         fleche.setOpacity(hasChildren ? 1 : 0);
 
-        CheckBox check = new CheckBox();
-        check.setSelected(t.estFait());
+        CheckBox fait = new CheckBox();
+        fait.setSelected(t.estFait());
+        fait.selectedProperty().addListener((obs, oldVal, newVal) -> { model.setTacheFait(t, newVal); });
 
         Label badge = new Label(t.getPriorite().getLabel());
-        String styleBase = "-fx-text-fill: white; -fx-padding: 1 4; -fx-background-radius: 999; "
-                + "-fx-font-size: 10px; -fx-font-weight: bold;";
+        String styleBase = "-fx-text-fill: white; -fx-padding: 1 4; -fx-background-radius: 999; -fx-font-size: 10px; -fx-font-weight: bold;";
         badge.setStyle(
                 switch (t.getPriorite()) {
                     case NORMAL -> "-fx-background-color: #93c47d;" + styleBase;
@@ -124,8 +118,7 @@ public class VueListe extends ScrollPane implements Observateur {
         );
 
         Button edit = new Button("Modifier");
-        edit.setStyle("-fx-background-color: transparent; -fx-text-fill: #2563eb; "
-                + "-fx-padding: 0 4; -fx-font-size: 11px;");
+        edit.setStyle("-fx-background-color: transparent; -fx-text-fill: #2563eb; -fx-padding: 0 4; -fx-font-size: 11px;");
         edit.setOnAction(e -> Popup.ouvrirPopUpTache(l, t, null, model));
 
         ImageView deleteIcon = new ImageView("file:icons/trash-can-solid-full.png");
@@ -135,26 +128,19 @@ public class VueListe extends ScrollPane implements Observateur {
         Tooltip.install(deleteIcon, new Tooltip("Supprimer"));
         deleteIcon.setOnMouseClicked(e -> Popup.supprimerTache(l, t, model));
 
-        HBox ligne = new HBox(5, fleche, check, badge, new Label(t.getTitre()), edit, deleteIcon);
-        ligne.setStyle("-fx-padding: 2 0;");
+        HBox ligne = new HBox(5, fleche, fait, badge, new Label(t.getTitre()), edit, deleteIcon);
 
         VBox enfants = new VBox(2);
         if (hasChildren) {
             CompositeTache ct = (CompositeTache) t;
 
-            List<Tache> enfantsSource;
-            if ("Priorité".equals(triBox.getValue())) {
-                // tri uniquement en mode Priorité
-                List<Tache> enfantsTries = new ArrayList<>(ct.getTaches());
-                enfantsTries.sort((t1, t2) -> t1.getPriorite().compareTo(t2.getPriorite()));
-                enfantsSource = enfantsTries;
-            } else {
-                enfantsSource = ct.getTaches();
-            }
+            List<Tache> enfantsFiltres = ct.getTaches().stream().filter(child -> estActiveLeJour(child, jourCourant)).filter(child -> switch (filtreBox.getValue()) {
+                        case "Fait" -> child.estFait();
+                        case "Non fait" -> !child.estFait();
+                        default -> true;
+                    }).sorted(getComparator()).toList();
 
-            for (Tache child : enfantsSource) {
-                enfants.getChildren().add(creerTache(child, null, niveau + 1));
-            }
+            for (Tache child : enfantsFiltres) enfants.getChildren().add(creerTache(child, null, niveau + 1, jourCourant));
             fleche.setOnAction(e -> toggle(enfants, fleche));
         }
 
@@ -164,17 +150,12 @@ public class VueListe extends ScrollPane implements Observateur {
         if (niveau == 0) {
             bloc.setStyle("-fx-padding: 2 4;");
         } else {
-            int indent = niveau * 18;
-            bloc.setStyle("-fx-padding: 2 4;"
-                    + " -fx-border-color: #d4d4d4;"
-                    + " -fx-border-width: 0 0 0 2;"
-                    + " -fx-border-insets: 0 0 0 " + indent + ";");
-            bloc.setTranslateX(indent);
+            bloc.setStyle("-fx-padding: 2 4; -fx-border-color: #d4d4d4; -fx-border-width: 0 0 0 2; -fx-border-insets: 0 0 0 " + niveau * 5 + ";");
+            bloc.setTranslateX(niveau * 5);
         }
 
         return bloc;
     }
-
 
     private Button creerFleche(String texte) {
         Button b = new Button(texte);
@@ -190,27 +171,17 @@ public class VueListe extends ScrollPane implements Observateur {
         fleche.setText(updated);
     }
 
-    private List<Tache> tachesDuJour(LocalDate jour) {
-        List<Tache> res = new ArrayList<>();
-        for (Liste liste : model.getListes()) {
-            for (Tache t : model.getTachesFromListe(liste)) {
-                if (t.getDebut() != null && t.getDebut().toLocalDate().equals(jour)) {
-                    res.add(t);
-                }
-            }
-        }
-        return res;
+    private boolean estActiveLeJour(Tache t, LocalDate jour) {
+        LocalDate d = t.getDebut() != null ? t.getDebut().toLocalDate() : null;
+        LocalDate f = t.getFin() != null ? t.getFin().toLocalDate() : null;
+        return d != null && !jour.isBefore(d) && (f == null || !jour.isAfter(f));
     }
 
     private int calculerDuree(Tache t) {
         if (t.getDebut() == null) return Integer.MAX_VALUE;
         if (t.getFin() == null) return 1;
-
         long d1 = t.getDebut().toLocalDate().toEpochDay();
         long d2 = t.getFin().toLocalDate().toEpochDay();
-
-        long jours = (d2 - d1) + 1;
-        return (int) Math.max(jours, 1);
+        return (int) Math.max((d2 - d1) + 1, 1);
     }
-
 }

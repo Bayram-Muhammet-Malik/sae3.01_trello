@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 public abstract class Tache implements Serializable {
     @Serial
-    private static final long serialVersionUID = 1L;
+    protected static final long serialVersionUID = 1L;
     private String titre, description;
     private LocalDateTime debut, fin;
     private boolean estFait;
@@ -77,9 +77,27 @@ public abstract class Tache implements Serializable {
     public void setFin(LocalDateTime fin) {
         this.fin = fin;
     }
-    public void setEstFait(boolean estFait) {
-        this.estFait = estFait;
+
+    public void setEstFait(boolean fait) {
+        boolean ancien = this.estFait;
+        this.estFait = fait;
+        if (ancien == fait) return;
+        mettreAJourParent();
     }
+
+    protected void mettreAJourParent() {
+        CompositeTache parent = getParentTache();
+        if (parent == null) return;
+
+        if (!this.estFait) {
+            if (parent.estFait()) parent.setEstFait(false);
+            return;
+        }
+
+        boolean tousFaits = parent.getTaches().stream().allMatch(Tache::estFait);
+        if (tousFaits && !parent.estFait()) parent.setEstFait(true);
+    }
+
     public void setPriorite(Priorite priorite) {
         this.priorite = priorite;
     }

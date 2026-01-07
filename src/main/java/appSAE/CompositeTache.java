@@ -31,4 +31,19 @@ public class CompositeTache extends Tache{
     public List<Tache> getTaches() {
         return sousTaches;
     }
+
+    @Override
+    public void setEstFait(boolean fait) {
+        boolean ancien = estFait();
+        super.setEstFait(fait);
+
+        if (ancien == fait) return;
+
+        if (getParentTache() != null) {
+            for (Tache t : sousTaches) if (t.estFait() != fait) t.setEstFait(fait);
+            return;
+        }
+
+        if (fait) for (Tache t : sousTaches) if (!t.estFait()) t.setEstFait(true);
+    }
 }

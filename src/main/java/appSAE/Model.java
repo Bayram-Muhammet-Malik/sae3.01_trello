@@ -74,6 +74,66 @@ public class Model implements Sujet, Serializable {
         notifierObservateur();
     }
 
+    public void setTacheFait(Tache tache, boolean fait) {
+        tache.setEstFait(fait);
+        notifierObservateur();
+    }
+
+    public void deplacerListe(Liste liste, int nouvelIndex) {
+        if (liste == null) return;
+        int ancienIndex = listes.indexOf(liste);
+        if (ancienIndex == -1 || nouvelIndex < 0 || nouvelIndex >= listes.size())
+            return;
+
+        if (ancienIndex == nouvelIndex) return;
+
+        listes.remove(ancienIndex);
+        listes.add(nouvelIndex, liste);
+
+        FichierManager.sauvegarder(this, filepath);
+        notifierObservateur();
+
+    }
+
+    public void deplacerTacheDansListe(Liste listeCible, Tache tache) {
+        if (listeCible == null || tache == null) return;
+
+        CompositeTache parent = tache.getParentTache();
+        if (parent != null) {
+            parent.getTaches().remove(tache);
+            tache.setParentTache(null);
+        } else {
+            for (Liste l : listes) {
+                if (l.getTaches().remove(tache)) {
+                    break;
+                }
+            }
+        }
+
+        listeCible.ajouterCarte(tache);
+
+        notifierObservateur();
+        FichierManager.sauvegarder(this, filepath);
+    }
+
+    public void deplacerTacheSousComposite(CompositeTache nouveauParent, Tache tache) {
+        if (nouveauParent == null || tache == null) return;
+
+        CompositeTache ancienParent = tache.getParentTache();
+        if (ancienParent != null) {
+            ancienParent.getTaches().remove(tache);
+        } else {
+            for (Liste l : listes) {
+                if (l.getTaches().remove(tache)) break;
+            }
+        }
+
+        nouveauParent.ajouterTache(tache);
+
+        notifierObservateur();
+        FichierManager.sauvegarder(this, filepath);
+    }
+
     public void supprimerTache(Liste liste, Tache Tache) {
         liste.supprimerTache(Tache);
         notifierObservateur();
@@ -104,94 +164,4 @@ public class Model implements Sujet, Serializable {
             this.obs.remove(i);
         }
     }
-
-    /*
-    * déplacer une tâche d'une liste à l'autre
-    * param :
-    *   dashbord :
-     */
-    public void deplacerTache(Liste listeCible, Tache tache) {
-
-        if (listeCible == null || tache == null)
-            return;
-
-        for (Liste l : listes) {
-            if (l.getTaches().contains(tache)) {
-                if (l == listeCible)
-                    return;
-
-                l.supprimerTache(tache);
-                listeCible.ajouterCarte(tache);
-
-                FichierManager.sauvegarder(this, filepath);
-                notifierObservateur();
-            }
-        }
-    }
-
-    public void deplacerListe(Liste liste, int nouvelIndex) {
-        if (liste == null) return;
-        int ancienIndex = listes.indexOf(liste);
-        if (ancienIndex == -1 || nouvelIndex < 0 || nouvelIndex >= listes.size())
-            return;
-
-        if (ancienIndex == nouvelIndex) return;
-
-        listes.remove(ancienIndex);
-        listes.add(nouvelIndex, liste);
-
-        FichierManager.sauvegarder(this, filepath);
-        notifierObservateur();
-
-    }
-
-    public void deplacerTacheDansListe(Liste listeCible, Tache tache) {
-        if (listeCible == null || tache == null) return;
-
-        // 1) enlever la tâche de là où elle est
-
-        // si elle a un parent composite => sous-tâche
-        CompositeTache parent = tache.getParentTache();
-        if (parent != null) {
-            parent.getTaches().remove(tache);
-            tache.setParentTache(null);
-        } else {
-            // sinon c'est une tâche racine d'une liste
-            for (Liste l : listes) {
-                if (l.getTaches().remove(tache)) {
-                    break;
-                }
-            }
-        }
-
-        // 2) l'ajouter dans la liste cible
-        listeCible.ajouterCarte(tache);
-
-        notifierObservateur();
-        FichierManager.sauvegarder(this, filepath);
-    }
-
-    public void deplacerTacheSousComposite(CompositeTache nouveauParent, Tache tache) {
-        if (nouveauParent == null || tache == null) return;
-
-        // 1) enlever de son ancien parent
-        CompositeTache ancienParent = tache.getParentTache();
-        if (ancienParent != null) {
-            ancienParent.getTaches().remove(tache);
-        } else {
-            // tâche racine dans une liste
-            for (Liste l : listes) {
-                if (l.getTaches().remove(tache)) break;
-            }
-        }
-
-        // 2) l'ajouter comme sous-tâche
-        nouveauParent.ajouterTache(tache);
-
-        notifierObservateur();
-        FichierManager.sauvegarder(this, filepath);
-    }
-
-
-
 }
