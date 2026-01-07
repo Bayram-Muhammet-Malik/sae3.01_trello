@@ -27,32 +27,71 @@ public class Popup {
         TextField champTitre = new TextField(modeModification ? tacheAModifier.getTitre() : "");
         champTitre.setPromptText("Nom de la tâche");
 
-        TextArea champDescription = new TextArea(modeModification ? (tacheAModifier.getDescription() == null ? "" : tacheAModifier.getDescription()) : "");
+        TextArea champDescription = new TextArea(
+                modeModification
+                        ? (tacheAModifier.getDescription() == null ? "" : tacheAModifier.getDescription())
+                        : ""
+        );
         champDescription.setPromptText("Description");
         champDescription.setPrefRowCount(3);
         champDescription.setWrapText(true);
 
-        DatePicker dateDebut = new DatePicker(LocalDate.now());
-        DatePicker dateFin = new DatePicker(LocalDate.now().plusDays(1));
+        // Dates début / fin (sans heure)
+        DatePicker dateDebut;
+        DatePicker dateFin;
 
         if (modeModification) {
             LocalDateTime deb = tacheAModifier.getDebut();
             LocalDateTime fin = tacheAModifier.getFin();
 
-            if (deb != null) {
-                dateDebut.setValue(deb.toLocalDate());
-            }
-            if (fin != null) {
-                dateFin.setValue(fin.toLocalDate());
-            }
+            dateDebut = new DatePicker(deb != null ? deb.toLocalDate() : LocalDate.now());
+            dateFin   = new DatePicker(fin != null ? fin.toLocalDate() : LocalDate.now().plusDays(1));
+
+        } else if (parentTache != null) {
+            LocalDate parentDeb = parentTache.getDebut() != null
+                    ? parentTache.getDebut().toLocalDate()
+                    : LocalDate.now();
+
+            LocalDate subDeb = parentDeb.plusDays(1);
+            LocalDate subFin = parentDeb.plusDays(2);
+
+            dateDebut = new DatePicker(subDeb);
+            dateFin   = new DatePicker(subFin);
+
+        } else {
+            LocalDate today = LocalDate.now();
+            dateDebut = new DatePicker(today);
+            dateFin   = new DatePicker(today.plusDays(1));
         }
+
+        // --- correction automatique des incohérences ---
+        dateDebut.valueProperty().addListener((obs, oldDate, newDate) -> {
+            if (newDate == null) return;
+            LocalDate fin = dateFin.getValue();
+            // si fin <= début -> fin = début + 1 jour
+            if (fin == null || !fin.isAfter(newDate)) {
+                dateFin.setValue(newDate.plusDays(1));
+            }
+        });
+
+        dateFin.valueProperty().addListener((obs, oldFin, newFin) -> {
+            if (newFin == null) return;
+            LocalDate deb = dateDebut.getValue();
+            if (deb == null) return;
+            // si fin <= début -> fin = début + 1 jour
+            if (!newFin.isAfter(deb)) {
+                dateFin.setValue(deb.plusDays(1));
+            }
+        });
+        // --- fin strict minimum ---
 
         // Priorité de la tâche
         ComboBox<Tache.Priorite> champPriorite = new ComboBox<>();
         champPriorite.getItems().addAll(Tache.Priorite.values());
-        champPriorite.setValue(modeModification ?
-                (tacheAModifier.getPriorite() == null ? Tache.Priorite.NORMAL : tacheAModifier.getPriorite())
-                : Tache.Priorite.NORMAL
+        champPriorite.setValue(
+                modeModification
+                        ? (tacheAModifier.getPriorite() == null ? Tache.Priorite.NORMAL : tacheAModifier.getPriorite())
+                        : Tache.Priorite.NORMAL
         );
 
         // choix de la tâche préalable
@@ -90,6 +129,9 @@ public class Popup {
         grid.setHgap(10);
         grid.setVgap(10);
 
+        Label labErreurDate = new Label();
+        labErreurDate.setStyle("-fx-text-fill: red;");
+
         grid.addRow(0, new Label("Titre"), champTitre);
         grid.addRow(1, new Label("Description"), champDescription);
         grid.addRow(2, new Label("Début"), dateDebut);
@@ -97,6 +139,7 @@ public class Popup {
         grid.addRow(4, new Label("Priorité"), champPriorite);
         grid.addRow(5, new Label("Tâche préalable"), comboPrerequise);
 
+        grid.add(labErreurDate, 1, 6);
         DialogPane pane = dialog.getDialogPane();
         pane.setContent(grid);
 
@@ -109,20 +152,22 @@ public class Popup {
         Runnable verifierDates = () -> {
             boolean invalide = datesInvalides(dateDebut, dateFin, parentTache);
             boolean titreVide = champTitre.getText() == null || champTitre.getText().isBlank();
-            bValider.setDisable(invalide || titreVide);
-        };
 
-        List<ObservableValue<?>> champs = List.of(
-                dateDebut.valueProperty(),
-                dateFin.valueProperty(),
-                champTitre.textProperty()
-        );
-        champs.forEach(prop -> prop.addListener((o, ov, nv) -> verifierDates.run()));
+            bValider.setDisable(invalide || titreVide);
+
+            if (invalide) {
+                labErreurDate.setText("Date invalide");
+            } else {
+                labErreurDate.setText("");
+            }
+        };
+        champTitre.textProperty().addListener((o, ov, nv) -> verifierDates.run());
+        dateDebut.valueProperty().addListener((o, ov, nv) -> verifierDates.run());
+        dateFin.valueProperty().addListener((o, ov, nv) -> verifierDates.run());
         verifierDates.run();
 
         dialog.showAndWait().ifPresent(btn -> {
             if (btn == btnValider) {
-                // Début à minuit, fin à fin de journée
                 LocalDateTime deb = LocalDateTime.of(dateDebut.getValue(), LocalTime.MIN);
                 LocalDateTime fin = LocalDateTime.of(dateFin.getValue(), LocalTime.MAX);
 
