@@ -37,14 +37,10 @@ public class VueMenu extends BorderPane implements Observateur {
                 this.setLeft(fileText);
             }
 
-            Button creerListeBtn = new Button("+ Créer une liste");
-            creerListeBtn.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #1d4ed8; -fx-background-radius: 8px;");
-            creerListeBtn.setOnAction(e -> MainWindow.ouvrirPopupListe(null, model));
-
             Button trelloBtn = createNavButton("BUREAU", "file:icons/trello-brands-solid-full.png", lastVue, controller);
             Button listBtn = createNavButton("LISTE", "file:icons/list-check-solid-full.png", lastVue, controller);
             Button ganttBtn = createNavButton("GANTT", "file:icons/chart-gantt-solid-full.png", lastVue, controller);
-            hbox.getChildren().addAll(creerListeBtn, trelloBtn, listBtn, ganttBtn);
+            hbox.getChildren().addAll(trelloBtn, listBtn, ganttBtn);
         }
 
         Button homeBtn = createNavButton("HOME", "file:icons/house-regular-full.png", lastVue, controller);
