@@ -117,7 +117,6 @@ public class Popup {
         grid.addRow(2, new Label("Début"), new HBox(5, dateDebut, hDeb, new Label(":"), mDeb));
         grid.addRow(3, new Label("Fin"), new HBox(5, dateFin, hFin, new Label(":"), mFin));
         grid.addRow(4, new Label("Priorité"), champPriorite);
-        // ligne supplémentaire pour la tâche préalable
         grid.addRow(5, new Label("Tâche préalable"), comboPrerequise);
 
         DialogPane pane = dialog.getDialogPane();

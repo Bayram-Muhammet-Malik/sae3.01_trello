@@ -20,7 +20,7 @@ public class VueListe extends ScrollPane implements Observateur {
         this.setFitToWidth(true);
 
         triBox = new ComboBox<>();
-        triBox.getItems().addAll("Titre A→Z", "Titre Z→A", "Priorité ↑", "Priorité ↓", "Durée ↑", "Durée ↓");
+        triBox.getItems().addAll("Titre A-Z", "Titre Z-A", "Priorité ↑", "Priorité ↓", "Durée ↑", "Durée ↓");
         triBox.setValue("Titre A→Z");
 
         filtreBox = new ComboBox<>();

@@ -17,7 +17,6 @@ public class ControlerPopTache implements EventHandler<ActionEvent> {
     private final ComboBox<Tache.Priorite> prioBox;
     private final Tache tacheAModifier;
     private final Tache parentTache;
-    // tâche préalable
     private final Tache prerequise;
 
     public ControlerPopTache(Model model, Liste liste, TextField titreField, TextArea descField, LocalDateTime dateDebut, LocalDateTime dateFin, ComboBox<Tache.Priorite> prioBox, Tache tacheAModifier, Tache parentTache, Tache prerequise) {
@@ -66,7 +65,7 @@ public class ControlerPopTache implements EventHandler<ActionEvent> {
             tacheAModifier.setDebut(deb);
             tacheAModifier.setFin(dateFin);
             tacheAModifier.setPriorite(prio);
-            tacheAModifier.setPrerequise(prerequise); // NOUVEAU
+            tacheAModifier.setPrerequise(prerequise);
             model.notifierObservateur();
         }
 
