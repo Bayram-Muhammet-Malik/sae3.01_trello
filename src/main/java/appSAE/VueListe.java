@@ -74,7 +74,9 @@ public class VueListe extends ScrollPane implements Observateur {
                     case "Priorité":
                         return t1.getPriorite().compareTo(t2.getPriorite());
                     case "Durée": {
-                        // TODO : A faire
+                        int d1 = calculerDuree(t1);
+                        int d2 = calculerDuree(t2);
+                        return Integer.compare(d2,d1);
                     }
                     case "Titre A→Z":
                     default:
@@ -147,7 +149,6 @@ public class VueListe extends ScrollPane implements Observateur {
                 enfantsTries.sort((t1, t2) -> t1.getPriorite().compareTo(t2.getPriorite()));
                 enfantsSource = enfantsTries;
             } else {
-                // autres modes : ordre d'insertion (création)
                 enfantsSource = ct.getTaches();
             }
 
@@ -200,4 +201,16 @@ public class VueListe extends ScrollPane implements Observateur {
         }
         return res;
     }
+
+    private int calculerDuree(Tache t) {
+        if (t.getDebut() == null) return Integer.MAX_VALUE;
+        if (t.getFin() == null) return 1;
+
+        long d1 = t.getDebut().toLocalDate().toEpochDay();
+        long d2 = t.getFin().toLocalDate().toEpochDay();
+
+        long jours = (d2 - d1) + 1;
+        return (int) Math.max(jours, 1);
+    }
+
 }
