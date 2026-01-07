@@ -2,6 +2,7 @@ package appSAE;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +10,6 @@ import java.util.List;
 public class Model implements Sujet, Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-
     private transient List<Observateur> obs;
     private List<Liste> listes;
     private transient String filepath;
@@ -44,25 +44,12 @@ public class Model implements Sujet, Serializable {
         }
     }
 
-    // --- création de tâches ---
-
-    public void ajouterTache(Liste liste,
-                             String titre,
-                             String desc,
-                             LocalDateTime debut,
-                             LocalDateTime fin,
-                             Tache.Priorite prio) {
+    public void ajouterTache(Liste liste, String titre, String desc, LocalDateTime debut, LocalDateTime fin, Tache.Priorite prio) {
         ajouterTache(liste, titre, desc, debut, fin, prio, null);
     }
 
     // avec tâche préalable
-    public void ajouterTache(Liste liste,
-                             String titre,
-                             String desc,
-                             LocalDateTime debut,
-                             LocalDateTime fin,
-                             Tache.Priorite prio,
-                             Tache prerequise) {
+    public void ajouterTache(Liste liste, String titre, String desc, LocalDateTime debut, LocalDateTime fin, Tache.Priorite prio, Tache prerequise) {
         if (prio == null) prio = Tache.Priorite.NORMAL;
         FeuilleTache tache = new FeuilleTache(titre, desc, debut, fin, prio);
         tache.setPrerequise(prerequise);
@@ -70,31 +57,18 @@ public class Model implements Sujet, Serializable {
         notifierObservateur();
     }
 
-    public void ajouterSousTache(CompositeTache parent,
-                                 String titre,
-                                 String desc,
-                                 LocalDateTime debut,
-                                 LocalDateTime fin,
-                                 Tache.Priorite prio) {
+    public void ajouterSousTache(CompositeTache parent, String titre, String desc, LocalDateTime debut, LocalDateTime fin, Tache.Priorite prio) {
         ajouterSousTache(parent, titre, desc, debut, fin, prio, null);
     }
 
     // sous-tâche avec dépendance
-    public void ajouterSousTache(CompositeTache parent,
-                                 String titre,
-                                 String desc,
-                                 LocalDateTime debut,
-                                 LocalDateTime fin,
-                                 Tache.Priorite prio,
-                                 Tache prerequise) {
+    public void ajouterSousTache(CompositeTache parent, String titre, String desc, LocalDateTime debut, LocalDateTime fin, Tache.Priorite prio, Tache prerequise) {
         if (prio == null) prio = Tache.Priorite.NORMAL;
         FeuilleTache tache = new FeuilleTache(titre, desc, debut, fin, prio);
         tache.setPrerequise(prerequise);
         parent.ajouterTache(tache);
         notifierObservateur();
     }
-
-    // --- accès aux données ---
 
     public List<Liste> getListes() {
         return listes;
@@ -109,8 +83,6 @@ public class Model implements Sujet, Serializable {
     public List<Tache> getTachesFromListe(Liste liste){
         return liste.getTaches();
     }
-
-    // --- opérations sur tâches ---
 
     public void ajouterCarte(Liste liste, Tache nouvelleTache) {
         liste.ajouterCarte(nouvelleTache);
@@ -132,50 +104,7 @@ public class Model implements Sujet, Serializable {
         notifierObservateur();
     }
 
-    // --- observateurs ---
-
-    @Override
-    public void enregistrerObservateur(Observateur o) {
-        if (obs == null) obs = new ArrayList<>();
-        this.obs.add(o);
-    }
-
-    @Override
-    public void notifierObservateur() {
-        if (obs == null) return;
-        for (int i = 0; i < this.obs.size(); i++) {
-            Observateur observer = this.obs.get(i);
-            observer.actualiser(this);
-        }
-    }
-
-    @Override
-    public void supprimerObservateur(Observateur o) {
-        if (obs == null) return;
-        int i = this.obs.indexOf(o);
-        if (i >= 0) {
-            this.obs.remove(i);
-        }
-    }
-
-    // --- déplacements ---
-
-    public void deplacerTache(Liste listeCible, Tache tache) {
-        if (listeCible == null || tache == null)
-            return;
-        for (Liste l : listes) {
-            if (l.getTaches().contains(tache)) {
-                if (l == listeCible)
-                    return;
-                l.supprimerTache(tache);
-                listeCible.ajouterCarte(tache);
-                FichierManager.sauvegarder(this, filepath);
-                notifierObservateur();
-                return;
-            }
-        }
-    }
-
+    // Déplacement
     public void deplacerListe(Liste liste, int nouvelIndex) {
         if (liste == null) return;
         int ancienIndex = listes.indexOf(liste);
@@ -223,5 +152,30 @@ public class Model implements Sujet, Serializable {
         nouveauParent.ajouterTache(tache);
         notifierObservateur();
         FichierManager.sauvegarder(this, filepath);
+    }
+
+    // Observateurs
+    @Override
+    public void enregistrerObservateur(Observateur o) {
+        if (obs == null) obs = new ArrayList<>();
+        this.obs.add(o);
+    }
+
+    @Override
+    public void notifierObservateur() {
+        if (obs == null) return;
+        for (int i = 0; i < this.obs.size(); i++) {
+            Observateur observer = this.obs.get(i);
+            observer.actualiser(this);
+        }
+    }
+
+    @Override
+    public void supprimerObservateur(Observateur o) {
+        if (obs == null) return;
+        int i = this.obs.indexOf(o);
+        if (i >= 0) {
+            this.obs.remove(i);
+        }
     }
 }
