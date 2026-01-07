@@ -138,6 +138,15 @@ public class VueListe extends ScrollPane implements Observateur {
         HBox ligne = new HBox(5, fleche, check, badge, new Label(t.getTitre()), edit, deleteIcon);
         ligne.setStyle("-fx-padding: 2 0;");
 
+        // afficher la tâche préalable si présente
+        VBox blocLigne = new VBox(2);
+        blocLigne.getChildren().add(ligne);
+        if (t.getPrerequise() != null) {
+            Label prereqLabel = new Label("Après : " + t.getPrerequise().getTitre());
+            prereqLabel.setStyle("-fx-text-fill: #6b7280; -fx-font-size: 10px;");
+            blocLigne.getChildren().add(prereqLabel);
+        }
+
         VBox enfants = new VBox(2);
         if (hasChildren) {
             CompositeTache ct = (CompositeTache) t;
@@ -158,7 +167,7 @@ public class VueListe extends ScrollPane implements Observateur {
             fleche.setOnAction(e -> toggle(enfants, fleche));
         }
 
-        VBox bloc = new VBox(2, ligne);
+        VBox bloc = new VBox(2, blocLigne);
         if (hasChildren) bloc.getChildren().add(enfants);
 
         if (niveau == 0) {

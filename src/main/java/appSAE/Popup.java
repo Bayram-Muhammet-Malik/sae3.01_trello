@@ -78,6 +78,38 @@ public class Popup {
         champPriorite.setValue(modeModification ? (tacheAModifier.getPriorite() == null ? Tache.Priorite.NORMAL : tacheAModifier.getPriorite()) : Tache.Priorite.NORMAL
         );
 
+        // choix de la tâche préalable
+        ComboBox<Tache> comboPrerequise = new ComboBox<>();
+        comboPrerequise.setPromptText("Aucune");
+
+        for (Liste l : model.getListes()) {
+            for (Tache t : model.getTachesFromListe(l)) {
+                if (t != tacheAModifier) {
+                    comboPrerequise.getItems().add(t);
+                }
+            }
+        }
+
+        comboPrerequise.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected void updateItem(Tache item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getTitre());
+            }
+        });
+        comboPrerequise.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(Tache item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "Aucune" : item.getTitre());
+            }
+        });
+
+        if (modeModification && tacheAModifier.getPrerequise() != null) {
+            comboPrerequise.setValue(tacheAModifier.getPrerequise());
+        }
+        // ---- FIN NOUVEAU ----
+
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -87,6 +119,8 @@ public class Popup {
         grid.addRow(2, new Label("Début"), new HBox(5, dateDebut, hDeb, new Label(":"), mDeb));
         grid.addRow(3, new Label("Fin"), new HBox(5, dateFin, hFin, new Label(":"), mFin));
         grid.addRow(4, new Label("Priorité"), champPriorite);
+        // ligne supplémentaire pour la tâche préalable
+        grid.addRow(5, new Label("Tâche préalable"), comboPrerequise);
 
         DialogPane pane = dialog.getDialogPane();
         pane.setContent(grid);
@@ -104,7 +138,7 @@ public class Popup {
 
         dialog.showAndWait().ifPresent(btn -> {
             if (btn == btnValider)
-                new ControlerPopTache(model, liste, champTitre, champDescription, LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue())), LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue())), champPriorite, tacheAModifier, parentTache).handle(new ActionEvent());
+                new ControlerPopTache(model, liste, champTitre, champDescription, LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue())), LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue())), champPriorite, tacheAModifier, parentTache, comboPrerequise.getValue()).handle(new ActionEvent());
         });
     }
 

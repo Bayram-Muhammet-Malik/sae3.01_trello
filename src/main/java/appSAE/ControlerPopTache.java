@@ -17,8 +17,10 @@ public class ControlerPopTache implements EventHandler<ActionEvent> {
     private final ComboBox<Tache.Priorite> prioBox;
     private final Tache tacheAModifier;
     private final Tache parentTache;
+    // tâche préalable
+    private final Tache prerequise;
 
-    public ControlerPopTache(Model model, Liste liste, TextField titreField, TextArea descField, LocalDateTime dateDebut, LocalDateTime dateFin, ComboBox<Tache.Priorite> prioBox, Tache tacheAModifier, Tache parentTache) {
+    public ControlerPopTache(Model model, Liste liste, TextField titreField, TextArea descField, LocalDateTime dateDebut, LocalDateTime dateFin, ComboBox<Tache.Priorite> prioBox, Tache tacheAModifier, Tache parentTache, Tache prerequise) {
         this.model = model;
         this.liste = liste;
         this.titreField = titreField;
@@ -28,15 +30,22 @@ public class ControlerPopTache implements EventHandler<ActionEvent> {
         this.prioBox = prioBox;
         this.tacheAModifier = tacheAModifier;
         this.parentTache = parentTache;
+        this.prerequise = prerequise;
     }
 
     @Override
     public void handle(ActionEvent e) {
         Tache.Priorite prio = (prioBox.getValue() == null) ? Tache.Priorite.NORMAL : prioBox.getValue();
 
+        LocalDateTime deb = dateDebut;
+        // si une tâche préalable existe et que le début est avant sa fin, on décale
+        if (prerequise != null && prerequise.getFin() != null && deb != null && deb.isBefore(prerequise.getFin())) {
+            deb = prerequise.getFin().plusMinutes(1);
+        }
+
         if (tacheAModifier == null) {
             if (parentTache == null){
-                model.ajouterTache(liste, titreField.getText().trim(), descField.getText(), dateDebut, dateFin, prio);
+                model.ajouterTache(liste, titreField.getText().trim(), descField.getText(), deb, dateFin, prio, prerequise);
             } else {
                 CompositeTache parent;
                 if (parentTache instanceof FeuilleTache ft) {
@@ -49,14 +58,15 @@ public class ControlerPopTache implements EventHandler<ActionEvent> {
                 } else {
                     parent = (CompositeTache) parentTache;
                 }
-                model.ajouterSousTache(parent, titreField.getText().trim(), descField.getText(), dateDebut, dateFin, prio);
+                model.ajouterSousTache(parent, titreField.getText().trim(), descField.getText(), deb, dateFin, prio, prerequise);
             }
         } else {
             tacheAModifier.setTitre(titreField.getText().trim());
             tacheAModifier.setDescription(descField.getText());
-            tacheAModifier.setDebut(dateDebut);
+            tacheAModifier.setDebut(deb);
             tacheAModifier.setFin(dateFin);
             tacheAModifier.setPriorite(prio);
+            tacheAModifier.setPrerequise(prerequise); // NOUVEAU
             model.notifierObservateur();
         }
 

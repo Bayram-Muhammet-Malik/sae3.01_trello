@@ -1,60 +1,90 @@
 package appSAE;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public abstract class Tache implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
-    private String titre, description;
-    private LocalDateTime debut, fin;
-    private boolean estFait;
 
     public enum Priorite {
-        URGENT, IMPORTANT, NORMAL;
+        NORMAL("Normal"),
+        IMPORTANT("Important"),
+        URGENT("Urgent");
+
+        private final String label;
+
+        Priorite(String label) {
+            this.label = label;
+        }
 
         public String getLabel() {
-            return name().substring(0, 1).toUpperCase() + name().substring(1).toLowerCase();
+            return label;
         }
     }
 
-    private Priorite priorite = Priorite.NORMAL;
-    private CompositeTache parentTache = null;
+    private String titre;
+    private String description;
+    private LocalDateTime debut;
+    private LocalDateTime fin;
+    private Priorite priorite;
+    private boolean fait;
+    private Tache prerequise;
+    private CompositeTache parentTache;
 
-    /**
-     * Contructeur
-     */
-    public Tache(String titre, String description, LocalDateTime debut, LocalDateTime fin, Priorite prio) {
+    public Tache(String titre, String description, LocalDateTime debut, LocalDateTime fin, Priorite priorite) {
         this.titre = titre;
         this.description = description;
-        this.estFait = false;
         this.debut = debut;
         this.fin = fin;
-        this.priorite = (prio == null) ? Priorite.NORMAL : prio;
+        this.priorite = priorite;
+        this.fait = false;
     }
 
-    // GETTERS
     public String getTitre() {
         return titre;
     }
+
+    public void setTitre(String titre) {
+        this.titre = titre;
+    }
+
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public LocalDateTime getDebut() {
         return debut;
     }
+
+    public void setDebut(LocalDateTime debut) {
+        this.debut = debut;
+    }
+
     public LocalDateTime getFin() {
         return fin;
     }
 
-    public boolean estFait() {
-        return estFait;
+    public void setFin(LocalDateTime fin) {
+        this.fin = fin;
     }
 
     public Priorite getPriorite() {
         return priorite;
+    }
+
+    public void setPriorite(Priorite priorite) {
+        this.priorite = priorite;
+    }
+
+    public boolean estFait() {
+        return fait;
+    }
+
+    public void setFait(boolean fait) {
+        this.fait = fait;
     }
 
     public CompositeTache getParentTache() {
@@ -65,22 +95,13 @@ public abstract class Tache implements Serializable {
         this.parentTache = parentTache;
     }
 
-    public void setTitre(String titre) {
-        this.titre = titre;
+    // --- nouveau : gestion de la tâche préalable ---
+
+    public Tache getPrerequise() {
+        return prerequise;
     }
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    public void setDebut(LocalDateTime debut) {
-        this.debut = debut;
-    }
-    public void setFin(LocalDateTime fin) {
-        this.fin = fin;
-    }
-    public void setEstFait(boolean estFait) {
-        this.estFait = estFait;
-    }
-    public void setPriorite(Priorite priorite) {
-        this.priorite = priorite;
+
+    public void setPrerequise(Tache prerequise) {
+        this.prerequise = prerequise;
     }
 }
