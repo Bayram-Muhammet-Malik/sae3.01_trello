@@ -1,7 +1,7 @@
 package appSAE;
 
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
-import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -10,6 +10,7 @@ import javafx.scene.layout.VBox;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 public class Popup {
     // Popup de création et modification de tâche et de sous-tâche
@@ -56,7 +57,6 @@ public class Popup {
                 hDeb.setValue(deb.getHour());
                 mDeb.setValue(deb.getMinute());
             }
-
             if (fin != null) {
                 dateFin.setValue(fin.toLocalDate());
                 hFin.setValue(fin.getHour());
@@ -97,15 +97,40 @@ public class Popup {
         Button bAnnuler = (Button) pane.lookupButton(btnAnnuler);
         bAnnuler.setStyle("-fx-background-color: #e5e7eb; -fx-text-fill: #111827; -fx-background-radius: 8; -fx-padding: 8 14;");
 
-        bValider.setDisable(champTitre.getText() == null || champTitre.getText().isBlank());
-        champTitre.textProperty().addListener((obs, oldV, newV) ->
-                bValider.setDisable(newV == null || newV.isBlank())
-        );
+        Runnable verifierDates = () -> {
+            boolean invalide = datesInvalides(dateDebut, hDeb, mDeb, dateFin, hFin, mFin, parentTache);
+            boolean titreVide = champTitre.getText() == null || champTitre.getText().isBlank();
+            bValider.setDisable(invalide || titreVide);
+        };
+        List<ObservableValue<?>> champs = List.of(dateDebut.valueProperty(), dateFin.valueProperty(), hDeb.valueProperty(), mDeb.valueProperty(), hFin.valueProperty(), mFin.valueProperty(), champTitre.textProperty());
+        champs.forEach(prop -> prop.addListener((o, ov, nv) -> verifierDates.run()));
+        verifierDates.run();
 
         dialog.showAndWait().ifPresent(btn -> {
             if (btn == btnValider)
                 new ControlerPopTache(model, liste, champTitre, champDescription, LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue())), LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue())), champPriorite, tacheAModifier, parentTache).handle(new ActionEvent());
         });
+    }
+
+    private static boolean datesInvalides(DatePicker dateDebut, ComboBox<Integer> hDeb, ComboBox<Integer> mDeb, DatePicker dateFin, ComboBox<Integer> hFin, ComboBox<Integer> mFin, Tache parentTache) {
+        System.out.println("parent = " + parentTache);
+        System.out.println("pDeb = " + (parentTache == null ? null : parentTache.getDebut()));
+        System.out.println("pFin = " + (parentTache == null ? null : parentTache.getFin()));
+
+        LocalDateTime deb = LocalDateTime.of(dateDebut.getValue(), LocalTime.of(hDeb.getValue(), mDeb.getValue()));
+        LocalDateTime fin = LocalDateTime.of(dateFin.getValue(), LocalTime.of(hFin.getValue(), mFin.getValue()));
+
+        if (deb.isAfter(fin)) return true;
+
+        if (parentTache != null) {
+            LocalDateTime pDeb = parentTache.getDebut();
+            LocalDateTime pFin = parentTache.getFin();
+
+            if (pDeb != null && deb.isBefore(pDeb)) return true;
+            if (pFin != null && fin.isAfter(pFin)) return true;
+        }
+
+        return false;
     }
 
     //Popup de suppression d'une liste et tâche
@@ -120,10 +145,7 @@ public class Popup {
         Label texte = new Label(message);
         texte.setWrapText(true);
 
-        VBox content = new VBox(10, texte);
-        content.setPadding(new Insets(20));
-
-        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().setContent(new VBox(10, texte));
         dialog.showAndWait().ifPresent(btn -> {
             if (btn == ok) action.run();
         });
@@ -145,5 +167,20 @@ public class Popup {
             }
             FichierManager.sauvegarder(model, model.getFilepath());
         });
+    }
+
+    public static void ouvrirPopupListe(Liste listeAModifier, Model model) {
+        String titreInitial = (listeAModifier == null) ? "" : listeAModifier.getTitre();
+        String titreFenetre = (listeAModifier == null) ? "Créer une liste" : "Modifier la liste";
+
+        TextInputDialog dialog = new TextInputDialog(titreInitial);
+        dialog.setTitle(titreFenetre);
+        dialog.setHeaderText(null);
+        dialog.setContentText("Titre :");
+
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.setOnAction(new ControlerPopListe(model, dialog.getEditor(), listeAModifier));
+
+        dialog.showAndWait();
     }
 }

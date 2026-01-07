@@ -1,5 +1,7 @@
 package appSAE;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -25,7 +27,11 @@ public class VueBureau extends ScrollPane implements Observateur {
     @Override
     public void actualiser(Sujet sujet) {
         HBox hb = new HBox(20);
+        Button creerListeBtn = creerBoutton("+ Créer une liste", e -> Popup.ouvrirPopupListe(null, model));
+
         for (Liste ls : model.getListes()) hb.getChildren().add(creerColonne(ls));
+
+        hb.getChildren().add(creerListeBtn);
         this.setContent(hb);
     }
 
@@ -53,7 +59,7 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         Label titre = new Label(ls.getTitre());
         titre.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;");
-        titre.setOnMouseClicked(e -> MainWindow.ouvrirPopupListe(ls, model));
+        titre.setOnMouseClicked(e -> Popup.ouvrirPopupListe(ls, model));
 
         ImageView deleteIcon = creerIconeSuppression();
         Tooltip.install(deleteIcon, new Tooltip("Supprimer"));
@@ -106,12 +112,11 @@ public class VueBureau extends ScrollPane implements Observateur {
         for (Tache t : model.getTachesFromListe(ls)) cartesBox.getChildren().add(creerTache(ls, t, 0));
         ScrollPane scrollCartes = new ScrollPane(cartesBox);
         scrollCartes.setFitToWidth(true);
+        scrollCartes.setFitToHeight(true);
         scrollCartes.setMinHeight(0);
         scrollCartes.setStyle("-fx-background-color: transparent;");
 
-        Button creerTacheBtn = new Button("+ Créer une tâche");
-        creerTacheBtn.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
-        creerTacheBtn.setOnAction(e -> Popup.ouvrirPopUpTache(ls, null, null, model));
+        Button creerTacheBtn = creerBoutton("+ Créer une tâche", e -> Popup.ouvrirPopUpTache(ls, null, null, model));
 
         colonne.getChildren().addAll(header, scrollCartes, creerTacheBtn);
         return colonne;
@@ -119,21 +124,14 @@ public class VueBureau extends ScrollPane implements Observateur {
 
     private VBox creerTache(Liste liste, Tache tsk, int profondeur) {
         VBox carte = new VBox(6);
-        VBox content = new VBox(6);
-
-        String couleurFond;
-        if (profondeur % 2 == 0){
-            couleurFond = "#ffffff";
-        } else {
-            couleurFond = "#f3f4f6";
-        }
-        carte.setStyle("-fx-background-color: " + couleurFond + "; -fx-padding: 12px; -fx-background-radius: 10px; -fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
-
+        carte.setStyle("-fx-background-color: " + (profondeur % 2 == 0 ? "#ffffff" : "#f3f4f6") + "; -fx-padding: 10px; -fx-background-radius: 10px; -fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
         ControlerDrag cd = new ControlerDrag(model, tsk, liste, carte);
         carte.setOnDragDetected(cd::handleDragDetected);
         carte.setOnDragOver(cd::handleDragOver);
         carte.setOnDragDropped(cd::handleDragDropped);
         carte.setOnDragDone(cd::setOnDragDone);
+
+        VBox content = new VBox();
 
         HBox ligneHaut = new HBox(8);
         ligneHaut.setAlignment(Pos.CENTER_LEFT);
@@ -164,10 +162,9 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         Label dates = new Label("Du " + tsk.getDebut().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm", Locale.FRENCH)) + " au " + tsk.getFin().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm", Locale.FRENCH)));
 
-        Button cst = new Button("+ Créer une sous tâche");
+        Button cst = creerBoutton("+ Créer une sous tâche", e -> Popup.ouvrirPopUpTache(liste, null, tsk, model));
         cst.setVisible(false);
         cst.setManaged(false);
-        cst.setOnMouseClicked(e -> Popup.ouvrirPopUpTache(liste, null, tsk, model));
 
         content.hoverProperty().addListener((obs, oldVal, isHovering) -> {
             if (ControlerDrag.tacheEnCours != null) return;
@@ -195,7 +192,7 @@ public class VueBureau extends ScrollPane implements Observateur {
                 return;
             }
 
-            Popup.ouvrirPopUpTache(liste, tsk, null, model);
+            Popup.ouvrirPopUpTache(liste, tsk, tsk.getParentTache(), model);
         });
         carte.getChildren().addAll(content, sousTachesBox);
         return carte;
@@ -207,5 +204,12 @@ public class VueBureau extends ScrollPane implements Observateur {
         icone.setFitHeight(20);
         icone.setPickOnBounds(true);
         return icone;
+    }
+
+    private Button creerBoutton(String text, EventHandler<ActionEvent> action){
+        Button btn = new Button(text);
+        btn.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
+        btn.setOnAction(action);
+        return btn;
     }
 }

@@ -120,21 +120,6 @@ public class MainWindow extends Application {
         }
     }
 
-    public static void ouvrirPopupListe(Liste listeAModifier, Model model) {
-        String titreInitial = (listeAModifier == null) ? "" : listeAModifier.getTitre();
-        String titreFenetre = (listeAModifier == null) ? "Créer une liste" : "Modifier la liste";
-
-        TextInputDialog dialog = new TextInputDialog(titreInitial);
-        dialog.setTitle(titreFenetre);
-        dialog.setHeaderText(null);
-        dialog.setContentText("Titre :");
-
-        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        okButton.setOnAction(new ControlerPopListe(model, dialog.getEditor(), listeAModifier));
-
-        dialog.showAndWait();
-    }
-
     public static void main(String[] args) {
         launch(args);
     }
