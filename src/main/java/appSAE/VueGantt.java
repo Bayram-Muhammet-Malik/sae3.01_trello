@@ -197,16 +197,44 @@ public class VueGantt extends BorderPane implements Observateur {
         double x = 40 + decalageJour * largeurJour;
         double w = largeurJour;
 
-        Rectangle barre = new Rectangle(x, y, w, h);
-        barre.setArcWidth(10);
-        barre.setArcHeight(10);
-        barre.setStyle("-fx-fill: #3b82f6; -fx-opacity: 0.9;");
+        boolean aSousTaches =
+                l.tacheAssociee instanceof CompositeTache ct
+                        && !ct.getTaches().isEmpty();
+
+        Rectangle rect = new Rectangle(w, h);
+        rect.setArcWidth(10);
+        rect.setArcHeight(10);
+        rect.setFill(Color.web("#3b82f6"));
+        rect.setOpacity(0.9);
+
+        Label texte = new Label(l.nom);
+        texte.setTextFill(Color.WHITE);
+        texte.setStyle("-fx-font-size: 11; -fx-font-weight: bold;");
+        texte.setMaxWidth(w - 8);
+        texte.setEllipsisString("…");
+        texte.setWrapText(false);
+
+        StackPane barre = new StackPane(rect, texte);
+        barre.setLayoutX(x);
+        barre.setLayoutY(y);
+
+        if (aSousTaches) {
+            StackPane.setAlignment(texte, Pos.TOP_LEFT);
+            StackPane.setMargin(texte, new Insets(4, 4, 0, 6));
+        } else {
+            StackPane.setAlignment(texte, Pos.CENTER_LEFT);
+            StackPane.setMargin(texte, new Insets(0, 4, 0, 6));
+        }
 
         Tooltip.install(barre, new Tooltip(l.nom));
 
         barre.setOnMouseClicked(e -> {
-            l.setVisible(!l.visible);   // met à jour visible + CheckBox si besoin
-            modele.notifierObservateur();
+            Popup.ouvrirPopUpTache(
+                    modele.getListes().get(0),
+                    l.tacheAssociee,
+                    l.parentTache,
+                    modele
+            );
         });
 
         zoneBarres.getChildren().add(barre);
@@ -270,24 +298,40 @@ public class VueGantt extends BorderPane implements Observateur {
         double x = 40 + decalageJour * largeurJour;
         double w = largeurJour;
 
-        Rectangle barre = new Rectangle(x, y, w, h);
-        barre.setArcWidth(6);
-        barre.setArcHeight(6);
-        barre.setStyle("-fx-fill: #22c55e; -fx-opacity: 0.9;");
-        barre.setStroke(Color.BLACK);
-        barre.setStrokeWidth(1.0);
+        Rectangle rect = new Rectangle(w, h);
+        rect.setArcWidth(6);
+        rect.setArcHeight(6);
+        rect.setFill(Color.web("#22c55e"));
+        rect.setOpacity(0.9);
+        rect.setStroke(Color.BLACK);
+        rect.setStrokeWidth(1);
+
+        Label texte = new Label(l.nom);
+        texte.setTextFill(Color.BLACK);
+        texte.setStyle("-fx-font-size: 10;");
+        texte.setMaxWidth(w - 6);
+        texte.setWrapText(false);
+        texte.setEllipsisString("…");
+
+        StackPane barre = new StackPane(rect, texte);
+        barre.setLayoutX(x);
+        barre.setLayoutY(y);
+        barre.setPadding(new Insets(1, 4, 1, 4));
+        barre.setAlignment(Pos.CENTER_LEFT);
 
         Tooltip.install(barre, new Tooltip(l.nom));
 
         barre.setOnMouseClicked(e -> {
-            l.setVisible(!l.visible);
-            modele.notifierObservateur();
+            Popup.ouvrirPopUpTache(
+                    modele.getListes().get(0),
+                    l.tacheAssociee,
+                    l.parentTache,
+                    modele
+            );
         });
 
         zoneBarres.getChildren().add(barre);
     }
-
-
 
     // construit la structure des lignes à partir des tâches
     private void construireLignesRec(Tache t, int niveau, Tache parent) {
