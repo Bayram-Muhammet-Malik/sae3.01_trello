@@ -11,6 +11,11 @@ public class VueMenu extends BorderPane implements Observateur {
     private Model model;
     private MainWindow mainWindow;
 
+    /**
+     * Constructeur de la VueMenu
+     * @param model
+     * @param mainWindow La fenêtre principale
+     */
     public VueMenu(Model model, MainWindow mainWindow) {
         this.model = model;
         this.mainWindow = mainWindow;
@@ -18,6 +23,10 @@ public class VueMenu extends BorderPane implements Observateur {
         actualiser(model);
     }
 
+    /**
+     * Méthode qui crée l'interface JFX du menu
+     * @param s
+     */
     @Override
     public void actualiser(Sujet s) {
         this.getChildren().clear();
@@ -50,6 +59,14 @@ public class VueMenu extends BorderPane implements Observateur {
         this.setRight(hbox);
     }
 
+    /**
+     * Méthode qui permet de créer les boutons de navigation
+     * @param id l'id (HOME, BUREAU, LISTE, GANTT)
+     * @param iconPath l'icon
+     * @param lastVue la vue actuelle
+     * @param controller Le controler de l'action du clic sur le bouton
+     * @return Button
+     */
     private Button createNavButton(String id, String iconPath, String lastVue, ControlerMenu controller) {
         ImageView icon = new ImageView(iconPath);
         icon.setFitWidth(30);

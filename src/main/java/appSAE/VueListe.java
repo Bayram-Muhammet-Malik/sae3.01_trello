@@ -13,6 +13,10 @@ public class VueListe extends ScrollPane implements Observateur {
     private final ComboBox<String> triBox;
     private final ComboBox<String> filtreBox;
 
+    /**
+     * Constucteur de la VueListe
+     * @param modele
+     */
     public VueListe(Model modele) {
         this.model = modele;
         this.setStyle("-fx-background-color: transparent;");
@@ -30,6 +34,10 @@ public class VueListe extends ScrollPane implements Observateur {
         filtreBox.valueProperty().addListener((obs, o, n) -> actualiser(model));
     }
 
+    /**
+     * Méthode qui crée l'interface JFX de la Vue
+     * @param sujet
+     */
     @Override
     public void actualiser(Sujet sujet) {
         VBox conteneurAgenda = new VBox(8);
@@ -50,6 +58,11 @@ public class VueListe extends ScrollPane implements Observateur {
         this.setContent(conteneurAgenda);
     }
 
+    /**
+     * Méthode qui crée la liste d'un jour
+     * @param jour
+     * @return VBox qui correspond à la liste d'un jour
+     */
     private VBox creerJour(LocalDate jour) {
         Button fleche = creerFleche("▾ " + DateTimeFormatter.ofPattern("EEEE").format(jour) + " - " + DateTimeFormatter.ofPattern("dd-MM-yyyy").format(jour));
 
@@ -82,6 +95,10 @@ public class VueListe extends ScrollPane implements Observateur {
         return new VBox(6, fleche, contenu);
     }
 
+    /**
+     * Méthode qui permet d'obtenir le Comparator du tri voulu
+     * @return Comparator<Tache>
+     */
     private Comparator<Tache> getComparator() {
         return switch (triBox.getValue()) {
             case "Titre A→Z" -> Comparator.comparing(t -> t.getTitre().toLowerCase());
@@ -94,6 +111,14 @@ public class VueListe extends ScrollPane implements Observateur {
         };
     }
 
+    /**
+     * Méthode qui crée une tâche dans la liste d'un jour
+     * @param t Tache
+     * @param l Liste
+     * @param niveau le décalage à gauche
+     * @param jourCourant le jour en question
+     * @return Tâche en VBox
+     */
     private VBox creerTache(Tache t, Liste l, int niveau, LocalDate jourCourant) {
         boolean hasChildren = t instanceof CompositeTache ct && !ct.getTaches().isEmpty();
 
@@ -164,12 +189,22 @@ public class VueListe extends ScrollPane implements Observateur {
         return bloc;
     }
 
+    /**
+     * Méthode qui crée la flèche pour l'affichage de la tâche
+     * @param texte
+     * @return
+     */
     private Button creerFleche(String texte) {
         Button b = new Button(texte);
         b.setStyle("-fx-background-color: transparent; -fx-font-weight: Bold; -fx-font-size: 16px; -fx-padding: 0;");
         return b;
     }
 
+    /**
+     * Méthode qui met à jour l'affichage de la flèche de l'interface de la tâche
+     * @param box
+     * @param fleche
+     */
     private void toggle(VBox box, Button fleche) {
         boolean visible = box.isVisible();
         box.setVisible(!visible);
@@ -178,12 +213,23 @@ public class VueListe extends ScrollPane implements Observateur {
         fleche.setText(updated);
     }
 
+    /**
+     * Méthode qui permet de savoir si une tâche est à faire ou non au jour J
+     * @param t Tache
+     * @param jour
+     * @return
+     */
     private boolean estActiveLeJour(Tache t, LocalDate jour) {
         LocalDate d = t.getDebut() != null ? t.getDebut() : null;
         LocalDate f = t.getFin() != null ? t.getFin() : null;
         return d != null && !jour.isBefore(d) && (f == null || !jour.isAfter(f));
     }
 
+    /**
+     * Méthode qui permet de calculer la durée d'une Tache
+     * @param t Tache
+     * @return
+     */
     private int calculerDuree(Tache t) {
         if (t.getDebut() == null) return Integer.MAX_VALUE;
         if (t.getFin() == null) return 1;

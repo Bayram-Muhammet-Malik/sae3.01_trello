@@ -27,6 +27,10 @@ public class VueBureau extends ScrollPane implements Observateur {
         this.setStyle("-fx-background-color: transparent;");
     }
 
+    /**
+     * Méthode actualiser appelé par le Model crée les objets JFX de la Vue
+     * @param sujet
+     */
     @Override
     public void actualiser(Sujet sujet) {
         HBox hb = new HBox(20);
@@ -38,6 +42,11 @@ public class VueBureau extends ScrollPane implements Observateur {
         this.setContent(hb);
     }
 
+    /**
+     * Méthode qui permet de crée l'interface JFX d'une colonne
+     * @param ls Liste
+     * @return la colonne sous forme de VBox
+     */
     private VBox creerColonne(Liste ls) {
         VBox colonne = new VBox(5);
         colonne.setPrefWidth(320);
@@ -125,6 +134,13 @@ public class VueBureau extends ScrollPane implements Observateur {
         return colonne;
     }
 
+    /**
+     * Méthode qui permet de crée l'interface JFX d'une tâche
+     * @param liste La liste où est là tâche
+     * @param tsk la tâche
+     * @param profondeur le décalage à gauche (pour les sous-tâches)
+     * @return la tâche sous forme de VBox
+     */
     private VBox creerTache(Liste liste, Tache tsk, int profondeur) {
         VBox carte = new VBox(6);
         carte.setStyle("-fx-background-color: " + (profondeur % 2 == 0 ? "#ffffff" : "#f3f4f6") + "; -fx-padding: 10px; -fx-background-radius: 10px; -fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
@@ -205,6 +221,10 @@ public class VueBureau extends ScrollPane implements Observateur {
         return carte;
     }
 
+    /**
+     * Méthode qui permet de crée une icone de suppression
+     * @return l'icone en ImageView
+     */
     private ImageView creerIconeSuppression() {
         ImageView icone = new ImageView("file:icons/trash-can-solid-full.png");
         icone.setFitWidth(20);
@@ -213,6 +233,12 @@ public class VueBureau extends ScrollPane implements Observateur {
         return icone;
     }
 
+    /**
+     * Méthode qui permet de crée un bouton
+     * @param text Si texte
+     * @param action l'action à effectuer au clic s'il y en a une
+     * @return Button
+     */
     private Button creerBoutton(String text, EventHandler<ActionEvent> action){
         Button btn = new Button(text);
         btn.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
