@@ -3,12 +3,11 @@ package appSAE;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TestVueBureauIteration4 {
-
+class TestVueBureau {
     private Model model;
     private Liste aFaire;
     private Liste enCours;
@@ -24,25 +23,16 @@ class TestVueBureauIteration4 {
         model.ajouterListe(aFaire);
         model.ajouterListe(enCours);
 
-        // Création des tâches (itération 4)
-        CompositeTache t1 = new CompositeTache(
-                "Tâche 1",
+        model.ajouterTache(aFaire, "Tâche 1",
                 "Description 1",
-                LocalDateTime.of(2025, 1, 1, 10, 0),
-                LocalDateTime.of(2025, 1, 1, 11, 0),
-                Tache.Priorite.NORMAL
-        );
-
-        CompositeTache t2 = new CompositeTache(
-                "Tâche 2",
+                LocalDate.of(2025, 1, 1),
+                LocalDate.of(2025, 1, 1),
+                Tache.Priorite.NORMAL, null);
+        model.ajouterTache(enCours, "Tâche 2",
                 "Description 2",
-                LocalDateTime.of(2025, 1, 2, 10, 0),
-                LocalDateTime.of(2025, 1, 2, 11, 0),
-                Tache.Priorite.URGENT
-        );
-
-        model.ajouterCarte(aFaire, t1);
-        model.ajouterCarte(enCours, t2);
+                LocalDate.of(2025, 1, 2),
+                LocalDate.of(2025, 1, 2),
+                Tache.Priorite.URGENT, null);
     }
 
     @Test
@@ -75,12 +65,16 @@ class TestVueBureauIteration4 {
         CompositeTache nouvelleTache = new CompositeTache(
                 "Tâche 3",
                 "Desc 3",
-                LocalDateTime.of(2025, 1, 3, 10, 0),
-                LocalDateTime.of(2025, 1, 3, 11, 0),
+                LocalDate.of(2025, 1, 3),
+                LocalDate.of(2025, 1, 3),
                 Tache.Priorite.IMPORTANT
         );
 
-        model.ajouterCarte(aFaire, nouvelleTache);
+        model.ajouterTache(aFaire, "Tâche 3",
+                "Desc 3",
+                LocalDate.of(2025, 1, 3),
+                LocalDate.of(2025, 1, 3),
+                Tache.Priorite.IMPORTANT, null);
 
         assertEquals(2, model.getTachesFromListe(aFaire).size(),
                 "La liste À faire doit contenir deux tâches");

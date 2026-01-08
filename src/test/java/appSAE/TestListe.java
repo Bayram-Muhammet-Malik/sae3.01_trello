@@ -2,11 +2,11 @@ package appSAE;
 
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TestListeIteration4 {
+class TestListe {
 
     @Test
     void constructeurCreeListeAvecBonTitreEtListeVide() {
@@ -37,8 +37,8 @@ class TestListeIteration4 {
         CompositeTache tache = new CompositeTache(
                 "Tâche 1",
                 "Description",
-                LocalDateTime.of(2026, 1, 5, 10, 0),
-                LocalDateTime.of(2026, 1, 5, 11, 0),
+                LocalDate.of(2026, 1, 5),
+                LocalDate.of(2026, 1, 5),
                 Tache.Priorite.NORMAL
         );
 
@@ -57,16 +57,16 @@ class TestListeIteration4 {
         CompositeTache t1 = new CompositeTache(
                 "Tâche 1",
                 "Desc",
-                LocalDateTime.of(2025, 1, 1, 10, 0),
-                LocalDateTime.of(2025, 1, 1, 11, 0),
+                LocalDate.of(2025, 1, 1),
+                LocalDate.of(2025, 1, 1),
                 Tache.Priorite.NORMAL
         );
 
         CompositeTache t2 = new CompositeTache(
                 "Tâche 2",
                 "Desc",
-                LocalDateTime.of(2025, 1, 2, 10, 0),
-                LocalDateTime.of(2025, 1, 2, 11, 0),
+                LocalDate.of(2025, 1, 2),
+                LocalDate.of(2025, 1, 2),
                 Tache.Priorite.NORMAL
         );
 
@@ -93,16 +93,16 @@ class TestListeIteration4 {
         CompositeTache t1 = new CompositeTache(
                 "Tâche L1",
                 "Desc",
-                LocalDateTime.of(2025, 1, 1, 10, 0),
-                LocalDateTime.of(2025, 1, 1, 11, 0),
+                LocalDate.of(2025, 1, 1),
+                LocalDate.of(2025, 1, 1),
                 Tache.Priorite.NORMAL
         );
 
         CompositeTache t2 = new CompositeTache(
                 "Tâche L2",
                 "Desc",
-                LocalDateTime.of(2025, 1, 2, 10, 0),
-                LocalDateTime.of(2025, 1, 2, 11, 0),
+                LocalDate.of(2025, 1, 2),
+                LocalDate.of(2025, 1, 2),
                 Tache.Priorite.NORMAL
         );
 

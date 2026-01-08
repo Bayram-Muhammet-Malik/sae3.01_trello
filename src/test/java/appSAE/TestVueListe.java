@@ -10,7 +10,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TestVueListeIteration4 {
+class TestVueListe {
 
     private Model model;
     private Liste liste;
@@ -33,24 +33,16 @@ class TestVueListeIteration4 {
 
         LocalDate aujourdHui = LocalDate.now();
 
-        CompositeTache t1 = new CompositeTache(
-                "Tâche aujourd'hui",
+        model.ajouterTache(liste, "Tâche aujourd'hui",
                 "desc",
-                aujourdHui.atTime(10, 0),
-                aujourdHui.atTime(11, 0),
-                Tache.Priorite.NORMAL
-        );
-
-        CompositeTache t2 = new CompositeTache(
-                "Tâche demain",
+                aujourdHui,
+                aujourdHui.plusDays(1),
+                Tache.Priorite.NORMAL, null);
+        model.ajouterTache(liste, "Tâche demain",
                 "desc",
-                aujourdHui.plusDays(1).atTime(10, 0),
-                aujourdHui.plusDays(1).atTime(11, 0),
-                Tache.Priorite.URGENT
-        );
-
-        model.ajouterCarte(liste, t1);
-        model.ajouterCarte(liste, t2);
+                aujourdHui.plusDays(1),
+                aujourdHui.plusDays(1),
+                Tache.Priorite.URGENT, null);
     }
 
     /**
@@ -68,9 +60,7 @@ class TestVueListeIteration4 {
             jt.date = dateJour;
 
             for (Tache t : liste.getTaches()) {
-                String dateTache = format.format(
-                        t.getDebut().toLocalDate()
-                );
+                String dateTache = format.format(t.getDebut());
 
                 if (dateJour.equals(dateTache)) {
                     collecterTache(t, 0, jt.taches);

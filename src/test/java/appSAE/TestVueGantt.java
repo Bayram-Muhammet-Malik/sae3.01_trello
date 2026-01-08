@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TestVueGanttIteration4 {
+class TestVueGantt {
 
     private Model model;
     private Liste liste;
@@ -24,8 +24,8 @@ class TestVueGanttIteration4 {
                 "Analyse",
                 "Analyse du sujet",
                 LocalDate.of(2025, 1, 1),
-                LocalDate.of(2025, 1, 1),
-                Tache.Priorite.NORMAL
+                LocalDate.of(2025, 1, 2),
+                Tache.Priorite.NORMAL, null
         );
 
         model.ajouterTache(
@@ -33,8 +33,8 @@ class TestVueGanttIteration4 {
                 "Développement",
                 "Coder la solution",
                 LocalDate.of(2025, 1, 2),
-                LocalDate.of(2025, 1, 2),
-                Tache.Priorite.IMPORTANT
+                LocalDate.of(2025, 1, 3),
+                Tache.Priorite.IMPORTANT, null
         );
     }
 

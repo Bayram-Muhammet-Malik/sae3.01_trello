@@ -47,7 +47,7 @@ public abstract class Tache implements Serializable {
         this.description = description;
         this.debut = debut;
         this.fin = fin;
-        this.priorite = priorite;
+        this.priorite = (priorite == null) ? Priorite.NORMAL : priorite;
         this.estFait = false;
     }
 
