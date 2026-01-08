@@ -20,6 +20,10 @@ public class MainWindow extends Application {
     private VueListe vl;
     private VueGantt vg;
 
+    /**
+     * Méthode qui lance l'appli, initialise la fenêtre principale, les Vues et le Model
+     * @param stage
+     */
     @Override
     public void start(Stage stage) {
         BorderPane root = new BorderPane();
@@ -102,6 +106,10 @@ public class MainWindow extends Application {
         stage.show();
     }
 
+    /**
+     * Méthode qui change la VueAfficher
+     * @param type
+     */
     public void switchView(String type) {
         homePage.setVisible(false);
         homePage.setManaged(false);

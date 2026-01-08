@@ -7,15 +7,20 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 
-// Gère le drag and drop d'une tâche
 public class ControlerDrag {
-
     private Model model;
-    private Tache tache;   // tâche liée à cette carte
-    private Liste liste;   // liste cible quand on déplace la tâche
+    private Tache tache;
+    private Liste liste;
     private VBox carte;
-    public static Tache tacheEnCours; // tâche actuellement en train d'être déplacée
+    public static Tache tacheEnCours;
 
+    /**
+     * Constructeur
+     * @param model
+     * @param tache
+     * @param listeCible
+     * @param carte
+     */
     public ControlerDrag(Model model, Tache tache, Liste listeCible, VBox carte) {
         this.model = model;
         this.tache = tache;
@@ -23,30 +28,49 @@ public class ControlerDrag {
         this.carte = carte;
     }
 
-    // Appelé quand on survole une zone possible de dépôt avec une tâche en drag
+    /**
+     * Handler qui détecte le début d'un drag sur une tâche.
+     * Initialise le Dragboard et enregistre la tâche comme source du déplacement.
+     * @param e L'événement de souris déclenchant le drag.
+     */
+    public void handleDragDetected(MouseEvent e) {
+        tacheEnCours = tache;
+        Dragboard db = carte.startDragAndDrop(TransferMode.MOVE);
+
+        ClipboardContent content = new ClipboardContent();
+        content.putString("TACHE");
+        db.setContent(content);
+
+        e.consume();
+    }
+
+    /**
+     * Handler qui indique que la zone peut accepter un drop si une tâche est en cours de déplacement.
+     * @param e L'événement de drag survolant la zone.
+     */
     public void handleDragOver(DragEvent e) {
         if (ControlerDrag.tacheEnCours != null) {
-            // On indique qu'on accepte le déplacement
             e.acceptTransferModes(TransferMode.MOVE);
         }
         e.consume();
     }
 
-    // Appelé quand on lâche la souris (drop) sur une zone
+    /**
+     * Handler qui gère le drop d'une tâche sur une autre tâche ou dans une liste.
+     * @param e L'événement de drop.
+     */
     public void handleDragDropped(DragEvent e) {
         if (ControlerDrag.tacheEnCours != null) {
 
-            Tache source = ControlerDrag.tacheEnCours; // tâche qu'on déplace
-            Tache cible  = this.tache; // tâche sur laquelle on lâche
+            Tache source = ControlerDrag.tacheEnCours;
+            Tache cible  = this.tache;
 
             if (cible != null && source != cible) {
                 CompositeTache ctCible;
 
-                // Si la cible est déjà une tâche composite, on la réutilise
                 if (cible instanceof CompositeTache existing) {
                     ctCible = existing;
                 } else {
-                    // Sinon, on transforme la tâche cible en CompositeTache
                     ctCible = new CompositeTache(
                             cible.getTitre(),
                             cible.getDescription(),
@@ -55,24 +79,19 @@ public class ControlerDrag {
                             cible.getPriorite()
                     );
 
-                    // On remplace la tâche cible par la nouvelle CompositeTache
                     CompositeTache parent = cible.getParentTache();
                     if (parent != null) {
-                        // Cas où la cible était déjà une sous-tâche
                         parent.modifierSousTache(cible, ctCible);
                     } else {
-                        // Cas où la cible est une tâche de liste "classique"
                         for (Liste l : model.getListes()) {
                             l.modifierTache(cible, ctCible);
                         }
                     }
                 }
 
-                // On déplace la tâche source à l'intérieur de la composite cible
                 model.deplacerTacheSousComposite(ctCible, source);
 
             } else {
-                // Si on ne drop pas sur une autre tâche, on déplace juste dans une liste
                 model.deplacerTacheDansListe(liste, source);
             }
 
@@ -83,22 +102,11 @@ public class ControlerDrag {
         e.consume();
     }
 
-    // Appelé quand on commence le drag sur la carte
-    public void handleDragDetected(MouseEvent e) {
-        // On indique globalement quelle tâche est en cours de déplacement
-        tacheEnCours = tache;
-        Dragboard db = carte.startDragAndDrop(TransferMode.MOVE);
-
-        ClipboardContent content = new ClipboardContent();
-        content.putString("TACHE"); // contenu symbolique, on n’utilise que l’état statique
-        db.setContent(content);
-
-        e.consume();
-    }
-
-    // Appelé quand le drag est terminé (quel que soit le résultat)
+    /**
+     * Handler qui nettoie l'état du drag une fois terminé.
+     * @param e L'événement de fin de drag.
+     */
     public void setOnDragDone(DragEvent e) {
-        // On réinitialise la tâche en cours de drag
         ControlerDrag.tacheEnCours = null;
         e.consume();
     }
