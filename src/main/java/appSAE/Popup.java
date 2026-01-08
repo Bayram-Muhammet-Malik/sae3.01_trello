@@ -82,14 +82,13 @@ public class Popup {
         ComboBox<Tache> comboPrerequise = new ComboBox<>();
         comboPrerequise.setPromptText("Aucune");
 
-        // On ajoute toutes les tâches existantes, sauf celle qu’on est en train de modifier
+        // Ajoute toutes les tâches (racines + sous-tâches), sauf celle qu'on modifie
         for (Liste l : model.getListes()) {
             for (Tache t : model.getTachesFromListe(l)) {
-                if (t != tacheAModifier) {
-                    comboPrerequise.getItems().add(t);
-                }
+                ajouterTacheEtSousTachesDansCombo(comboPrerequise, t, tacheAModifier);
             }
         }
+
 
         // Affiche le titre des tâches dans la liste
         comboPrerequise.setCellFactory(listView -> new ListCell<>() {
@@ -266,4 +265,18 @@ public class Popup {
 
         dialog.showAndWait();
     }
+    // Méthode utilitaire remplissant les sous tâches dans les dépendances
+    private static void ajouterTacheEtSousTachesDansCombo(ComboBox<Tache> combo,
+                                                          Tache t,
+                                                          Tache tacheAModifier) {
+        if (t != tacheAModifier) {
+            combo.getItems().add(t);
+        }
+        if (t instanceof CompositeTache ct) {
+            for (Tache sous : ct.getTaches()) {
+                ajouterTacheEtSousTachesDansCombo(combo, sous, tacheAModifier);
+            }
+        }
+    }
+
 }

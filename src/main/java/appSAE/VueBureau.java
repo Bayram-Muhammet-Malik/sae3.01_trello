@@ -212,6 +212,17 @@ public class VueBureau extends ScrollPane implements Observateur {
                         tsk.getFin().format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH))
         );
 
+        // Label "dépend de" (affiché seulement si la tâche a une dépendance)
+        Label dependDeLabel = new Label();
+        if (tsk.getPrerequise() != null) {
+            dependDeLabel.setText("Dépend de : " + tsk.getPrerequise().getTitre());
+            dependDeLabel.setVisible(true);
+            dependDeLabel.setManaged(true);
+        } else {
+            dependDeLabel.setVisible(false);
+            dependDeLabel.setManaged(false);
+        }
+
         // Bouton "Créer une sous-tâche" (visible au survol)
         Button cst = creerBoutton(
                 "+ Créer une sous tâche",
@@ -236,7 +247,8 @@ public class VueBureau extends ScrollPane implements Observateur {
             }
         }
 
-        content.getChildren().addAll(ligneHaut, description, dates, cst);
+        // dates sur une ligne, puis la dépendance juste en dessous
+        content.getChildren().addAll(ligneHaut, description, dates, dependDeLabel, cst);
 
         // Clic sur la carte :
         // - si on clique sur la poubelle -> supprimer
