@@ -80,31 +80,37 @@ public class Model implements Sujet, Serializable {
 
     public String getLastVue(){ return lastVue; }
 
+    // Retourne les tâches d'une liste
     public List<Tache> getTachesFromListe(Liste liste){
         return liste.getTaches();
     }
 
+    // Ajoute une tâche déjà créée dans une liste
     public void ajouterCarte(Liste liste, Tache nouvelleTache) {
         liste.ajouterCarte(nouvelleTache);
         notifierObservateur();
     }
+
+    // Supprime une tâche d'une liste
 
     public void supprimerTache(Liste liste, Tache tache) {
         liste.supprimerTache(tache);
         notifierObservateur();
     }
 
+    // Supprime une sous-tâche d'une tâche composite
     public void supprimerSousTache(CompositeTache parent, Tache tache) {
         parent.supprimerTache(tache);
         notifierObservateur();
     }
 
+    // Coche / décoche une tâche
     public void setTacheFait(Tache tache, boolean fait) {
         tache.setEstFait(fait);
         notifierObservateur();
     }
 
-    // Déplacement
+    // Change l’ordre des listes (drag and drop des colonnes)
     public void deplacerListe(Liste liste, int nouvelIndex) {
         if (liste == null) return;
         int ancienIndex = listes.indexOf(liste);
@@ -117,6 +123,7 @@ public class Model implements Sujet, Serializable {
         notifierObservateur();
     }
 
+    // Déplace une tâche vers une autre liste
     public void deplacerTacheDansListe(Liste listeCible, Tache tache) {
         if (listeCible == null || tache == null) return;
 
@@ -137,6 +144,7 @@ public class Model implements Sujet, Serializable {
         FichierManager.sauvegarder(this, filepath);
     }
 
+    // Met une tâche sous une tâche composite
     public void deplacerTacheSousComposite(CompositeTache nouveauParent, Tache tache) {
         if (nouveauParent == null || tache == null) return;
 

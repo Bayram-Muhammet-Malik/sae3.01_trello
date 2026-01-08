@@ -4,10 +4,12 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 
+// Représente une tâche de base (titre, dates, priorité, état...), commune à toutes les tâches
 public abstract class Tache implements Serializable {
     @Serial
     protected static final long serialVersionUID = 1L;
 
+    // Niveau d'urgence / importance de la tâche
     public enum Priorite {
         NORMAL("Normal"),
         IMPORTANT("Important"),
@@ -31,7 +33,9 @@ public abstract class Tache implements Serializable {
     private Priorite priorite;
     private boolean estFait;
 
+    // Tâche qui doit être faite avant celle-ci (optionnel)
     private Tache prerequise;
+    // Tâche parente si celle-ci est une sous-tâche
     private CompositeTache parentTache;
 
     public Tache(String titre, String description, LocalDate debut, LocalDate fin, Priorite priorite) {
@@ -87,23 +91,26 @@ public abstract class Tache implements Serializable {
         return estFait;
     }
 
-    // ancien comportement + nom compatible avec ton code existant
+    // Change l'état de la tâche (faite / pas faite) et met à jour la tâche parente si besoin
     public void setEstFait(boolean fait) {
         boolean ancien = this.estFait;
         this.estFait = fait;
-        if (ancien == fait) return;
+        if (ancien == fait) return;  // si rien n'a changé, on ne fait rien
         mettreAJourParent();
     }
 
+    // Met à jour l'état de la tâche parente en fonction des sous-tâches
     protected void mettreAJourParent() {
         CompositeTache parent = getParentTache();
         if (parent == null) return;
 
+        // Si cette tâche repasse à "non fait", on décoche le parent
         if (!this.estFait) {
             if (parent.estFait()) parent.setEstFait(false);
             return;
         }
 
+        // Si toutes les sous-tâches sont faites, on coche le parent
         boolean tousFaits = parent.getTaches().stream().allMatch(Tache::estFait);
         if (tousFaits && !parent.estFait()) parent.setEstFait(true);
     }
@@ -116,7 +123,7 @@ public abstract class Tache implements Serializable {
         this.parentTache = parentTache;
     }
 
-    // gestion de la tâche préalable
+    // Tâche qui doit être terminée avant celle-ci (dépendance)
     public Tache getPrerequise() {
         return prerequise;
     }

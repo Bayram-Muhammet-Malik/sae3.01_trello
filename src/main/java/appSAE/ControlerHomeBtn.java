@@ -8,35 +8,34 @@ import javafx.stage.Stage;
 
 import java.io.File;
 
+// Gère les boutons de la page d'accueil (nouveau fichier / ouvrir fichier)
 public class ControlerHomeBtn implements EventHandler<ActionEvent> {
-    /**
-     * Le modele est attribut du controleur
-     */
+
     private Model model;
     private MainWindow mainWindow;
 
-    /**
-     * Constructeur
-     * @param m l'objet Model
-     */
     public ControlerHomeBtn(Model m, MainWindow window) {
-        this.model=m;
-        this.mainWindow=window;
+        this.model = m;
+        this.mainWindow = window;
     }
 
     @Override
     public void handle(ActionEvent e) {
         Button b = (Button) e.getSource();
         Stage stage = (Stage) b.getScene().getWindow();
+
         FileChooser chooser = new FileChooser();
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Fichier HiTask", "*.htsk"));
+
         File file = null;
 
         try {
             switch (b.getId()) {
                 case "createBtn":
+                    // Créer un nouveau fichier .htsk
                     file = chooser.showSaveDialog(stage);
                     if (file != null) {
+                        // Nouveau modèle avec 3 listes de base
                         Model nvf = new Model();
                         nvf.ajouterListe(new Liste("A faire"));
                         nvf.ajouterListe(new Liste("En cours"));
@@ -45,14 +44,19 @@ public class ControlerHomeBtn implements EventHandler<ActionEvent> {
                         FichierManager.sauvegarder(nvf, file.getAbsolutePath());
                     }
                     break;
+
                 case "openBtn":
+                    // Ouvrir un fichier .htsk existant
                     file = chooser.showOpenDialog(stage);
                     break;
             }
 
             if (file != null) {
+                // Charge le fichier dans le model principal
                 FichierManager.charger(model, file.getAbsolutePath());
+                // Affiche la dernière vue utilisée (bureau, liste, gantt)
                 mainWindow.switchView(model.getLastVue());
+                // Réenregistre cette vue comme dernière vue
                 model.modifierLastVue(model.getLastVue());
             }
         } catch (Exception ex) {
