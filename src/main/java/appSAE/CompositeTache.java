@@ -4,20 +4,35 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-// Tâche qui peut contenir d'autres tâches (sous-tâches)
-public class CompositeTache extends Tache {
+public class CompositeTache extends Tache{
     private final List<Tache> sousTaches = new ArrayList<>();
+
+    /**
+     * Constructeur CompositeTache (appel le constructeur de Tache auquel il hérite)
+     * @param titre Titre de la tâche
+     * @param description Description de la tâche
+     * @param debut Date début
+     * @param fin Date de fin
+     * @param prio Tag Normal/Important/Urgent
+     */
     public CompositeTache(String titre, String description, LocalDate debut, LocalDate fin, Priorite prio) {
         super(titre, description, debut, fin, prio);
     }
 
-    // Ajoute une sous-tâche et lui indique que son parent est cette tâche
+    /**
+     * Méthode qui permet d'ajouter une sous tâche à une tâche
+     * @param tache tache à ajouter
+     */
     public void ajouterTache(Tache tache) {
         sousTaches.add(tache);
         tache.setParentTache(this);
     }
 
-    // Remplace une ancienne sous-tâche par une nouvelle (par exemple après modification)
+    /**
+     * Méthode qui permet de remplacer une sous-tâche (sert à passé d'une FeuilleTache à CompositeTache par exemple)
+     * @param ancienne (tâche a remplacer)
+     * @param nouvelle (tâche qui remplace)
+     */
     public void modifierSousTache(Tache ancienne, Tache nouvelle) {
         int index = sousTaches.indexOf(ancienne);
         if (index >= 0) {
@@ -26,41 +41,38 @@ public class CompositeTache extends Tache {
         }
     }
 
+    /**
+     * Méthode qui permet de supprimer une sous-tâche
+     * @param tache
+     */
     public void supprimerTache(Tache tache) {
         sousTaches.remove(tache);
     }
 
+    /**
+     * Méthode qui permet d'obtenir les fils de la tâche
+     * @return
+     */
     public List<Tache> getTaches() {
         return sousTaches;
     }
 
+    /**
+     * Méthode qui permet de changé l'état fait/non fait de la tâche est ses enfants/parent en fonctions des cas
+     * @param fait true si la tâche est faite sinon false
+     */
     @Override
     public void setEstFait(boolean fait) {
-        // On garde l’ancien état pour savoir si ça change vraiment
         boolean ancien = estFait();
         super.setEstFait(fait);
 
-        // Si rien n’a changé, on ne fait rien de plus
         if (ancien == fait) return;
 
-        // Si cette tâche a elle-même un parent
         if (getParentTache() != null) {
-            // On force toutes les sous-tâches à avoir le même état (fait / pas fait)
-            for (Tache t : sousTaches) {
-                if (t.estFait() != fait) {
-                    t.setEstFait(fait);
-                }
-            }
+            for (Tache t : sousTaches) if (t.estFait() != fait) t.setEstFait(fait);
             return;
         }
 
-        // Si c’est une tâche "racine" et qu’on la coche, on coche toutes les sous-tâches
-        if (fait) {
-            for (Tache t : sousTaches) {
-                if (!t.estFait()) {
-                    t.setEstFait(true);
-                }
-            }
-        }
+        if (fait) for (Tache t : sousTaches) if (!t.estFait()) t.setEstFait(true);
     }
 }

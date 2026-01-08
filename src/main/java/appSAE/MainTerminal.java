@@ -4,6 +4,8 @@ import java.util.Scanner;
 
 public class MainTerminal {
 /*
+    [Outdated] Main de Test à la première itération pour testé la base du projet
+
     public static void main(String[] args) {
 
         GestionnaireListes gestion = FichierManager.charger("listes.data", new Model());

@@ -12,12 +12,22 @@ public class ControlerPopListe implements EventHandler<ActionEvent> {
     private TextField titreField;
     private final Liste listeAModifier;
 
+    /**
+     * Constructeur
+     * @param model
+     * @param titreField TextField du nouveau titre
+     * @param listeAModifier Liste qui aura sont titre modifié
+     */
     public ControlerPopListe(Model model, TextField titreField, Liste listeAModifier) {
         this.model = model;
         this.titreField = titreField;
         this.listeAModifier = listeAModifier;
     }
 
+    /**
+     * Handler qui effectue la création ou modification d'une Liste
+     * @param e ActionEvent
+     */
     @Override
     public void handle(ActionEvent e) {
         String t = titreField.getText() == null ? "" : titreField.getText().trim();

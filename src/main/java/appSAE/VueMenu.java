@@ -7,11 +7,15 @@ import javafx.scene.layout.HBox;
 
 import java.io.File;
 
-// Barre du haut : nom du fichier ouvert + boutons (bureau, liste, gantt, home)
 public class VueMenu extends BorderPane implements Observateur {
     private Model model;
     private MainWindow mainWindow;
 
+    /**
+     * Constructeur de la VueMenu
+     * @param model
+     * @param mainWindow La fenêtre principale
+     */
     public VueMenu(Model model, MainWindow mainWindow) {
         this.model = model;
         this.mainWindow = mainWindow;
@@ -19,7 +23,10 @@ public class VueMenu extends BorderPane implements Observateur {
         actualiser(model);
     }
 
-    // À chaque changement du modèle, on reconstruit le menu
+    /**
+     * Méthode qui crée l'interface JFX du menu
+     * @param s
+     */
     @Override
     public void actualiser(Sujet s) {
         this.getChildren().clear();
@@ -28,7 +35,6 @@ public class VueMenu extends BorderPane implements Observateur {
         ControlerMenu controller = new ControlerMenu(model, mainWindow);
         String lastVue = model.getLastVue();
 
-        // Si un fichier est ouvert, on affiche son nom + les trois vues (Bureau / Liste / Gantt)
         if (model.getFilepath() != null) {
             Label fileText = new Label("Unknown");
             fileText.setTextFill(javafx.scene.paint.Color.WHITE);
@@ -41,20 +47,26 @@ public class VueMenu extends BorderPane implements Observateur {
             }
 
             Button trelloBtn = createNavButton("BUREAU", "file:icons/trello-brands-solid-full.png", lastVue, controller);
-            Button listBtn   = createNavButton("LISTE",  "file:icons/list-check-solid-full.png",  lastVue, controller);
-            Button ganttBtn  = createNavButton("GANTT",  "file:icons/chart-gantt-solid-full.png", lastVue, controller);
+            Button listBtn = createNavButton("LISTE", "file:icons/list-check-solid-full.png", lastVue, controller);
+            Button ganttBtn = createNavButton("GANTT", "file:icons/chart-gantt-solid-full.png", lastVue, controller);
             hbox.getChildren().addAll(trelloBtn, listBtn, ganttBtn);
         }
 
-        // Le bouton Home est toujours affiché
         Button homeBtn = createNavButton("HOME", "file:icons/house-regular-full.png", lastVue, controller);
         hbox.getChildren().add(homeBtn);
 
-        // Les boutons sont alignés à droite
+        // Placement à droite
         this.setRight(hbox);
     }
 
-    // Crée un bouton de navigation avec une icône, et le surligne si c’est la vue active
+    /**
+     * Méthode qui permet de créer les boutons de navigation
+     * @param id l'id (HOME, BUREAU, LISTE, GANTT)
+     * @param iconPath l'icon
+     * @param lastVue la vue actuelle
+     * @param controller Le controler de l'action du clic sur le bouton
+     * @return Button
+     */
     private Button createNavButton(String id, String iconPath, String lastVue, ControlerMenu controller) {
         ImageView icon = new ImageView(iconPath);
         icon.setFitWidth(30);
@@ -64,11 +76,7 @@ public class VueMenu extends BorderPane implements Observateur {
 
         Button btn = new Button(null, icon);
         btn.setId(id);
-        btn.setStyle(
-                id.equals(lastVue)
-                        ? "-fx-background-color: #1d4ed8; -fx-background-radius: 8px;"
-                        : "-fx-background-color: transparent;"
-        );
+        btn.setStyle(id.equals(lastVue) ? "-fx-background-color: #1d4ed8; -fx-background-radius: 8px;" : "-fx-background-color: transparent;");
         btn.setOnAction(controller);
         return btn;
     }

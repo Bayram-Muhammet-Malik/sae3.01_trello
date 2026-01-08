@@ -7,18 +7,11 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- vue gantt tres simple :
- - 7 jours (semaine)
- - date de la tache = debut (jj-mm-aaaa)
- - duree par defaut : 1 jour, ou 3 jours si la tache a des sous-taches
- */
 public class VueGantt extends BorderPane implements Observateur {
     private final Model modele;
 
@@ -34,6 +27,9 @@ public class VueGantt extends BorderPane implements Observateur {
     private final ScrollPane scrollBarres = new ScrollPane(zoneBarres);
 
     private final List<Ligne> lignes = new ArrayList<>();
+
+    private final java.util.Map<Tache, Boolean> visibilite = new java.util.HashMap<>();
+
 
     public VueGantt(Model modele) {
         this.modele = modele;
@@ -95,7 +91,7 @@ public class VueGantt extends BorderPane implements Observateur {
 
         ajouterHeaderJours();
 
-        // on reconstruit toujours les lignes, pour TOUTES les listes
+        // on reconstruit toujours les lignes
         lignes.clear();
         for (Liste liste : modele.getListes()) {
             for (Tache t : liste.getTaches()) {
@@ -105,7 +101,7 @@ public class VueGantt extends BorderPane implements Observateur {
 
         double y = 60; // un peu plus bas pour laisser la place au header
         for (Ligne l : lignes) {
-
+            l.visible = visibilite.getOrDefault(l.tacheAssociee, true);
             // Colonne de gauche : checkbox + nom
             if (l.checkbox == null) {
                 listeNoms.getChildren().add(creerNom(l));
@@ -143,7 +139,6 @@ public class VueGantt extends BorderPane implements Observateur {
         zoneBarres.setMinHeight(y + 20);
     }
 
-
     // affiche les numeros des jours
     private void ajouterHeaderJours() {
         listeNoms.getChildren().add(new Label("diagramme de gantt"));
@@ -174,7 +169,7 @@ public class VueGantt extends BorderPane implements Observateur {
         l.checkbox = cb;
 
         cb.selectedProperty().addListener((obs, oldV, newV) -> {
-            l.visible = newV;
+            visibilite.put(l.tacheAssociee, newV);
             modele.notifierObservateur();
         });
 
@@ -182,23 +177,45 @@ public class VueGantt extends BorderPane implements Observateur {
         return ligneBox;
     }
 
+
     // dessine une barre (bleue pour niveau 0)
     private void dessinerBarre(Ligne l, double y, double h) {
         if (l.debut == null) return;
 
-        // l.debut est maintenant un LocalDate
         long decalageJour = l.debut.toEpochDay() - debutSemaine.toEpochDay();
         if (decalageJour < 0 || decalageJour > 6) return;
 
-        // Plus d'heure → la barre occupe toute la largeur du jour
         double x = 40 + decalageJour * largeurJour;
         double w = largeurJour;
 
-        Rectangle barre = new Rectangle(x, y, w, h);
-        barre.setArcWidth(10);
-        barre.setArcHeight(10);
+        boolean aSousTaches =
+                l.tacheAssociee instanceof CompositeTache ct
+                        && !ct.getTaches().isEmpty();
 
-        barre.setStyle("-fx-fill: #3b82f6; -fx-opacity: 0.9;");
+        Rectangle rect = new Rectangle(w, h);
+        rect.setArcWidth(10);
+        rect.setArcHeight(10);
+        rect.setFill(Color.web("#3b82f6"));
+        rect.setOpacity(0.9);
+
+        Label texte = new Label(l.nom);
+        texte.setTextFill(Color.WHITE);
+        texte.setStyle("-fx-font-size: 11; -fx-font-weight: bold;");
+        texte.setMaxWidth(w - 8);
+        texte.setEllipsisString("…");
+        texte.setWrapText(false);
+
+        StackPane barre = new StackPane(rect, texte);
+        barre.setLayoutX(x);
+        barre.setLayoutY(y);
+
+        if (aSousTaches) {
+            StackPane.setAlignment(texte, Pos.TOP_LEFT);
+            StackPane.setMargin(texte, new Insets(4, 4, 0, 6));
+        } else {
+            StackPane.setAlignment(texte, Pos.CENTER_LEFT);
+            StackPane.setMargin(texte, new Insets(0, 4, 0, 6));
+        }
 
         Tooltip.install(barre, new Tooltip(l.nom));
 
@@ -213,6 +230,8 @@ public class VueGantt extends BorderPane implements Observateur {
 
         zoneBarres.getChildren().add(barre);
     }
+
+
 
     // profondeur max d'une tâche (en nombre de niveaux de sous-tâches)
     private int profondeurMax(Ligne racine) {
@@ -235,11 +254,12 @@ public class VueGantt extends BorderPane implements Observateur {
     }
 
     // dessine la barre principale (bleu) + toutes les sous-tâches (verts) à l'intérieur
-    private void dessinerBarrePrincipaleEtSousTachesRec(Ligne lignePrincipale,
-                                                        double y,
-                                                        double h,
-                                                        int profMax,
-                                                        double hauteurParNiveau) {
+    private void dessinerBarrePrincipaleEtSousTachesRec(
+            Ligne lignePrincipale,
+            double y,
+            double h,
+            int profMax,
+            double hauteurParNiveau) {
         // barre bleue
         dessinerBarre(lignePrincipale, y, h);
 
@@ -247,7 +267,7 @@ public class VueGantt extends BorderPane implements Observateur {
         dessinerSousTachesRec(lignePrincipale.tacheAssociee, y, 1, hauteurParNiveau);
     }
 
-    // dessine récursivement toutes les sous-tâches (1.1, 1.1.1, 1.1.1.1, ...) en vert
+    // dessine récursivement toutes les sous-tâches en vert
     private void dessinerSousTachesRec(Tache parentTache, double yParent, int niveauRelatif, double hauteurParNiveau) {
         for (Ligne l : lignes) {
             if (l.parentTache == parentTache && l.visible) {
@@ -269,13 +289,26 @@ public class VueGantt extends BorderPane implements Observateur {
         double x = 40 + decalageJour * largeurJour;
         double w = largeurJour;
 
-        Rectangle barre = new Rectangle(x, y, w, h);
-        barre.setArcWidth(6);
-        barre.setArcHeight(6);
+        Rectangle rect = new Rectangle(w, h);
+        rect.setArcWidth(6);
+        rect.setArcHeight(6);
+        rect.setFill(Color.web("#22c55e"));
+        rect.setOpacity(0.9);
+        rect.setStroke(Color.BLACK);
+        rect.setStrokeWidth(1);
 
-        barre.setStyle("-fx-fill: #22c55e; -fx-opacity: 0.9;");
-        barre.setStroke(javafx.scene.paint.Color.BLACK);
-        barre.setStrokeWidth(1.0);
+        Label texte = new Label(l.nom);
+        texte.setTextFill(Color.BLACK);
+        texte.setStyle("-fx-font-size: 10;");
+        texte.setMaxWidth(w - 6);
+        texte.setWrapText(false);
+        texte.setEllipsisString("…");
+
+        StackPane barre = new StackPane(rect, texte);
+        barre.setLayoutX(x);
+        barre.setLayoutY(y);
+        barre.setPadding(new Insets(1, 4, 1, 4));
+        barre.setAlignment(Pos.CENTER_LEFT);
 
         Tooltip.install(barre, new Tooltip(l.nom));
 
@@ -293,7 +326,19 @@ public class VueGantt extends BorderPane implements Observateur {
 
     // construit la structure des lignes à partir des tâches
     private void construireLignesRec(Tache t, int niveau, Tache parent) {
-        Ligne ligne = new Ligne(t.getTitre(), niveau, t.getDebut(), t.getFin(), t, parent);
+
+        visibilite.putIfAbsent(t, true);
+
+        Ligne ligne = new Ligne(
+                t.getTitre(),
+                niveau,
+                t.getDebut(),
+                t.getFin(),
+                t,
+                parent
+        );
+
+        ligne.visible = visibilite.get(t);
         lignes.add(ligne);
 
         if (t instanceof CompositeTache ct) {
@@ -303,6 +348,7 @@ public class VueGantt extends BorderPane implements Observateur {
         }
     }
 
+
     // petite structure pour une ligne du gantt
     private static class Ligne {
         String nom;
@@ -311,7 +357,7 @@ public class VueGantt extends BorderPane implements Observateur {
         LocalDate fin;
         Tache tacheAssociee;
         Tache parentTache;
-        boolean visible = true; // par défaut visible
+        boolean visible = true;
         CheckBox checkbox;
 
         Ligne(String nom, int niveau, LocalDate debut, LocalDate fin, Tache tache, Tache parent) {
@@ -323,5 +369,4 @@ public class VueGantt extends BorderPane implements Observateur {
             this.parentTache = parent;
         }
     }
-
 }

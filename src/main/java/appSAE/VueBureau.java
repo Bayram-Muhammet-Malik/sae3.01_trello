@@ -29,30 +29,30 @@ public class VueBureau extends ScrollPane implements Observateur {
         this.setStyle("-fx-background-color: transparent;");
     }
 
-    // Quand le model change, on reconstruit l'écran
+    /**
+     * Méthode actualiser appelé par le Model crée les objets JFX de la Vue
+     * @param sujet
+     */
     @Override
     public void actualiser(Sujet sujet) {
         HBox hb = new HBox(20);
+        Button creerListeBtn = creerBoutton("+ Créer une liste", e -> Popup.ouvrirPopupListe(null, model));
 
-        Button creerListeBtn = creerBoutton(
-                "+ Créer une liste",
-                e -> Popup.ouvrirPopupListe(null, model)
-        );
-
-        for (Liste ls : model.getListes()) {
-            hb.getChildren().add(creerColonne(ls));
-        }
+        for (Liste ls : model.getListes()) hb.getChildren().add(creerColonne(ls));
 
         hb.getChildren().add(creerListeBtn);
         this.setContent(hb);
     }
 
-    // Crée l'affichage d'une liste (colonne)
+    /**
+     * Méthode qui permet de crée l'interface JFX d'une colonne
+     * @param ls Liste
+     * @return la colonne sous forme de VBox
+     */
     private VBox creerColonne(Liste ls) {
         VBox colonne = new VBox(5);
         colonne.setPrefWidth(320);
 
-        // Déposer une tâche dans cette liste
         colonne.setOnDragOver(e -> {
             if (ControlerDrag.tacheEnCours != null) {
                 e.acceptTransferModes(TransferMode.MOVE);
@@ -73,12 +73,10 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         Label titre = new Label(ls.getTitre());
         titre.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;");
-        // Cliquer sur le titre pour renommer la liste
         titre.setOnMouseClicked(e -> Popup.ouvrirPopupListe(ls, model));
 
         ImageView deleteIcon = creerIconeSuppression();
         Tooltip.install(deleteIcon, new Tooltip("Supprimer"));
-        // Poubelle pour supprimer la liste
         deleteIcon.setOnMouseClicked(e -> {
             e.consume();
             Popup.supprimerListe(ls, model);
@@ -87,7 +85,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         HBox header = new HBox(5, deleteIcon, titre);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        // Déplacement des listes (drag & drop des colonnes)
+        // Drag&drop liste
         header.setOnDragDetected(e -> {
             Dragboard db = header.startDragAndDrop(TransferMode.MOVE);
             ClipboardContent cc = new ClipboardContent();
@@ -125,37 +123,31 @@ public class VueBureau extends ScrollPane implements Observateur {
         });
 
         VBox cartesBox = new VBox(5);
-        // Ajoute les cartes de la liste
-        for (Tache t : model.getTachesFromListe(ls)) {
-            cartesBox.getChildren().add(creerTache(ls, t, 0));
-        }
-
+        for (Tache t : model.getTachesFromListe(ls)) cartesBox.getChildren().add(creerTache(ls, t, 0));
         ScrollPane scrollCartes = new ScrollPane(cartesBox);
         scrollCartes.setFitToWidth(true);
         scrollCartes.setFitToHeight(true);
         scrollCartes.setMinHeight(0);
         scrollCartes.setStyle("-fx-background-color: transparent;");
 
-        Button creerTacheBtn = creerBoutton(
-                "+ Créer une tâche",
-                e -> Popup.ouvrirPopUpTache(ls, null, null, model)
-        );
+        Button creerTacheBtn = creerBoutton("+ Créer une tâche", e -> Popup.ouvrirPopUpTache(ls, null, null, model));
 
         colonne.getChildren().addAll(header, scrollCartes, creerTacheBtn);
         return colonne;
     }
 
-    // Crée une carte pour une tâche (avec la priorité, dates, sous-tâches, etc.)
+    /**
+     * Méthode qui permet de crée l'interface JFX d'une tâche
+     * @param liste La liste où est là tâche
+     * @param tsk la tâche
+     * @param profondeur le décalage à gauche (pour les sous-tâches)
+     * @return la tâche sous forme de VBox
+     */
     private VBox creerTache(Liste liste, Tache tsk, int profondeur) {
         VBox carte = new VBox(6);
-        carte.setStyle(
-                "-fx-background-color: " +
-                        (profondeur % 2 == 0 ? "#ffffff" : "#f3f4f6") +
-                        "; -fx-padding: 10px; -fx-background-radius: 10px; " +
-                        "-fx-border-color: #e5e7eb; -fx-border-radius: 10px;"
-        );
-
-        // Drag & drop d’une tâche
+        carte.setStyle("-fx-background-color: " + (profondeur % 2 == 0 ? "#ffffff" : "#f3f4f6") +
+                "; -fx-padding: 10px; -fx-background-radius: 10px; " +
+                "-fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
         ControlerDrag cd = new ControlerDrag(model, tsk, liste, carte);
         carte.setOnDragDetected(cd::handleDragDetected);
         carte.setOnDragOver(cd::handleDragOver);
@@ -167,12 +159,9 @@ public class VueBureau extends ScrollPane implements Observateur {
         HBox ligneHaut = new HBox(8);
         ligneHaut.setAlignment(Pos.CENTER_LEFT);
 
-        // Case à cocher pour marquer la tâche comme faite
         CheckBox fait = new CheckBox();
         fait.setSelected(tsk.estFait());
-        fait.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            model.setTacheFait(tsk, newVal);
-        });
+        fait.selectedProperty().addListener((obs, oldVal, newVal) -> { model.setTacheFait(tsk, newVal); });
 
         Label titre = new Label(tsk.getTitre());
         titre.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #111827;");
@@ -180,15 +169,9 @@ public class VueBureau extends ScrollPane implements Observateur {
         Region espace = new Region();
         HBox.setHgrow(espace, Priority.ALWAYS);
 
-        // Affiche la priorité sous forme de badge
-        Tache.Priorite prio = (tsk.getPriorite() == null)
-                ? Tache.Priorite.NORMAL
-                : tsk.getPriorite();
-
+        Tache.Priorite prio = (tsk.getPriorite() == null) ? Tache.Priorite.NORMAL : tsk.getPriorite();
         Label badge = new Label(prio.getLabel());
-        String styleBase =
-                "-fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 999; " +
-                        "-fx-font-size: 11px; -fx-font-weight: bold;";
+        String styleBase = "-fx-text-fill: white; -fx-padding: 2 8; -fx-background-radius: 999; -fx-font-size: 11px; -fx-font-weight: bold;";
         badge.setStyle(
                 switch (prio) {
                     case NORMAL -> "-fx-background-color: #93c47d;" + styleBase;
@@ -205,12 +188,8 @@ public class VueBureau extends ScrollPane implements Observateur {
         Label description = new Label(tsk.getDescription() == null ? "" : tsk.getDescription());
         description.setWrapText(true);
 
-        Label dates = new Label(
-                "Du " +
-                        tsk.getDebut().format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH)) +
-                        " au " +
-                        tsk.getFin().format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH))
-        );
+        Label dates = new Label("Du " + tsk.getDebut().format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH)) +
+                " au " + tsk.getFin().format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH)));
 
         // Label "dépend de" (affiché seulement si la tâche a une dépendance)
         Label dependDeLabel = new Label();
@@ -224,10 +203,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         }
 
         // Bouton "Créer une sous-tâche" (visible au survol)
-        Button cst = creerBoutton(
-                "+ Créer une sous tâche",
-                e -> Popup.ouvrirPopUpTache(liste, null, tsk, model)
-        );
+        Button cst = creerBoutton("+ Créer une sous tâche", e -> Popup.ouvrirPopUpTache(liste, null, tsk, model));
         cst.setVisible(false);
         cst.setManaged(false);
 
@@ -238,7 +214,6 @@ public class VueBureau extends ScrollPane implements Observateur {
         });
 
         VBox sousTachesBox = new VBox(6);
-        // Si c’est une tâche qui contient d'autres tâches, on affiche les sous-tâches
         if (tsk instanceof CompositeTache ct) {
             for (Tache sousTache : ct.getTaches()) {
                 VBox sousCarte = creerTache(liste, sousTache, profondeur + 1);
@@ -250,9 +225,6 @@ public class VueBureau extends ScrollPane implements Observateur {
         // dates sur une ligne, puis la dépendance juste en dessous
         content.getChildren().addAll(ligneHaut, description, dates, dependDeLabel, cst);
 
-        // Clic sur la carte :
-        // - si on clique sur la poubelle -> supprimer
-        // - sinon -> ouvrir la fenêtre d’édition
         content.setOnMouseClicked(e -> {
             Node source = (Node) e.getTarget();
             e.consume();
@@ -264,12 +236,15 @@ public class VueBureau extends ScrollPane implements Observateur {
 
             Popup.ouvrirPopUpTache(liste, tsk, tsk.getParentTache(), model);
         });
-
         carte.getChildren().addAll(content, sousTachesBox);
         return carte;
     }
 
-    // Renvoie une icône de poubelle
+
+    /**
+     * Méthode qui permet de crée une icone de suppression
+     * @return l'icone en ImageView
+     */
     private ImageView creerIconeSuppression() {
         ImageView icone = new ImageView("file:icons/trash-can-solid-full.png");
         icone.setFitWidth(20);
@@ -278,13 +253,15 @@ public class VueBureau extends ScrollPane implements Observateur {
         return icone;
     }
 
-    // Crée un bouton avec le style de l’appli
+    /**
+     * Méthode qui permet de crée un bouton
+     * @param text Si texte
+     * @param action l'action à effectuer au clic s'il y en a une
+     * @return Button
+     */
     private Button creerBoutton(String text, EventHandler<ActionEvent> action){
         Button btn = new Button(text);
-        btn.setStyle(
-                "-fx-font-size: 14px; -fx-font-weight: bold; " +
-                        "-fx-background-color: #e5e7eb; -fx-background-radius: 8px;"
-        );
+        btn.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-color: #e5e7eb; -fx-background-radius: 8px;");
         btn.setOnAction(action);
         return btn;
     }

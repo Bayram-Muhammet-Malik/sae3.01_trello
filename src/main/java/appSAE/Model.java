@@ -3,7 +3,6 @@ package appSAE;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,11 +14,19 @@ public class Model implements Sujet, Serializable {
     private transient String filepath;
     private String lastVue = "HOME";
 
+    /**
+     * Constructeur
+     */
     public Model() {
         obs = new ArrayList<>();
         listes = new ArrayList<>();
     }
 
+    /**
+     * Méthode qui initialise le Model (pour le chargement de fichier)
+     * @param model Model qui aura ses données de copie dans ce Model
+     * @param path Chemin du fichier
+     */
     public void setModel(Model model, String path) {
         this.listes = (model != null ? model.getListes() : new ArrayList<>());
         this.lastVue = (model != null ? model.getLastVue() : "BUREAU");
@@ -27,16 +34,28 @@ public class Model implements Sujet, Serializable {
         notifierObservateur();
     }
 
+    /**
+     * Méthode qui ajoute une Liste à la liste de Liste du Model
+     * @param liste
+     */
     public void ajouterListe(Liste liste){
         this.listes.add(liste);
         notifierObservateur();
     }
 
+    /**
+     * Méthode qui supprime une Liste à la liste de Liste du Model
+     * @param liste
+     */
     public void supprimerListe(Liste liste){
         this.listes.remove(liste);
         notifierObservateur();
     }
 
+    /**
+     * Méthode qui modifie l'attribut lastvue (qui permet de reprendre directement sur la dernière vue au chargement du fichier)
+     * @param vue
+     */
     public void modifierLastVue(String vue){
         if (!this.lastVue.equals(vue)){
             this.lastVue = vue;
@@ -44,11 +63,16 @@ public class Model implements Sujet, Serializable {
         }
     }
 
-    public void ajouterTache(Liste liste, String titre, String desc, LocalDate debut, LocalDate fin, Tache.Priorite prio) {
-        ajouterTache(liste, titre, desc, debut, fin, prio, null);
-    }
-
-    // avec tâche préalable
+    /**
+     * Méthode qui permet de créer une Tache dans une liste
+     * @param liste
+     * @param titre
+     * @param desc
+     * @param debut
+     * @param fin
+     * @param prio
+     * @param prerequise
+     */
     public void ajouterTache(Liste liste, String titre, String desc, LocalDate debut, LocalDate fin, Tache.Priorite prio, Tache prerequise) {
         if (prio == null) prio = Tache.Priorite.NORMAL;
         FeuilleTache tache = new FeuilleTache(titre, desc, debut, fin, prio);
@@ -57,11 +81,16 @@ public class Model implements Sujet, Serializable {
         notifierObservateur();
     }
 
-    public void ajouterSousTache(CompositeTache parent, String titre, String desc, LocalDate debut, LocalDate fin, Tache.Priorite prio) {
-        ajouterSousTache(parent, titre, desc, debut, fin, prio, null);
-    }
-
-    // sous-tâche avec dépendance
+    /**
+     * Méthode qui permet de créer une Sous-Tache dans une tâche
+     * @param parent
+     * @param titre
+     * @param desc
+     * @param debut
+     * @param fin
+     * @param prio
+     * @param prerequise
+     */
     public void ajouterSousTache(CompositeTache parent, String titre, String desc, LocalDate debut, LocalDate fin, Tache.Priorite prio, Tache prerequise) {
         if (prio == null) prio = Tache.Priorite.NORMAL;
         FeuilleTache tache = new FeuilleTache(titre, desc, debut, fin, prio);
@@ -70,6 +99,7 @@ public class Model implements Sujet, Serializable {
         notifierObservateur();
     }
 
+    // GETTERS
     public List<Liste> getListes() {
         return listes;
     }
@@ -80,37 +110,46 @@ public class Model implements Sujet, Serializable {
 
     public String getLastVue(){ return lastVue; }
 
-    // Retourne les tâches d'une liste
     public List<Tache> getTachesFromListe(Liste liste){
         return liste.getTaches();
     }
 
-    // Ajoute une tâche déjà créée dans une liste
-    public void ajouterCarte(Liste liste, Tache nouvelleTache) {
-        liste.ajouterCarte(nouvelleTache);
-        notifierObservateur();
-    }
-
-    // Supprime une tâche d'une liste
-
+    /**
+     * Méthode qui permet de supprimer une Tache d'une liste
+     * @param liste
+     * @param tache
+     */
     public void supprimerTache(Liste liste, Tache tache) {
         liste.supprimerTache(tache);
         notifierObservateur();
     }
 
-    // Supprime une sous-tâche d'une tâche composite
+    /**
+     * Méthode qui permet de supprimer une Sous Tache d'une tâche
+     * @param tache
+     * @param tache
+     */
     public void supprimerSousTache(CompositeTache parent, Tache tache) {
         parent.supprimerTache(tache);
         notifierObservateur();
     }
 
-    // Coche / décoche une tâche
+    /**
+     * Méthode qui permet de marquer une Tache comme fait ou non
+     * @param tache
+     * @param fait true si Tache faite sinon false
+     */
     public void setTacheFait(Tache tache, boolean fait) {
         tache.setEstFait(fait);
+        FichierManager.sauvegarder(this, filepath);
         notifierObservateur();
     }
 
-    // Change l’ordre des listes (drag and drop des colonnes)
+    /**
+     * Méthode qui permet de déplacer une liste
+     * @param liste
+     * @param nouvelIndex
+     */
     public void deplacerListe(Liste liste, int nouvelIndex) {
         if (liste == null) return;
         int ancienIndex = listes.indexOf(liste);
@@ -123,7 +162,11 @@ public class Model implements Sujet, Serializable {
         notifierObservateur();
     }
 
-    // Déplace une tâche vers une autre liste
+    /**
+     * Méthode qui permet de déplacer une Tache d'une liste à une autre
+     * @param listeCible
+     * @param tache
+     */
     public void deplacerTacheDansListe(Liste listeCible, Tache tache) {
         if (listeCible == null || tache == null) return;
 
@@ -144,7 +187,11 @@ public class Model implements Sujet, Serializable {
         FichierManager.sauvegarder(this, filepath);
     }
 
-    // Met une tâche sous une tâche composite
+    /**
+     * Méthode qui permet de déplacer une Tache dans une autre Tache
+     * @param nouveauParent
+     * @param tache
+     */
     public void deplacerTacheSousComposite(CompositeTache nouveauParent, Tache tache) {
         if (nouveauParent == null || tache == null) return;
 
@@ -162,13 +209,19 @@ public class Model implements Sujet, Serializable {
         FichierManager.sauvegarder(this, filepath);
     }
 
-    // Observateurs
+    /**
+     * Méthode qui permet d'enregistrer un observateur
+     * @param o Observateur
+     */
     @Override
     public void enregistrerObservateur(Observateur o) {
         if (obs == null) obs = new ArrayList<>();
         this.obs.add(o);
     }
 
+    /**
+     * Méthode qui permet d'actualiser les observateurs
+     */
     @Override
     public void notifierObservateur() {
         if (obs == null) return;
@@ -178,6 +231,9 @@ public class Model implements Sujet, Serializable {
         }
     }
 
+    /**
+     * Méthode qui permet de supprimer un observateurs
+     */
     @Override
     public void supprimerObservateur(Observateur o) {
         if (obs == null) return;
