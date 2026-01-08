@@ -9,7 +9,6 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +20,6 @@ import java.util.List;
  - duree par defaut : 1 jour, ou 3 jours si la tache a des sous-taches
  */
 public class VueGantt extends BorderPane implements Observateur {
-
     private final Model modele;
 
     private final DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("dd-MM-yyyy");
@@ -42,8 +40,6 @@ public class VueGantt extends BorderPane implements Observateur {
 
         setTop(creerBarreOutils());
         setCenter(creerCentre());
-
-        rafraichir();
     }
 
     // barre du haut : aujourd'hui + zoom
@@ -54,17 +50,17 @@ public class VueGantt extends BorderPane implements Observateur {
 
         btnAujourdHui.setOnAction(e -> {
             debutSemaine = LocalDate.now();
-            rafraichir();
+            modele.notifierObservateur();
         });
 
         btnZoomPlus.setOnAction(e -> {
             largeurJour = Math.min(160, largeurJour + 10);
-            rafraichir();
+            modele.notifierObservateur();
         });
 
         btnZoomMoins.setOnAction(e -> {
             largeurJour = Math.max(40, largeurJour - 10);
-            rafraichir();
+            modele.notifierObservateur();
         });
 
         HBox barre = new HBox(10, btnAujourdHui, btnZoomPlus, btnZoomMoins);
@@ -87,7 +83,8 @@ public class VueGantt extends BorderPane implements Observateur {
     }
 
     // reconstruit tout l'affichage
-    public void rafraichir() {
+    @Override
+    public void actualiser(Sujet sujet) {
         listeNoms.getChildren().clear();
         zoneBarres.getChildren().clear();
 
@@ -177,8 +174,8 @@ public class VueGantt extends BorderPane implements Observateur {
         l.checkbox = cb;
 
         cb.selectedProperty().addListener((obs, oldV, newV) -> {
-            l.visible = newV;   // contrôle uniquement l'affichage à droite
-            rafraichir();
+            l.visible = newV;
+            modele.notifierObservateur();
         });
 
         ligneBox.getChildren().addAll(indent, cb);
@@ -187,23 +184,20 @@ public class VueGantt extends BorderPane implements Observateur {
 
     // dessine une barre (bleue pour niveau 0)
     private void dessinerBarre(Ligne l, double y, double h) {
-        if (l.debut == null || l.fin == null) return;
+        if (l.debut == null) return;
 
-        long decalageJour = l.debut.toLocalDate().toEpochDay() - debutSemaine.toEpochDay();
+        // l.debut est maintenant un LocalDate
+        long decalageJour = l.debut.toEpochDay() - debutSemaine.toEpochDay();
         if (decalageJour < 0 || decalageJour > 6) return;
 
-        double offsetHeure = (l.debut.getHour() + l.debut.getMinute() / 60.0) / 24.0;
-        double dureeHeures = java.time.Duration.between(l.debut, l.fin).toMinutes() / 60.0;
-        if (dureeHeures <= 0) dureeHeures = 0.25;
-
-        double x = 40 + decalageJour * largeurJour + offsetHeure * largeurJour;
-        double w = (dureeHeures / 24.0) * largeurJour;
+        // Plus d'heure → la barre occupe toute la largeur du jour
+        double x = 40 + decalageJour * largeurJour;
+        double w = largeurJour;
 
         Rectangle barre = new Rectangle(x, y, w, h);
         barre.setArcWidth(10);
         barre.setArcHeight(10);
 
-        // niveau 0 = bleu
         barre.setStyle("-fx-fill: #3b82f6; -fx-opacity: 0.9;");
 
         Tooltip.install(barre, new Tooltip(l.nom));
@@ -250,51 +244,30 @@ public class VueGantt extends BorderPane implements Observateur {
         dessinerBarre(lignePrincipale, y, h);
 
         // sous-tâches de tous niveaux
-        dessinerSousTachesRec(lignePrincipale.tacheAssociee, y, h, 1, hauteurParNiveau);
+        dessinerSousTachesRec(lignePrincipale.tacheAssociee, y, 1, hauteurParNiveau);
     }
 
     // dessine récursivement toutes les sous-tâches (1.1, 1.1.1, 1.1.1.1, ...) en vert
-    private void dessinerSousTachesRec(Tache parentTache,
-                                       double yParent,
-                                       double hParent,
-                                       int niveauRelatif,
-                                       double hauteurParNiveau) {
-
+    private void dessinerSousTachesRec(Tache parentTache, double yParent, int niveauRelatif, double hauteurParNiveau) {
         for (Ligne l : lignes) {
             if (l.parentTache == parentTache && l.visible) {
-
-                // hauteur de ce niveau
-                double h = hauteurParNiveau;
-                // position verticale (on empile les niveaux à l'intérieur de la barre bleue)
                 double yRect = yParent + (niveauRelatif * hauteurParNiveau);
+                dessinerSousTacheDansBarre(l, yRect, hauteurParNiveau);
 
-                dessinerSousTacheDansBarre(l, yRect, h);
-
-                // si cette sous-tâche a elle-même des sous-tâches, dessiner les suivantes plus bas
-                if (l.tacheAssociee instanceof CompositeTache) {
-                    dessinerSousTachesRec(l.tacheAssociee,
-                            yParent,
-                            hParent,
-                            niveauRelatif + 1,
-                            hauteurParNiveau);
-                }
+                if (l.tacheAssociee instanceof CompositeTache) dessinerSousTachesRec(l.tacheAssociee, yParent, niveauRelatif + 1, hauteurParNiveau);
             }
         }
     }
 
     // dessine une sous-tâche (rectangle vert) dans la barre de son parent
     private void dessinerSousTacheDansBarre(Ligne l, double y, double h) {
-        if (l.debut == null || l.fin == null) return;
+        if (l.debut == null) return;
 
-        long decalageJour = l.debut.toLocalDate().toEpochDay() - debutSemaine.toEpochDay();
+        long decalageJour = l.debut.toEpochDay() - debutSemaine.toEpochDay();
         if (decalageJour < 0 || decalageJour > 6) return;
 
-        double offsetHeure = (l.debut.getHour() + l.debut.getMinute() / 60.0) / 24.0;
-        double dureeHeures = java.time.Duration.between(l.debut, l.fin).toMinutes() / 60.0;
-        if (dureeHeures <= 0) dureeHeures = 0.25;
-
-        double x = 40 + decalageJour * largeurJour + offsetHeure * largeurJour;
-        double w = (dureeHeures / 24.0) * largeurJour;
+        double x = 40 + decalageJour * largeurJour;
+        double w = largeurJour;
 
         Rectangle barre = new Rectangle(x, y, w, h);
         barre.setArcWidth(6);
@@ -330,25 +303,18 @@ public class VueGantt extends BorderPane implements Observateur {
         }
     }
 
-    @Override
-    public void actualiser(Sujet sujet) {
-        // si le modèle change complètement, on peut faire :
-        // lignes.clear(); et reconstruire, mais là on ne touche qu'au rafraîchissement
-        rafraichir();
-    }
-
     // petite structure pour une ligne du gantt
     private static class Ligne {
         String nom;
         int niveau;
-        LocalDateTime debut;
-        LocalDateTime fin;
+        LocalDate debut;
+        LocalDate fin;
         Tache tacheAssociee;
         Tache parentTache;
         boolean visible = true; // par défaut visible
         CheckBox checkbox;
 
-        Ligne(String nom, int niveau, LocalDateTime debut, LocalDateTime fin, Tache tache, Tache parent) {
+        Ligne(String nom, int niveau, LocalDate debut, LocalDate fin, Tache tache, Tache parent) {
             this.nom = nom;
             this.niveau = niveau;
             this.debut = debut;

@@ -167,7 +167,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         Label description = new Label(tsk.getDescription() == null ? "" : tsk.getDescription());
         description.setWrapText(true);
 
-        Label dates = new Label("Du " + tsk.getDebut().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm", Locale.FRENCH)) + " au " + tsk.getFin().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm", Locale.FRENCH)));
+        Label dates = new Label("Du " + tsk.getDebut().format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH)) + " au " + tsk.getFin().format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH)));
 
         Button cst = creerBoutton("+ Créer une sous tâche", e -> Popup.ouvrirPopUpTache(liste, null, tsk, model));
         cst.setVisible(false);

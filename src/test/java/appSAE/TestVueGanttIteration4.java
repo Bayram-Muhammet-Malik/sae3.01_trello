@@ -3,7 +3,7 @@ package appSAE;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,8 +23,8 @@ class TestVueGanttIteration4 {
                 liste,
                 "Analyse",
                 "Analyse du sujet",
-                LocalDateTime.of(2025, 1, 1, 9, 0),
-                LocalDateTime.of(2025, 1, 1, 12, 0),
+                LocalDate.of(2025, 1, 1),
+                LocalDate.of(2025, 1, 1),
                 Tache.Priorite.NORMAL
         );
 
@@ -32,8 +32,8 @@ class TestVueGanttIteration4 {
                 liste,
                 "Développement",
                 "Coder la solution",
-                LocalDateTime.of(2025, 1, 2, 9, 0),
-                LocalDateTime.of(2025, 1, 2, 18, 0),
+                LocalDate.of(2025, 1, 2),
+                LocalDate.of(2025, 1, 2),
                 Tache.Priorite.IMPORTANT
         );
     }

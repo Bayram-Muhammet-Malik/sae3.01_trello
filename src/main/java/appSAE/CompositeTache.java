@@ -1,13 +1,13 @@
 package appSAE;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CompositeTache extends Tache{
     private final List<Tache> sousTaches = new ArrayList<>();
 
-    public CompositeTache(String titre, String description, LocalDateTime debut, LocalDateTime fin, Priorite prio) {
+    public CompositeTache(String titre, String description, LocalDate debut, LocalDate fin, Priorite prio) {
         super(titre, description, debut, fin, prio);
     }
 

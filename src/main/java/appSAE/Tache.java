@@ -2,7 +2,7 @@ package appSAE;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public abstract class Tache implements Serializable {
     @Serial
@@ -26,15 +26,15 @@ public abstract class Tache implements Serializable {
 
     private String titre;
     private String description;
-    private LocalDateTime debut;
-    private LocalDateTime fin;
+    private LocalDate debut;
+    private LocalDate fin;
     private Priorite priorite;
     private boolean estFait;
 
     private Tache prerequise;
     private CompositeTache parentTache;
 
-    public Tache(String titre, String description, LocalDateTime debut, LocalDateTime fin, Priorite priorite) {
+    public Tache(String titre, String description, LocalDate debut, LocalDate fin, Priorite priorite) {
         this.titre = titre;
         this.description = description;
         this.debut = debut;
@@ -59,19 +59,19 @@ public abstract class Tache implements Serializable {
         this.description = description;
     }
 
-    public LocalDateTime getDebut() {
+    public LocalDate getDebut() {
         return debut;
     }
 
-    public void setDebut(LocalDateTime debut) {
+    public void setDebut(LocalDate debut) {
         this.debut = debut;
     }
 
-    public LocalDateTime getFin() {
+    public LocalDate getFin() {
         return fin;
     }
 
-    public void setFin(LocalDateTime fin) {
+    public void setFin(LocalDate fin) {
         this.fin = fin;
     }
 

@@ -27,11 +27,7 @@ public class Popup {
         TextField champTitre = new TextField(modeModification ? tacheAModifier.getTitre() : "");
         champTitre.setPromptText("Nom de la tâche");
 
-        TextArea champDescription = new TextArea(
-                modeModification
-                        ? (tacheAModifier.getDescription() == null ? "" : tacheAModifier.getDescription())
-                        : ""
-        );
+        TextArea champDescription = new TextArea(modeModification ? (tacheAModifier.getDescription() == null ? "" : tacheAModifier.getDescription()) : "");
         champDescription.setPromptText("Description");
         champDescription.setPrefRowCount(3);
         champDescription.setWrapText(true);
@@ -41,49 +37,34 @@ public class Popup {
         DatePicker dateFin;
 
         if (modeModification) {
-            LocalDateTime deb = tacheAModifier.getDebut();
-            LocalDateTime fin = tacheAModifier.getFin();
+            LocalDate deb = tacheAModifier.getDebut();
+            LocalDate fin = tacheAModifier.getFin();
 
-            dateDebut = new DatePicker(deb != null ? deb.toLocalDate() : LocalDate.now());
-            dateFin   = new DatePicker(fin != null ? fin.toLocalDate() : LocalDate.now().plusDays(1));
+            dateDebut = new DatePicker(deb != null ? deb : LocalDate.now());
+            dateFin   = new DatePicker(fin != null ? fin : LocalDate.now().plusDays(1));
 
         } else if (parentTache != null) {
-            LocalDate parentDeb = parentTache.getDebut() != null
-                    ? parentTache.getDebut().toLocalDate()
-                    : LocalDate.now();
+            LocalDate deb = parentTache.getDebut();
+            LocalDate fin = parentTache.getFin();
 
-            LocalDate subDeb = parentDeb.plusDays(1);
-            LocalDate subFin = parentDeb.plusDays(2);
-
-            dateDebut = new DatePicker(subDeb);
-            dateFin   = new DatePicker(subFin);
-
+            dateDebut = new DatePicker(deb != null ? deb : LocalDate.now());
+            dateFin   = new DatePicker(fin != null ? fin : LocalDate.now());
         } else {
             LocalDate today = LocalDate.now();
             dateDebut = new DatePicker(today);
             dateFin   = new DatePicker(today.plusDays(1));
         }
 
-        // --- correction automatique des incohérences ---
         dateDebut.valueProperty().addListener((obs, oldDate, newDate) -> {
             if (newDate == null) return;
             LocalDate fin = dateFin.getValue();
-            // si fin <= début -> fin = début + 1 jour
-            if (fin == null || !fin.isAfter(newDate)) {
-                dateFin.setValue(newDate.plusDays(1));
-            }
         });
 
         dateFin.valueProperty().addListener((obs, oldFin, newFin) -> {
             if (newFin == null) return;
             LocalDate deb = dateDebut.getValue();
             if (deb == null) return;
-            // si fin <= début -> fin = début + 1 jour
-            if (!newFin.isAfter(deb)) {
-                dateFin.setValue(deb.plusDays(1));
-            }
         });
-        // --- fin strict minimum ---
 
         // Priorité de la tâche
         ComboBox<Tache.Priorite> champPriorite = new ComboBox<>();
@@ -168,8 +149,8 @@ public class Popup {
 
         dialog.showAndWait().ifPresent(btn -> {
             if (btn == btnValider) {
-                LocalDateTime deb = LocalDateTime.of(dateDebut.getValue(), LocalTime.MIN);
-                LocalDateTime fin = LocalDateTime.of(dateFin.getValue(), LocalTime.MAX);
+                LocalDate deb = dateDebut.getValue();
+                LocalDate fin = dateFin.getValue();
 
                 new ControlerPopTache(
                         model,
@@ -194,17 +175,14 @@ public class Popup {
 
         if (dDeb == null || dFin == null) return true;
 
-        // minimum 1 jour : fin doit être >= début + 1 jour
         if (!dFin.isAfter(dDeb)) return true;
 
         if (parentTache != null) {
-            LocalDateTime deb = LocalDateTime.of(dDeb, LocalTime.MIN);
-            LocalDateTime fin = LocalDateTime.of(dFin, LocalTime.MAX);
-            LocalDateTime pDeb = parentTache.getDebut();
-            LocalDateTime pFin = parentTache.getFin();
+            LocalDate pDeb = parentTache.getDebut();
+            LocalDate pFin = parentTache.getFin();
 
-            if (pDeb != null && deb.isBefore(pDeb)) return true;
-            if (pFin != null && fin.isAfter(pFin)) return true;
+            if (pDeb != null && dDeb.isBefore(pDeb)) return true;
+            return pFin != null && dFin.isAfter(pFin);
         }
 
         return false;

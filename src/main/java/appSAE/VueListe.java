@@ -181,8 +181,8 @@ public class VueListe extends ScrollPane implements Observateur {
     }
 
     private boolean estActiveLeJour(Tache t, LocalDate jour) {
-        LocalDate d = t.getDebut() != null ? t.getDebut().toLocalDate() : null;
-        LocalDate f = t.getFin() != null ? t.getFin().toLocalDate() : null;
+        LocalDate d = t.getDebut() != null ? t.getDebut() : null;
+        LocalDate f = t.getFin() != null ? t.getFin() : null;
         return d != null && !jour.isBefore(d) && (f == null || !jour.isAfter(f));
     }
 
@@ -190,8 +190,8 @@ public class VueListe extends ScrollPane implements Observateur {
         if (t.getDebut() == null) return Integer.MAX_VALUE;
         if (t.getFin() == null) return 1;
 
-        long d1 = t.getDebut().toLocalDate().toEpochDay();
-        long d2 = t.getFin().toLocalDate().toEpochDay();
+        long d1 = t.getDebut().toEpochDay();
+        long d2 = t.getFin().toEpochDay();
         return (int) Math.max((d2 - d1) + 1, 1);
     }
 }

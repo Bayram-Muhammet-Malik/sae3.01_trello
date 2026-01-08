@@ -5,21 +5,21 @@ import javafx.event.EventHandler;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public class ControlerPopTache implements EventHandler<ActionEvent> {
     private final Model model;
     private final Liste liste;
     private final TextField titreField;
     private final TextArea descField;
-    private final LocalDateTime dateDebut;
-    private final LocalDateTime dateFin;
+    private final LocalDate dateDebut;
+    private final LocalDate dateFin;
     private final ComboBox<Tache.Priorite> prioBox;
     private final Tache tacheAModifier;
     private final Tache parentTache;
     private final Tache prerequise;
 
-    public ControlerPopTache(Model model, Liste liste, TextField titreField, TextArea descField, LocalDateTime dateDebut, LocalDateTime dateFin, ComboBox<Tache.Priorite> prioBox, Tache tacheAModifier, Tache parentTache, Tache prerequise) {
+    public ControlerPopTache(Model model, Liste liste, TextField titreField, TextArea descField, LocalDate dateDebut, LocalDate dateFin, ComboBox<Tache.Priorite> prioBox, Tache tacheAModifier, Tache parentTache, Tache prerequise) {
         this.model = model;
         this.liste = liste;
         this.titreField = titreField;
@@ -36,12 +36,7 @@ public class ControlerPopTache implements EventHandler<ActionEvent> {
     public void handle(ActionEvent e) {
         Tache.Priorite prio = (prioBox.getValue() == null) ? Tache.Priorite.NORMAL : prioBox.getValue();
 
-        LocalDateTime deb = dateDebut;
-        // si une tâche préalable existe et que le début est avant sa fin, on décale
-        if (prerequise != null && prerequise.getFin() != null && deb != null && deb.isBefore(prerequise.getFin())) {
-            deb = prerequise.getFin().plusMinutes(1);
-        }
-
+        LocalDate deb = dateDebut;
         if (tacheAModifier == null) {
             if (parentTache == null){
                 model.ajouterTache(liste, titreField.getText().trim(), descField.getText(), deb, dateFin, prio, prerequise);

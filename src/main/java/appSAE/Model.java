@@ -44,12 +44,12 @@ public class Model implements Sujet, Serializable {
         }
     }
 
-    public void ajouterTache(Liste liste, String titre, String desc, LocalDateTime debut, LocalDateTime fin, Tache.Priorite prio) {
+    public void ajouterTache(Liste liste, String titre, String desc, LocalDate debut, LocalDate fin, Tache.Priorite prio) {
         ajouterTache(liste, titre, desc, debut, fin, prio, null);
     }
 
     // avec tâche préalable
-    public void ajouterTache(Liste liste, String titre, String desc, LocalDateTime debut, LocalDateTime fin, Tache.Priorite prio, Tache prerequise) {
+    public void ajouterTache(Liste liste, String titre, String desc, LocalDate debut, LocalDate fin, Tache.Priorite prio, Tache prerequise) {
         if (prio == null) prio = Tache.Priorite.NORMAL;
         FeuilleTache tache = new FeuilleTache(titre, desc, debut, fin, prio);
         tache.setPrerequise(prerequise);
@@ -57,12 +57,12 @@ public class Model implements Sujet, Serializable {
         notifierObservateur();
     }
 
-    public void ajouterSousTache(CompositeTache parent, String titre, String desc, LocalDateTime debut, LocalDateTime fin, Tache.Priorite prio) {
+    public void ajouterSousTache(CompositeTache parent, String titre, String desc, LocalDate debut, LocalDate fin, Tache.Priorite prio) {
         ajouterSousTache(parent, titre, desc, debut, fin, prio, null);
     }
 
     // sous-tâche avec dépendance
-    public void ajouterSousTache(CompositeTache parent, String titre, String desc, LocalDateTime debut, LocalDateTime fin, Tache.Priorite prio, Tache prerequise) {
+    public void ajouterSousTache(CompositeTache parent, String titre, String desc, LocalDate debut, LocalDate fin, Tache.Priorite prio, Tache prerequise) {
         if (prio == null) prio = Tache.Priorite.NORMAL;
         FeuilleTache tache = new FeuilleTache(titre, desc, debut, fin, prio);
         tache.setPrerequise(prerequise);
