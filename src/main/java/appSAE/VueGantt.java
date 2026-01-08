@@ -7,18 +7,11 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- vue gantt tres simple :
- - 7 jours (semaine)
- - date de la tache = debut (jj-mm-aaaa)
- - duree par defaut : 1 jour, ou 3 jours si la tache a des sous-taches
- */
 public class VueGantt extends BorderPane implements Observateur {
     private final Model modele;
 
@@ -98,7 +91,7 @@ public class VueGantt extends BorderPane implements Observateur {
 
         ajouterHeaderJours();
 
-        // on reconstruit toujours les lignes, pour TOUTES les listes
+        // on reconstruit toujours les lignes
         lignes.clear();
         for (Liste liste : modele.getListes()) {
             for (Tache t : liste.getTaches()) {
@@ -146,7 +139,6 @@ public class VueGantt extends BorderPane implements Observateur {
         zoneBarres.setMinHeight(y + 20);
     }
 
-
     // affiche les numeros des jours
     private void ajouterHeaderJours() {
         listeNoms.getChildren().add(new Label("diagramme de gantt"));
@@ -180,7 +172,6 @@ public class VueGantt extends BorderPane implements Observateur {
             visibilite.put(l.tacheAssociee, newV);
             modele.notifierObservateur();
         });
-
 
         ligneBox.getChildren().addAll(indent, cb);
         return ligneBox;
@@ -276,7 +267,7 @@ public class VueGantt extends BorderPane implements Observateur {
         dessinerSousTachesRec(lignePrincipale.tacheAssociee, y, 1, hauteurParNiveau);
     }
 
-    // dessine récursivement toutes les sous-tâches (1.1, 1.1.1, 1.1.1.1, ...) en vert
+    // dessine récursivement toutes les sous-tâches en vert
     private void dessinerSousTachesRec(Tache parentTache, double yParent, int niveauRelatif, double hauteurParNiveau) {
         for (Ligne l : lignes) {
             if (l.parentTache == parentTache && l.visible) {
@@ -336,7 +327,6 @@ public class VueGantt extends BorderPane implements Observateur {
     // construit la structure des lignes à partir des tâches
     private void construireLignesRec(Tache t, int niveau, Tache parent) {
 
-        // valeur par défaut = true
         visibilite.putIfAbsent(t, true);
 
         Ligne ligne = new Ligne(
@@ -377,13 +367,6 @@ public class VueGantt extends BorderPane implements Observateur {
             this.fin = fin;
             this.tacheAssociee = tache;
             this.parentTache = parent;
-        }
-
-        void setVisible(boolean v) {
-            this.visible = v;
-            if (checkbox != null && checkbox.isSelected() != v) {
-                checkbox.setSelected(v);
-            }
         }
     }
 }
