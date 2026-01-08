@@ -68,11 +68,10 @@ public class Popup {
 
         for (Liste l : model.getListes()) {
             for (Tache t : model.getTachesFromListe(l)) {
-                if (t != tacheAModifier) {
-                    comboPrerequise.getItems().add(t);
-                }
+                ajouterTacheEtSousTachesDansCombo(comboPrerequise, t, tacheAModifier);
             }
         }
+
 
         comboPrerequise.setCellFactory(listView -> new ListCell<>() {
             @Override
@@ -236,4 +235,18 @@ public class Popup {
 
         dialog.showAndWait();
     }
+    // Méthode utilitaire remplissant les sous tâches dans les dépendances
+    private static void ajouterTacheEtSousTachesDansCombo(ComboBox<Tache> combo,
+                                                          Tache t,
+                                                          Tache tacheAModifier) {
+        if (t != tacheAModifier) {
+            combo.getItems().add(t);
+        }
+        if (t instanceof CompositeTache ct) {
+            for (Tache sous : ct.getTaches()) {
+                ajouterTacheEtSousTachesDansCombo(combo, sous, tacheAModifier);
+            }
+        }
+    }
+
 }

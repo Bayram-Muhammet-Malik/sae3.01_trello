@@ -17,8 +17,10 @@ import javafx.scene.layout.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+// Affiche le "bureau" avec les listes et leurs tâches
 public class VueBureau extends ScrollPane implements Observateur {
     private final Model model;
+    // Liste qu'on est en train de déplacer
     private Liste listeDragEnCours;
 
     public VueBureau(Model model) {
@@ -143,7 +145,9 @@ public class VueBureau extends ScrollPane implements Observateur {
      */
     private VBox creerTache(Liste liste, Tache tsk, int profondeur) {
         VBox carte = new VBox(6);
-        carte.setStyle("-fx-background-color: " + (profondeur % 2 == 0 ? "#ffffff" : "#f3f4f6") + "; -fx-padding: 10px; -fx-background-radius: 10px; -fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
+        carte.setStyle("-fx-background-color: " + (profondeur % 2 == 0 ? "#ffffff" : "#f3f4f6") +
+                "; -fx-padding: 10px; -fx-background-radius: 10px; " +
+                "-fx-border-color: #e5e7eb; -fx-border-radius: 10px;");
         ControlerDrag cd = new ControlerDrag(model, tsk, liste, carte);
         carte.setOnDragDetected(cd::handleDragDetected);
         carte.setOnDragOver(cd::handleDragOver);
@@ -178,13 +182,27 @@ public class VueBureau extends ScrollPane implements Observateur {
 
         ImageView deleteIcon = creerIconeSuppression();
         Tooltip.install(deleteIcon, new Tooltip("Supprimer"));
+
         ligneHaut.getChildren().addAll(fait, titre, espace, badge, deleteIcon);
 
         Label description = new Label(tsk.getDescription() == null ? "" : tsk.getDescription());
         description.setWrapText(true);
 
-        Label dates = new Label("Du " + tsk.getDebut().format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH)) + " au " + tsk.getFin().format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH)));
+        Label dates = new Label("Du " + tsk.getDebut().format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH)) +
+                " au " + tsk.getFin().format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH)));
 
+        // Label "dépend de" (affiché seulement si la tâche a une dépendance)
+        Label dependDeLabel = new Label();
+        if (tsk.getPrerequise() != null) {
+            dependDeLabel.setText("Dépend de : " + tsk.getPrerequise().getTitre());
+            dependDeLabel.setVisible(true);
+            dependDeLabel.setManaged(true);
+        } else {
+            dependDeLabel.setVisible(false);
+            dependDeLabel.setManaged(false);
+        }
+
+        // Bouton "Créer une sous-tâche" (visible au survol)
         Button cst = creerBoutton("+ Créer une sous tâche", e -> Popup.ouvrirPopUpTache(liste, null, tsk, model));
         cst.setVisible(false);
         cst.setManaged(false);
@@ -204,7 +222,8 @@ public class VueBureau extends ScrollPane implements Observateur {
             }
         }
 
-        content.getChildren().addAll(ligneHaut, description, dates, cst);
+        // dates sur une ligne, puis la dépendance juste en dessous
+        content.getChildren().addAll(ligneHaut, description, dates, dependDeLabel, cst);
 
         content.setOnMouseClicked(e -> {
             Node source = (Node) e.getTarget();
@@ -220,6 +239,7 @@ public class VueBureau extends ScrollPane implements Observateur {
         carte.getChildren().addAll(content, sousTachesBox);
         return carte;
     }
+
 
     /**
      * Méthode qui permet de crée une icone de suppression

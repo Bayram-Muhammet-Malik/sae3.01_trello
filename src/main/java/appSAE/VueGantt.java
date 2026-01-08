@@ -7,18 +7,11 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- vue gantt tres simple :
- - 7 jours (semaine)
- - date de la tache = debut (jj-mm-aaaa)
- - duree par defaut : 1 jour, ou 3 jours si la tache a des sous-taches
- */
 public class VueGantt extends BorderPane implements Observateur {
     private final Model modele;
 
@@ -98,7 +91,7 @@ public class VueGantt extends BorderPane implements Observateur {
 
         ajouterHeaderJours();
 
-        // on reconstruit toujours les lignes, pour TOUTES les listes
+        // on reconstruit toujours les lignes
         lignes.clear();
         for (Liste liste : modele.getListes()) {
             for (Tache t : liste.getTaches()) {
@@ -146,7 +139,6 @@ public class VueGantt extends BorderPane implements Observateur {
         zoneBarres.setMinHeight(y + 20);
     }
 
-
     // affiche les numeros des jours
     private void ajouterHeaderJours() {
         listeNoms.getChildren().add(new Label("diagramme de gantt"));
@@ -181,7 +173,6 @@ public class VueGantt extends BorderPane implements Observateur {
             modele.notifierObservateur();
         });
 
-
         ligneBox.getChildren().addAll(indent, cb);
         return ligneBox;
     }
@@ -197,16 +188,44 @@ public class VueGantt extends BorderPane implements Observateur {
         double x = 40 + decalageJour * largeurJour;
         double w = largeurJour;
 
-        Rectangle barre = new Rectangle(x, y, w, h);
-        barre.setArcWidth(10);
-        barre.setArcHeight(10);
-        barre.setStyle("-fx-fill: #3b82f6; -fx-opacity: 0.9;");
+        boolean aSousTaches =
+                l.tacheAssociee instanceof CompositeTache ct
+                        && !ct.getTaches().isEmpty();
+
+        Rectangle rect = new Rectangle(w, h);
+        rect.setArcWidth(10);
+        rect.setArcHeight(10);
+        rect.setFill(Color.web("#3b82f6"));
+        rect.setOpacity(0.9);
+
+        Label texte = new Label(l.nom);
+        texte.setTextFill(Color.WHITE);
+        texte.setStyle("-fx-font-size: 11; -fx-font-weight: bold;");
+        texte.setMaxWidth(w - 8);
+        texte.setEllipsisString("…");
+        texte.setWrapText(false);
+
+        StackPane barre = new StackPane(rect, texte);
+        barre.setLayoutX(x);
+        barre.setLayoutY(y);
+
+        if (aSousTaches) {
+            StackPane.setAlignment(texte, Pos.TOP_LEFT);
+            StackPane.setMargin(texte, new Insets(4, 4, 0, 6));
+        } else {
+            StackPane.setAlignment(texte, Pos.CENTER_LEFT);
+            StackPane.setMargin(texte, new Insets(0, 4, 0, 6));
+        }
 
         Tooltip.install(barre, new Tooltip(l.nom));
 
         barre.setOnMouseClicked(e -> {
-            l.setVisible(!l.visible);   // met à jour visible + CheckBox si besoin
-            modele.notifierObservateur();
+            Popup.ouvrirPopUpTache(
+                    modele.getListes().get(0),
+                    l.tacheAssociee,
+                    l.parentTache,
+                    modele
+            );
         });
 
         zoneBarres.getChildren().add(barre);
@@ -248,7 +267,7 @@ public class VueGantt extends BorderPane implements Observateur {
         dessinerSousTachesRec(lignePrincipale.tacheAssociee, y, 1, hauteurParNiveau);
     }
 
-    // dessine récursivement toutes les sous-tâches (1.1, 1.1.1, 1.1.1.1, ...) en vert
+    // dessine récursivement toutes les sous-tâches en vert
     private void dessinerSousTachesRec(Tache parentTache, double yParent, int niveauRelatif, double hauteurParNiveau) {
         for (Ligne l : lignes) {
             if (l.parentTache == parentTache && l.visible) {
@@ -270,29 +289,44 @@ public class VueGantt extends BorderPane implements Observateur {
         double x = 40 + decalageJour * largeurJour;
         double w = largeurJour;
 
-        Rectangle barre = new Rectangle(x, y, w, h);
-        barre.setArcWidth(6);
-        barre.setArcHeight(6);
-        barre.setStyle("-fx-fill: #22c55e; -fx-opacity: 0.9;");
-        barre.setStroke(Color.BLACK);
-        barre.setStrokeWidth(1.0);
+        Rectangle rect = new Rectangle(w, h);
+        rect.setArcWidth(6);
+        rect.setArcHeight(6);
+        rect.setFill(Color.web("#22c55e"));
+        rect.setOpacity(0.9);
+        rect.setStroke(Color.BLACK);
+        rect.setStrokeWidth(1);
+
+        Label texte = new Label(l.nom);
+        texte.setTextFill(Color.BLACK);
+        texte.setStyle("-fx-font-size: 10;");
+        texte.setMaxWidth(w - 6);
+        texte.setWrapText(false);
+        texte.setEllipsisString("…");
+
+        StackPane barre = new StackPane(rect, texte);
+        barre.setLayoutX(x);
+        barre.setLayoutY(y);
+        barre.setPadding(new Insets(1, 4, 1, 4));
+        barre.setAlignment(Pos.CENTER_LEFT);
 
         Tooltip.install(barre, new Tooltip(l.nom));
 
         barre.setOnMouseClicked(e -> {
-            l.setVisible(!l.visible);
-            modele.notifierObservateur();
+            Popup.ouvrirPopUpTache(
+                    modele.getListes().get(0),
+                    l.tacheAssociee,
+                    l.parentTache,
+                    modele
+            );
         });
 
         zoneBarres.getChildren().add(barre);
     }
 
-
-
     // construit la structure des lignes à partir des tâches
     private void construireLignesRec(Tache t, int niveau, Tache parent) {
 
-        // valeur par défaut = true
         visibilite.putIfAbsent(t, true);
 
         Ligne ligne = new Ligne(
@@ -333,13 +367,6 @@ public class VueGantt extends BorderPane implements Observateur {
             this.fin = fin;
             this.tacheAssociee = tache;
             this.parentTache = parent;
-        }
-
-        void setVisible(boolean v) {
-            this.visible = v;
-            if (checkbox != null && checkbox.isSelected() != v) {
-                checkbox.setSelected(v);
-            }
         }
     }
 }
