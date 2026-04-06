@@ -25,13 +25,7 @@ jobs:
           $jar = Get-ChildItem target/*.jar | Select-Object -First 1
           echo "Using JAR: $($jar.Name)"
 
-          jpackage `
-            --type exe `
-            --input target `
-            --main-jar $jar.Name `
-            --main-class com.hitask.Main `
-            --name Hitask `
-            --win-console
+          jpackage --type exe --input target --main-jar $jar.Name --main-class com.hitask.Main --name Hitask --win-console
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
