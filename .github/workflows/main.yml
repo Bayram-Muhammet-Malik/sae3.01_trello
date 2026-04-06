@@ -1,4 +1,4 @@
-name: Build Windows EXE
+name: Build .JAR + Windows EXE
 
 on:
   workflow_dispatch:
@@ -46,8 +46,14 @@ jobs:
           echo "Contenu du dossier target :"
           dir target
 
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: jar-file
+          path: target/*.jar
+
       - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
           name: windows-exe
-          path: Hitask.exe
+          path: Hitask*.exe
