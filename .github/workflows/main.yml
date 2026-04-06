@@ -20,13 +20,17 @@ jobs:
         run: mvn -B clean package
 
       - name: Create EXE with jpackage
+        shell: pwsh
         run: |
+          $jar = Get-ChildItem target/*.jar | Select-Object -First 1
+          echo "Using JAR: $($jar.Name)"
+
           jpackage `
             --type exe `
             --input target `
-            --main-jar hitask.jar `
-            --main-class com.hitask.MainWindow `
-            --name Hitask`
+            --main-jar $jar.Name `
+            --main-class com.hitask.Main `
+            --name Hitask `
             --win-console
 
       - name: Upload EXE
