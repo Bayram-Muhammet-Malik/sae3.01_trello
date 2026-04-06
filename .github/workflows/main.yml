@@ -19,7 +19,7 @@ jobs:
       - name: Build JAR
         run: mvn -B clean package
 
-      - name: Create EXE with jpackage
+      - name: Create portable EXE with jpackage
         shell: pwsh
         run: |
           $jar = Get-ChildItem target/*.jar | Select-Object -First 1
@@ -31,10 +31,10 @@ jobs:
 
           echo "Using JAR: $($jar.Name)"
 
-          jpackage --type exe `
+          jpackage --type app-image `
              --input target `
              --main-jar $jar.Name `
-             --main-class com.hitask.Main `
+             --main-class appSAE.MainWindow `
              --name Hitask `
              --win-console
 
@@ -43,8 +43,8 @@ jobs:
         run: |
           echo "Contenu du dossier racine :"
           dir
-          echo "Contenu du dossier target :"
-          dir target
+          echo "Contenu du dossier Hitask :"
+          dir Hitask
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
@@ -52,8 +52,8 @@ jobs:
           name: jar-file
           path: target/*.jar
 
-      - name: Upload EXE
+      - name: Upload Portable App
         uses: actions/upload-artifact@v4
         with:
-          name: windows-exe
-          path: Hitask*.exe
+          name: windows-portable-app
+          path: Hitask/
